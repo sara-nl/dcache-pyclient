@@ -10,10 +10,9 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any, Iterator, Optional
 
-from ada.exceptions import AdaAPIError, AdaValidationError
-from ada.models import Channel, SSEEvent, Subscription
+from ada.exceptions import AdaAPIError
+from ada.models import Channel
 from ada.state import AdaState
-from ada.utils import encode_path
 
 if TYPE_CHECKING:
     from ada.core.api import DcacheAPI

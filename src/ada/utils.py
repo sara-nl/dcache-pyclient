@@ -7,11 +7,9 @@ and human-readable size formatting.
 from __future__ import annotations
 
 import json
-import os
 import re
 import stat
 from pathlib import Path
-from typing import Optional
 from urllib.parse import quote as urlquote
 
 from ada.exceptions import AdaSecurityError, AdaValidationError

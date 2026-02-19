@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import MagicMock
 
 from ada.exceptions import AdaNotFoundError, AdaPathError, AdaValidationError
 from ada.models import FileType

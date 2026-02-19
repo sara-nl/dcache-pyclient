@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 from pathlib import PurePosixPath
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ada.exceptions import AdaNotFoundError, AdaPathError, AdaValidationError
 from ada.models import Checksum, FileInfo, FileType, Locality

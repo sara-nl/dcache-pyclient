@@ -6,17 +6,15 @@ Handles bringing files from tape to disk (staging), releasing disk copies
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import TYPE_CHECKING, Optional
 
 from ada.exceptions import (
     AdaAPIError,
     AdaForbiddenError,
-    AdaValidationError,
 )
-from ada.models import BulkRequest, BulkRequestStatus, FileType
-from ada.utils import encode_path, parse_lifetime, read_file_list
+from ada.models import BulkRequest, BulkRequestStatus
+from ada.utils import parse_lifetime, read_file_list
 
 if TYPE_CHECKING:
     from ada.core.api import DcacheAPI

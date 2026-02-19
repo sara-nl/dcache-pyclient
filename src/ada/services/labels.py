@@ -143,7 +143,6 @@ class LabelService:
         results: list[tuple[str, list[str]]],
     ) -> None:
         """Recursively search for files with matching labels."""
-        ns = self._get_namespace()
         base = path.rstrip("/")
 
         # Get files and their labels

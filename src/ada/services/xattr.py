@@ -158,7 +158,6 @@ class XattrService:
         results: list[tuple[str, dict[str, str]]],
     ) -> None:
         """Recursively search for files with matching attributes."""
-        ns = self._get_namespace()
         base = path.rstrip("/")
 
         data = self._api.get(

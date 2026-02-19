@@ -366,6 +366,7 @@ Decodes Macaroon tokens using base64 decoding and text parsing,
 matching the Bash version's approach.
 """
 
+
 def is_macaroon(token: str) -> bool:
     """Check if a token looks like a Macaroon (not a JWT)."""
     from ada.tokens.jwt import is_jwt
@@ -460,14 +461,14 @@ def extract_macaroon_expiry(decoded_text: str) -> Optional[int]:
         raise AdaAuthError(
             f"Invalid macaroon: unable to parse 'before' timestamp: {exp_str}"
         ) from exc
-    
+
 
 """Token validation logic.
 
 Validates JWT and Macaroon tokens for expiry and required permissions,
 replicating the Bash ``check_token`` function.
 """
-    
+
 MIN_VALID_TIME = 60  # seconds — token must be valid for at least this long
 
 

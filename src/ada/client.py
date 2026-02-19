@@ -16,9 +16,9 @@ Usage::
 from __future__ import annotations
 
 import logging
-from typing import Iterator, Optional
+from typing import Optional
 
-from ada.config import AdaConfig, load_config
+from ada.config import load_config
 from ada.api import DcacheAPI
 from ada.auth import AuthProvider, resolve_auth
 from ada.models import (
