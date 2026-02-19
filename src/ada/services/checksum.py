@@ -11,10 +11,10 @@ from typing import TYPE_CHECKING, Optional
 
 from ada.models import Checksum, FileType
 from ada.utils import encode_path, read_file_list
+from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
-    from ada.core.api import DcacheAPI
-    from ada.services.namespace import NamespaceService
+    from ada.api import DcacheAPI
 
 logger = logging.getLogger("ada.services.checksum")
 
@@ -29,7 +29,6 @@ class ChecksumService:
     def _get_namespace(self) -> NamespaceService:
         """Lazy-load namespace service to avoid circular imports."""
         if self._namespace is None:
-            from ada.services.namespace import NamespaceService
             self._namespace = NamespaceService(self._api)
         return self._namespace
 

@@ -15,10 +15,10 @@ from ada.exceptions import (
 )
 from ada.models import BulkRequest, BulkRequestStatus
 from ada.utils import parse_lifetime, read_file_list
+from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
     from ada.core.api import DcacheAPI
-    from ada.services.namespace import NamespaceService
 
 logger = logging.getLogger("ada.services.staging")
 
@@ -32,7 +32,6 @@ class StagingService:
 
     def _get_namespace(self) -> NamespaceService:
         if self._namespace is None:
-            from ada.services.namespace import NamespaceService
             self._namespace = NamespaceService(self._api)
         return self._namespace
 
@@ -229,7 +228,7 @@ class StagingService:
                 "'bulk.allowed-directory-expansion=ALL' if recursive staging is needed.",
                 response_body=response.text,
             )
-        elif expand == "TARGETS":
+        if expand == "TARGETS":
             raise AdaForbiddenError(
                 "Staging failed. Staging a directory may be prohibited by the server. "
                 "Try staging individual files instead. "
@@ -237,8 +236,7 @@ class StagingService:
                 "'bulk.allowed-directory-expansion=TARGETS' if directory staging is needed.",
                 response_body=response.text,
             )
-        else:
-            raise AdaForbiddenError(
-                f"Staging failed: {response.text[:200]}",
-                response_body=response.text,
-            )
+        raise AdaForbiddenError(
+            f"Staging failed: {response.text[:200]}",
+            response_body=response.text,
+        )

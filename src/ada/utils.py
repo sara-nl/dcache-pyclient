@@ -140,11 +140,11 @@ def parse_lifetime(lifetime_str: str) -> tuple[int, str]:
         )
     try:
         value = int(lifetime_str[:-1])
-    except ValueError:
+    except ValueError as exc:
         raise AdaValidationError(
             f"Invalid lifetime value: '{lifetime_str}'. Expected format: <number><unit>, "
             f"e.g., '7D', '24H'."
-        )
+        ) from exc
     if value <= 0:
         raise AdaValidationError("Lifetime must be a positive number.")
     return value, unit
@@ -171,7 +171,7 @@ def read_file_list(filepath: str) -> list[str]:
     if not path.exists():
         raise FileNotFoundError(f"File list not found: {filepath}")
     lines = []
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
             lines.append(line)

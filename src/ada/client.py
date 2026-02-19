@@ -132,10 +132,10 @@ class AdaClient:
         return self.labels.list(path, label=label)
 
     def remove_label(
-        self, path: str, label: str = "", all: bool = False
+        self, path: str, label: str = "", all_labels: bool = False
     ) -> str:
         """Remove label(s) from a file."""
-        return self.labels.remove(path, label=label, all=all)
+        return self.labels.remove(path, label=label, all_labels=all_labels)
 
     def find_label(
         self, path: str, regex: str, recursive: bool = False
@@ -156,10 +156,10 @@ class AdaClient:
         return self.xattr.list(path, key=key)
 
     def remove_xattr(
-        self, path: str, key: str = "", all: bool = False
+        self, path: str, key: str = "", all_keys: bool = False
     ) -> str:
         """Remove extended attribute(s) from a file."""
-        return self.xattr.remove(path, key=key, all=all)
+        return self.xattr.remove(path, key=key, all_keys=all_keys)
 
     def find_xattr(
         self,
@@ -196,7 +196,7 @@ class AdaClient:
     ) -> BulkRequest:
         """Stage files from tape to disk."""
         # self.auth.validate(command="stage")
-        # this gives: ada.exceptions.AdaAuthError: Invalid macaroon: cannot base64 decode: Incorrect padding
+        # this gives ada.exceptions.AdaAuthError
         return self.staging.stage(
             paths, recursive=recursive, lifetime=lifetime, from_file=from_file
         )

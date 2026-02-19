@@ -22,7 +22,10 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 from urllib.parse import urlparse
+import netrc as netrc_module
+import ssl
 
+import httpx
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.utils import check_file_permissions
 
@@ -39,12 +42,10 @@ class AuthProvider(ABC):
     @abstractmethod
     def headers(self) -> dict[str, str]:
         """Return HTTP headers for authentication."""
-        ...
 
     @abstractmethod
     def method_name(self) -> str:
         """Human-readable name like 'token', 'netrc', 'proxy'."""
-        ...
 
     def view_token(self) -> dict[str, Any]:
         """Decode and return token properties for display."""
@@ -81,9 +82,6 @@ class TokenAuth(AuthProvider):
         validate_token(self.token, source=self.source, command=command)
 
     def view_token(self) -> dict[str, Any]:
-        from ada.tokens.jwt import decode_jwt, is_jwt
-        from ada.tokens.macaroon import decode_macaroon
-
         if is_jwt(self.token):
             return decode_jwt(self.token)
         return decode_macaroon(self.token)
@@ -106,7 +104,7 @@ class TokenFileAuth(TokenAuth):
         - rclone config format (``bearer_token = <token>``)
         - Plain token (first non-empty line)
         """
-        content = Path(path).read_text()
+        content = Path(path).read_text(encoding="utf-8")
 
         # Try rclone config format first
         for line in content.splitlines():
@@ -144,9 +142,6 @@ class NetrcAuth(AuthProvider):
 
     def get_httpx_auth(self) -> Any:
         """Parse netrc and return httpx BasicAuth for the API host."""
-        import httpx
-        import netrc as netrc_module
-
         try:
             nrc = netrc_module.netrc(self.netrcfile)
         except Exception as exc:
@@ -205,7 +200,6 @@ class ProxyAuth(AuthProvider):
 
     def get_ssl_context(self) -> Any:
         """Return an SSL context configured with the proxy certificate."""
-        import ssl
 
         ctx = ssl.create_default_context()
         if self.igtf:
@@ -274,11 +268,11 @@ def resolve_auth(
     )
 
 
-"""JWT/OIDC token handling.
+# JWT/OIDC token handling.
 
-Decodes and inspects JWT tokens without requiring external libraries
-by using base64 decoding of the payload section.
-"""
+# Decodes and inspects JWT tokens without requiring external libraries
+# by using base64 decoding of the payload section.
+
 
 # JWT pattern: three base64url-encoded parts separated by dots
 JWT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
@@ -360,17 +354,14 @@ def get_jwt_scope(token: str) -> str:
     return str(payload.get("scope", ""))
 
 
-"""Macaroon token handling.
+# Macaroon token handling.
 
-Decodes Macaroon tokens using base64 decoding and text parsing,
-matching the Bash version's approach.
-"""
+# Decodes Macaroon tokens using base64 decoding and text parsing,
+# matching the Bash version's approach.
 
 
 def is_macaroon(token: str) -> bool:
     """Check if a token looks like a Macaroon (not a JWT)."""
-    from ada.tokens.jwt import is_jwt
-
     return not is_jwt(token)
 
 
@@ -463,11 +454,11 @@ def extract_macaroon_expiry(decoded_text: str) -> Optional[int]:
         ) from exc
 
 
-"""Token validation logic.
+# Token validation logic.
 
-Validates JWT and Macaroon tokens for expiry and required permissions,
-replicating the Bash ``check_token`` function.
-"""
+# Validates JWT and Macaroon tokens for expiry and required permissions,
+# replicating the Bash ``check_token`` function.
+
 
 MIN_VALID_TIME = 60  # seconds — token must be valid for at least this long
 

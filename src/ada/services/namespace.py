@@ -127,7 +127,7 @@ class NamespaceService:
         # Check parent exists
         try:
             self.get_file_type(parent)
-        except Exception:
+        except Exception as exc:
             if recursive and len(parent) > 1:
                 logger.info("Parent dir '%s' does not exist. Creating it.", parent)
                 self.mkdir(parent, recursive=True, _depth=_depth + 1)
@@ -135,7 +135,7 @@ class NamespaceService:
                 raise AdaPathError(
                     f"Parent directory '{parent}' does not exist. "
                     f"Use --recursive to create it."
-                )
+                ) from exc
 
         self._api.post(
             f"namespace/{self._enc(parent)}",

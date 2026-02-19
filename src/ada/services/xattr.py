@@ -7,16 +7,17 @@ to files for custom metadata storage.
 from __future__ import annotations
 
 import logging
+from pathlib import Path as PathLib
 import re
 from typing import TYPE_CHECKING, Optional
 
 from ada.exceptions import AdaPathError, AdaValidationError
 from ada.models import FileType
 from ada.utils import encode_path, to_json
+from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
     from ada.core.api import DcacheAPI
-    from ada.services.namespace import NamespaceService
 
 logger = logging.getLogger("ada.services.xattr")
 
@@ -30,7 +31,6 @@ class XattrService:
 
     def _get_namespace(self) -> NamespaceService:
         if self._namespace is None:
-            from ada.services.namespace import NamespaceService
             self._namespace = NamespaceService(self._api)
         return self._namespace
 
@@ -60,9 +60,7 @@ class XattrService:
 
         The file can contain JSON or key=value pairs.
         """
-        from pathlib import Path as PathLib
-
-        content = PathLib(attr_file).read_text().strip()
+        content = PathLib(attr_file).read_text(encoding="utf-8").strip()
         return self.set(path, content)
 
     def list(self, path: str, key: Optional[str] = None) -> dict[str, str]:
@@ -87,20 +85,20 @@ class XattrService:
             return {}
         return xattrs
 
-    def remove(self, path: str, key: str = "", all: bool = False) -> str:
+    def remove(self, path: str, key: str = "", all_keys: bool = False) -> str:
         """Remove extended attribute(s) from a file.
 
         Args:
             path: File path.
             key: Specific attribute key to remove.
-            all: If True, remove all attributes.
+            all_keys: If True, remove all extended attributes.
 
         Returns:
             Status message.
         """
         encoded = encode_path(path)
 
-        if all:
+        if all_keys:
             xattrs = self.list(path)
             for k in xattrs:
                 self._api.delete(f"namespace/{encoded}/xattr/{k}")
@@ -108,7 +106,7 @@ class XattrService:
 
         if not key:
             raise AdaValidationError(
-                "Specify an attribute key to remove, or use --all."
+                "Specify an attribute key to remove, or use all__keys=True."
             )
 
         self._api.delete(f"namespace/{encoded}/xattr/{key}")

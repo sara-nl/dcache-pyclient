@@ -9,12 +9,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from ada.api import DcacheAPI
+
 
 @pytest.fixture
 def mock_api():
     """Mocked DcacheAPI for unit testing services."""
-    from ada.api import DcacheAPI
-
     return MagicMock(spec=DcacheAPI)
 
 

@@ -12,12 +12,14 @@ from typing import Optional
 
 
 class FileType(str, Enum):
+    """Filetype in dCache."""
     REGULAR = "REGULAR"
     DIR = "DIR"
     LINK = "LINK"
 
 
 class Locality(str, Enum):
+    """Locality of file in dCache."""
     ONLINE = "ONLINE"
     NEARLINE = "NEARLINE"
     ONLINE_AND_NEARLINE = "ONLINE_AND_NEARLINE"

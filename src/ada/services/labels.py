@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING, Optional
 from ada.exceptions import AdaPathError, AdaValidationError
 from ada.models import FileType
 from ada.utils import encode_path
+from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
     from ada.core.api import DcacheAPI
-    from ada.services.namespace import NamespaceService
 
 logger = logging.getLogger("ada.services.labels")
 
@@ -30,7 +30,6 @@ class LabelService:
 
     def _get_namespace(self) -> NamespaceService:
         if self._namespace is None:
-            from ada.services.namespace import NamespaceService
             self._namespace = NamespaceService(self._api)
         return self._namespace
 
@@ -73,19 +72,18 @@ class LabelService:
             if data:
                 return [label]
             return []
-        else:
-            data = self._api.get(
-                f"namespace/{encoded}", params={"labels": "true"}
-            )
-            return data.get("labels", [])
+        data = self._api.get(
+            f"namespace/{encoded}", params={"labels": "true"}
+        )
+        return data.get("labels", [])
 
-    def remove(self, path: str, label: str = "", all: bool = False) -> str:
+    def remove(self, path: str, label: str = "", all_labels: bool = False) -> str:
         """Remove a label from a file.
 
         Args:
             path: File path.
             label: Specific label to remove.
-            all: If True, remove all labels.
+            all_labels: If True, remove all labels.
 
         Returns:
             Status message.
@@ -93,14 +91,14 @@ class LabelService:
         self._ensure_file(path)
         encoded = encode_path(path)
 
-        if all:
+        if all_labels:
             labels = self.list(path)
             for lbl in labels:
                 self._api.delete(f"namespace/{encoded}/labels/{lbl}")
             return f"All labels removed from '{path}'"
 
         if not label:
-            raise AdaValidationError("Specify a label to remove, or use --all.")
+            raise AdaValidationError("Specify a label to remove, or use all_labels=True")
 
         self._api.delete(f"namespace/{encoded}/labels/{label}")
         return f"Label '{label}' removed from '{path}'"

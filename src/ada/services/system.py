@@ -81,12 +81,11 @@ class SystemService:
                     removable=data.get("removable", 0),
                 )
             return SpaceInfo(total=0, free=0, precious=0, removable=0)
-        else:
-            # List all pool groups
-            data = self._api.get("poolgroups")
-            if isinstance(data, list):
-                return [item.get("name", str(item)) for item in data]
-            return []
+        # List all pool groups
+        data = self._api.get("poolgroups")
+        if isinstance(data, list):
+            return [item.get("name", str(item)) for item in data]
+        return []
 
     def quota(self) -> list[QuotaInfo]:
         """Get storage quota information for the current user.
