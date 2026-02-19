@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "dcache-pyclient"
+version = "0.1.0"
+description = "Python client for user interaction with dCache"
+authors = ["Onno Zweers, Haili Hu"]
+license = "Apache-2.0 license"
+readme = "README.md"
+packages = [
+    { include = "ada", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+httpx = "^0.28.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^9.0.2"
+flake8 = "^7.3.0"
+pylint = "^4.0.4"
+
+[tool.poetry.group.test]
+optional = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
