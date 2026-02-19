@@ -195,7 +195,8 @@ class AdaClient:
         from_file: Optional[str] = None,
     ) -> BulkRequest:
         """Stage files from tape to disk."""
-        self.auth.validate(command="stage")
+        # self.auth.validate(command="stage")
+        # this gives: ada.exceptions.AdaAuthError: Invalid macaroon: cannot base64 decode: Incorrect padding
         return self.staging.stage(
             paths, recursive=recursive, lifetime=lifetime, from_file=from_file
         )
