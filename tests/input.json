@@ -1,0 +1,9 @@
+{
+    "user": "user_name",
+    "api": "api_url",
+    "webdav": "webdav_url",
+    "homedir": "user_homedir_on_dcache",    
+    "diskdir": "disk_dirname",
+    "tapedir": "tape_dirname",
+    "tokenfile": "tokenfile.conf"
+}

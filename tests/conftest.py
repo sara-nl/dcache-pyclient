@@ -10,7 +10,11 @@ from unittest.mock import MagicMock
 import pytest
 
 from ada.api import DcacheAPI
+from ada.client import AdaClient
 
+
+
+# Fixtures for unit tests
 
 @pytest.fixture
 def mock_api():
@@ -93,3 +97,29 @@ def make_jwt_token():
         return f"{header}.{payload}.{sig}"
 
     return _make
+
+
+# Fixtures for integration tests
+
+# define custom addoption with pytest_addoption hook
+def pytest_addoption(parser):
+  parser.addoption(
+    '--target-env',
+    action='store',
+    default='dev.json',
+    help='Path to the target environment config file')
+  
+
+# Read input jsonfile for integration test
+@pytest.fixture
+def target_env(request):
+  config_path = request.config.getoption('--target-env')
+  with open(config_path) as config_file:
+    config_data = json.load(config_file)
+  return config_data
+
+
+@pytest.fixture
+def ada_client(target_env):
+    client =  AdaClient(api=target_env['api'], tokenfile=target_env['tokenfile'])
+    return client
