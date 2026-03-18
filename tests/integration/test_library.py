@@ -23,12 +23,28 @@ class TestClassSystem:
 
 class TestClassNamespace:
     def test_mkdir(self, ada_client, target_env):
-        out = ada_client.mkdir(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + dirname + '/' + testdir)
+        out = ada_client.mkdir(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + dirname + '/' + testdir + '/' + subdir, recursive=True)
         assert out == 'created' 
         # check if dir is created
 
 
-    def test_delete(self, ada_client, target_env):
-        out = ada_client.delete(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + dirname + '/' + testdir)
+    def test_delete_dir(self, ada_client, target_env):
+        out = ada_client.delete(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + dirname + '/' + testdir, recursive=True)  # no force=True needed?           
         assert out == None
         # check if dir is deleted
+
+
+    def test_mv(self, ada_client, setup_data):
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # move file on dCache
+        tmp_file = dcache_file + '_tmp'
+        out = ada_client.mv(dcache_file, tmp_file )
+        assert out == 'moved'
+        # check if file is moved
+
+        # move back
+        out = ada_client.mv(tmp_file, dcache_file)
+        assert out == 'moved'

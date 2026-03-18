@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 import base64
 import json
 import time
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -123,3 +125,33 @@ def target_env(request):
 def ada_client(target_env):
     client =  AdaClient(api=target_env['api'], tokenfile=target_env['tokenfile'])
     return client
+
+# Create a 1GB file
+def generate_file(size_in_mb, file_name):
+  mega_byte = 1_000_000
+  with open(file_name, 'wb') as file:
+    file.write(os.urandom(size_in_mb*mega_byte))
+
+# Function to initialize setup
+@pytest.fixture
+def setup_data(target_env):
+    # Create test data and transfer to dCache:
+
+    tmpfile = "tmpfile"
+    testfile = f"{target_env['homedir']}/{target_env['diskdir']}/integration_test/1GBfile"
+    generate_file(1000, tmpfile)
+
+    # Get remote name for rclone
+    remote = Path(target_env['tokenfile']).stem
+
+    print("\nSetting up resources...")
+    print(f"rclone -P copyto --config={target_env['tokenfile']} {tmpfile} {remote}:{testfile}")
+    os.system(f"rclone -P copyto --config={target_env['tokenfile']} {tmpfile} {remote}:{testfile}")
+    #os.system("rclone -P copyto --config=${token_file} ${PWD}/$testfile  $(basename "${token_file%.*}"):/${disk_path}/${dirname}/${testfile}") 
+
+    yield testfile  # Provide the test filename to the test
+
+    # Teardown: Clean up resources (if any) after the test
+    print("\nTearing down resources...")
+
+    # delete local test data
