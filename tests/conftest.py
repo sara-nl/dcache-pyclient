@@ -15,8 +15,9 @@ from ada.api import DcacheAPI
 from ada.client import AdaClient
 
 
-
-# Fixtures for unit tests
+###########################
+# Fixtures for unit tests #
+###########################
 
 @pytest.fixture
 def mock_api():
@@ -100,8 +101,17 @@ def make_jwt_token():
 
     return _make
 
+##################################
+# Fixtures for integration tests #
+##################################
 
-# Fixtures for integration tests
+@pytest.fixture(scope="session")
+def testnames():
+    """Initializes and shares a dictionary across all tests."""
+    
+    # Define test files and directories    
+    return {"dirname": "integration_tmp", "testfile": "1MBfile", "testdir": "testdir", "subdir": "subdir"}
+
 
 # define custom addoption with pytest_addoption hook
 def pytest_addoption(parser):
@@ -128,30 +138,41 @@ def ada_client(target_env):
 
 # Create a 1GB file
 def generate_file(size_in_mb, file_name):
-  mega_byte = 1_000_000
+  mega_byte = 1_000
   with open(file_name, 'wb') as file:
     file.write(os.urandom(size_in_mb*mega_byte))
 
-# Function to initialize setup
-@pytest.fixture
-def setup_data(target_env):
-    # Create test data and transfer to dCache:
 
-    tmpfile = "tmpfile"
-    testfile = f"{target_env['homedir']}/{target_env['diskdir']}/integration_test/1GBfile"
+# Function to initialize test data on dCache
+@pytest.fixture
+def setup_data(target_env, tmp_path, testnames, ada_client):
+    """ Setup: Create test data and transfer to dCache """
+
+    # Temporary folder on dCache should not already exists, as it will be deleted at end of test:
+    testfolder = f"{target_env['homedir']}/{target_env['diskdir']}/{testnames['dirname']}"
+    # if ada_client.namespace.is_dir(testfolder):
+    #    pytest.exit(f"Temporary testfolder {testfolder} already exists on dCache. Stopping tests.")
+
+    # tmp_path fixture provides a temporary directory unique to each test function.
+    tmpfile = tmp_path / "tmpfile"
+    dcachefile = f"{target_env['homedir']}/{target_env['diskdir']}/{testnames['dirname']}/{testnames['testfile']}"
     generate_file(1000, tmpfile)
 
     # Get remote name for rclone
     remote = Path(target_env['tokenfile']).stem
 
     print("\nSetting up resources...")
-    print(f"rclone -P copyto --config={target_env['tokenfile']} {tmpfile} {remote}:{testfile}")
-    os.system(f"rclone -P copyto --config={target_env['tokenfile']} {tmpfile} {remote}:{testfile}")
-    #os.system("rclone -P copyto --config=${token_file} ${PWD}/$testfile  $(basename "${token_file%.*}"):/${disk_path}/${dirname}/${testfile}") 
+    print(f"rclone -P copyto --config={target_env['tokenfile']} {tmpfile} {remote}:{dcachefile}")
+    os.system(f"rclone -P copyto --config={target_env['tokenfile']} {tmpfile} {remote}:{dcachefile}")
 
-    yield testfile  # Provide the test filename to the test
+    yield dcachefile  # Provide the test filename to the test
 
     # Teardown: Clean up resources (if any) after the test
-    print("\nTearing down resources...")
+    print(f"\nDeleting {testfolder} on dCache ...")
 
-    # delete local test data
+    try:
+        # delete temporary test folder on dCache
+        ada_client.delete(testfolder, recursive=True, force=True)
+    except:
+        print(f"Cannot delete {testfolder} on dCache")
+

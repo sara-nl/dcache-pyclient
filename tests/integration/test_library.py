@@ -1,15 +1,11 @@
-"""Tests for ada.services.system module."""
+"""Integration tests for ADA library:
+Put configuration in tests/prod.json and pass to test:
+> pytest tests/integration --target-env tests/prod.json -v
+"""
 
 from __future__ import annotations
 
-import pytest
-
-
-# Define test files and directories
-dirname = "integration_test"
-testfile = "1GBfile"
-testdir = "testdir"
-subdir = "subdir"
+import os
 
 
 class TestClassSystem:
@@ -22,20 +18,26 @@ class TestClassSystem:
 
 
 class TestClassNamespace:
-    def test_mkdir(self, ada_client, target_env):
-        out = ada_client.mkdir(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + dirname + '/' + testdir + '/' + subdir, recursive=True)
+
+    def test_mkdir(self, ada_client, target_env, testnames):
+        """Create directory on dCache"""
+        dcache_dir = target_env['homedir'] + '/' + target_env['diskdir'] + '/' + testnames["dirname"] + '/' + testnames["testdir"] + '/' + testnames["subdir"]
+        out = ada_client.mkdir(dcache_dir, recursive=True)
         assert out == 'created' 
-        # check if dir is created
+
+        # list empty dir
+        out = ada_client.list(dcache_dir)
+        assert out == []
 
 
-    def test_delete_dir(self, ada_client, target_env):
-        out = ada_client.delete(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + dirname + '/' + testdir, recursive=True)  # no force=True needed?           
+    def test_delete_dir(self, ada_client, target_env, testnames):
+        """Delete directory on dCache"""        
+        out = ada_client.delete(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + testnames["dirname"] + '/' + testnames["testdir"], recursive=True)  # no force=True needed?           
         assert out == None
-        # check if dir is deleted
 
 
     def test_mv(self, ada_client, setup_data):
-
+        """Move file on dCache""" 
         # create testfile on dCache
         dcache_file = setup_data
 
@@ -43,8 +45,30 @@ class TestClassNamespace:
         tmp_file = dcache_file + '_tmp'
         out = ada_client.mv(dcache_file, tmp_file )
         assert out == 'moved'
-        # check if file is moved
 
-        # move back
-        out = ada_client.mv(tmp_file, dcache_file)
-        assert out == 'moved'
+        # check if file was moved
+        out = ada_client.list(tmp_file)
+        assert out == [os.path.basename(tmp_file)]
+
+        #move back
+        ada_client.mv(tmp_file, dcache_file)
+    
+
+    def test_longlist_checksum_delete(self, ada_client, setup_data):    
+        """longlist, checksum and delete file on dCache""" 
+
+        # create testfile on dCache
+        dcache_file = setup_data
+        
+        out = ada_client.longlist(dcache_file)
+        assert out[0].path == dcache_file
+
+        # checksum
+        out = ada_client.checksum(dcache_file)
+        assert out[0].path == dcache_file
+
+        # delete file
+        out = ada_client.delete(dcache_file)
+        assert out == None
+
+
