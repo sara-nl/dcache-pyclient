@@ -110,7 +110,7 @@ def testnames():
     """Initializes and shares a dictionary across all tests."""
     
     # Define test files and directories    
-    return {"dirname": "integration_tmp", "testfile": "1MBfile", "testdir": "testdir", "subdir": "subdir"}
+    return {"tmpdir": "integration_tmp", "testfile": "1MBfile", "subdir": "subdir"}
 
 
 # define custom addoption with pytest_addoption hook
@@ -149,13 +149,13 @@ def setup_data(target_env, tmp_path, testnames, ada_client):
     """ Setup: Create test data and transfer to dCache """
 
     # Temporary folder on dCache should not already exists, as it will be deleted at end of test:
-    testfolder = f"{target_env['homedir']}/{target_env['diskdir']}/{testnames['dirname']}"
-    # if ada_client.namespace.is_dir(testfolder):
-    #    pytest.exit(f"Temporary testfolder {testfolder} already exists on dCache. Stopping tests.")
+    testfolder = f"{target_env['homedir']}/{target_env['testdir']}/{testnames['tmpdir']}"
+    if ada_client.namespace.is_dir(testfolder):
+       pytest.exit(f"Temporary testfolder {testfolder} already exists on dCache. Stopping tests.")
 
     # tmp_path fixture provides a temporary directory unique to each test function.
     tmpfile = tmp_path / "tmpfile"
-    dcachefile = f"{target_env['homedir']}/{target_env['diskdir']}/{testnames['dirname']}/{testnames['testfile']}"
+    dcachefile = f"{target_env['homedir']}/{target_env['testdir']}/{testnames['tmpdir']}/{testnames['testfile']}"
     generate_file(1000, tmpfile)
 
     # Get remote name for rclone

@@ -91,7 +91,7 @@ class StagingService:
             )
 
         # Extract request ID from Location header or response body
-        request_url = response.headers.get("Location", "")
+        request_url = response.headers.get("request-url", "")
         request_id = request_url.rsplit("/", 1)[-1] if request_url else ""
 
         if not request_id:
@@ -157,7 +157,7 @@ class StagingService:
                 response_body=response.text,
             )
 
-        request_url = response.headers.get("Location", "")
+        request_url = response.headers.get("request-url", "")
         rid = request_url.rsplit("/", 1)[-1] if request_url else ""
 
         if not rid:

@@ -21,7 +21,7 @@ class TestClassNamespace:
 
     def test_mkdir(self, ada_client, target_env, testnames):
         """Create directory on dCache"""
-        dcache_dir = target_env['homedir'] + '/' + target_env['diskdir'] + '/' + testnames["dirname"] + '/' + testnames["testdir"] + '/' + testnames["subdir"]
+        dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'] + '/' + testnames['subdir']
         out = ada_client.mkdir(dcache_dir, recursive=True)
         assert out == 'created' 
 
@@ -32,7 +32,7 @@ class TestClassNamespace:
 
     def test_delete_dir(self, ada_client, target_env, testnames):
         """Delete directory on dCache"""        
-        out = ada_client.delete(target_env['homedir'] + '/' + target_env['diskdir'] + '/' + testnames["dirname"] + '/' + testnames["testdir"], recursive=True)  # no force=True needed?           
+        out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True)     
         assert out == None
 
 
@@ -72,3 +72,21 @@ class TestClassNamespace:
         assert out == None
 
 
+class TestStaging:
+
+    def test_stage_unstage(self, ada_client, setup_data):    
+
+        # create testfile on dCache
+        dcache_file = setup_data
+        
+        # stage
+        out = ada_client.stage(dcache_file)
+        assert out.activity == 'PIN'
+        assert out.targets[0] ==  dcache_file
+        assert out.request_id != ""
+
+        # unstage
+        out = ada_client.unstage(dcache_file)
+        assert out.activity == 'UNPIN'
+        assert out.targets[0] ==  dcache_file
+        assert out.request_id != ""
