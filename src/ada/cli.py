@@ -2,6 +2,7 @@ import sys
 import argparse
 
 from ada.client import AdaClient
+from ada.formatters import format_longlist
 
 def parse_args() -> argparse.ArgumentParser:
     """
@@ -36,12 +37,14 @@ def parse_args() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(help='ADA supports these commands')
 
+    # whoami
     parser_whoami = subparsers.add_parser(
         'whoami',
         help='Show how dCache identifies you.',
     )
     parser_whoami.set_defaults(func=whoami)
 
+    # list
     parser_list = subparsers.add_parser(
         'list',  
         help='List files in a directory.',    
@@ -51,7 +54,26 @@ def parse_args() -> argparse.ArgumentParser:
         'path',
         type=str
     )
- 
+    
+    # longlist
+    parser_longlist = subparsers.add_parser(
+        'longlist',  
+        help='List a file or directory with details.',    
+    )
+    parser_longlist.set_defaults(func=longlist)
+
+    # group mutual exclusive
+    group =  parser_longlist.add_mutually_exclusive_group()
+    group.add_argument(
+        'path',
+        nargs="?",
+        type=str,  
+    )
+    group.add_argument(
+        '--from-file',
+        type=str
+    )
+
     return parser
 
 
@@ -95,6 +117,24 @@ def list_cmd(parsed_args) -> None:
     with get_client(parsed_args) as client:
         for item in client.list(parsed_args.path):
             print(item)
+
+
+def longlist(parsed_args) -> None:
+    """List file(s) or directory with details (size, date, QoS, locality)."""
+
+    with get_client(parsed_args) as client:
+        if parsed_args.from_file:
+            paths = open(parsed_args.from_file).read().strip().splitlines()
+        elif parsed_args.path:
+            paths = [parsed_args.path]
+        else:
+            raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
+        results = client.longlist(paths)
+        # print(results)
+        for line in format_longlist(results):
+            print(line)
+        # for line in results:
+        #     print(line)
 
 
 def main():
