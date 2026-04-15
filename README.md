@@ -47,17 +47,35 @@ following information (see `tests/input.json` for a template):
     "api": "api_url",
     "webdav": "webdav_url",
     "homedir": "user_homedir_on_dcache",    
-    "diskdir": "disk_dirname",
-    "tapedir": "tape_dirname",
+    "testdir": "test_dirname",
     "tokenfile": "tokenfile.conf"
 }
 ```
-where `user_homedir_on_dcache` is the full path name of the user's home directory on dCache; `diskdir` and `tapedir` are the names of the directories in which test data will be written (without `user_homedir_on_dcache` in front); `tokenfile.conf` is an rclone config file that can be created with [`get-macaroon`](https://doc.spider.surfsara.nl/en/latest/Pages/storage/ada-interface.html#create-a-macaroon).
+where `user_homedir_on_dcache` is the full path of the user's home directory on dCache; `testdir` is the directory in which test data will be written (without `user_homedir_on_dcache` in front); `tokenfile.conf` is an rclone config file that can be created with [`get-macaroon`](https://doc.spider.surfsara.nl/en/latest/Pages/storage/ada-interface.html#create-a-macaroon).
 
 Then run:
 ```
 pytest tests/integration --target-env tests/input.json
 ```
 
+## Usage
+
+### Using ADA as a Python package
+Examples:
+```
+from ada import AdaClient
+
+with AdaClient(api="https://...", tokenfile="/path/to/token") as client:
+    files = client.list("/pnfs/data/mydir")
+    client.stage("/pnfs/data/mydir/file.dat", lifetime="7D")
+    info = client.whoami()
+```
 
 
+### Using ADA as a Command Line Interface tool
+Examples:
+```
+ada --help
+ada --tokenfile </path/to/token> --api <URL> whoami 
+ada --tokenfile </path/to/token> --api <URL> list </pnfs/data/mydir? 
+```
