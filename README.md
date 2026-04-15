@@ -75,7 +75,7 @@ with AdaClient(api="https://...", tokenfile="/path/to/token") as client:
 ### Using ADA as a Command Line Interface tool
 Examples:
 ```
-ada --help
-ada --tokenfile </path/to/token> --api <URL> whoami 
-ada --tokenfile </path/to/token> --api <URL> list </pnfs/data/mydir? 
+adapy --help
+adapy --tokenfile </path/to/token> --api <URL> whoami 
+adapy --tokenfile </path/to/token> --api <URL> list </pnfs/data/mydir>
 ```
