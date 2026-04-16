@@ -49,14 +49,13 @@ def format_longlist(files: list[FileInfo]) -> list[str]:
         lines.append(parts)
 
     # get maxmum width of each column
-    ncols = len(lines[0][:])
     cols = []
-    for i in range(0, ncols):
+    for i in range(0, len(lines)):
         cols.append([len(word) for word in lines[:][i]])
     col_width = [max(idx) for idx in zip(*cols)]
 
     result = []
-    for row in lines:  
+    for row in lines:
         result.append("\t".join(word.ljust(col_width[idx]) for idx,word in enumerate(row)))
 
     return result
