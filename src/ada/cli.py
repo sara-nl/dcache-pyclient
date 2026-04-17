@@ -21,24 +21,24 @@ def parse_args() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tokenfile",
         type=str,
-        help="Path to tokenfile",
+        help="Path to tokenfile.",
         required=True
     )
 
     parser.add_argument(
         "--api",
         type=str,
-        help="The dCache API URL to talk to",
+        help="The dCache API URL to talk to.",
         required=True
     )
 
     parser.add_argument(
         "--debug",
-        help="run in debug mode",
+        help="Run in debug mode (not yet implemented).",
         action="store_true")
 
     subparsers = parser.add_subparsers(
-        help='Put commands and their arguments at the end, after the options. ADA supports these commands:')
+        help='ADA supports these commands (put commands and their arguments at the end, after the options):')
 
     # whoami
     parser_whoami = subparsers.add_parser(
@@ -54,8 +54,9 @@ def parse_args() -> argparse.ArgumentParser:
     )
     parser_list.set_defaults(func=list_cmd)
     parser_list.add_argument(
-        'path',
-        type=str
+        'path',       
+        type=str,
+        help='Path of file or directory to list.'
     )
 
     # longlist
@@ -70,19 +71,18 @@ def parse_args() -> argparse.ArgumentParser:
         'path',
         nargs="?",
         type=str,
+        help='Path of file or directory to longlist.'
     )
     group.add_argument(
         '--from-file',
-        type=str
+        type=str,
+        help='File containing list of files or directories to longlist.'
     )
 
     # mkdir
     parser_mkdir = subparsers.add_parser(
         'mkdir',  
-        help="Create a directory.\n"
-	        "To recursively create a directory and ALL of its \n"
-	        "parents, add --recursive. For safety, the maximum number\n"
-	        "of directories that can be created at once is 10."    
+        help="Create a directory."
     )
     parser_mkdir.set_defaults(func=mkdir)
     parser_mkdir.add_argument(
@@ -91,62 +91,61 @@ def parse_args() -> argparse.ArgumentParser:
     )
     parser_mkdir.add_argument(
         "--recursive",
-        help="recursive",
+        help="Recursively create a directory.\n"
+	        "For safety, the maximum number\n"
+	        "of directories that can be created is 10."    ,
         action="store_true")
 
     # delete
     parser_delete = subparsers.add_parser(
         'delete',  
-        help="Delete a file or directory.\n"
-	        "To recursively delete a directory and ALL of its\n"
-	        "contents, add --recursive. You will need to confirm\n"
-	        "deletion of each subdir, unless you add --force.\n"
-	        "Please note, that dCache storage systems usually\n"
-	        "don't have an undelete option.\n"
-	        "Deleting a file will also delete its metadata\n"
-	        "(labels and extended attributes)."
+        help="Delete a file or directory."
     )
     parser_delete.set_defaults(func=delete)
     parser_delete.add_argument(
         'path',
+        help="Path to file or directory to delete.",
         type=str
     )
     parser_delete.add_argument(
         "--recursive",
-        help="recursive",
+        help="Recursively delete directories. You will need to confirm\n"
+	        "deletion of each subdir, unless you add --force.",
         action="store_true")
     parser_delete.add_argument(
         "--force",
-        help="force",
+        help="Force recursive deletion of directories.",
         action="store_true")
 
     # mv
     parser_mv = subparsers.add_parser(
         'mv',
         help="Rename or move a file or directory.\n"
-	        "Please note, that moving a file will not change its\n"
-	        "properties. A tape file will remain a tape file,\n"
+	        "Note that moving a file will not change its\n"
+	        "properties. A tape file will remain on tape,\n"
 	        "even when you move it to a disk directory."
     )
     parser_mv.set_defaults(func=mv)
     parser_mv.add_argument(
         'source',
-        type=str
+        type=str,
+        help="Original path/filename.",
     )
     parser_mv.add_argument(
         'destination',
-        type=str
+        type=str,
+        help="New path/filename.",
     )
 
     # checksum
     parser_checksum = subparsers.add_parser(
         'checksum',  
-        help='Show MD5/Adler32 checksums for a file, files in directory, or files in a file-list',
+        help='Show MD5/Adler32 checksums for a file, files in directory, or files listed in a file.',
     )
     parser_checksum.set_defaults(func=checksum)
     parser_checksum.add_argument(
         "--recursive",
-        help="recursive",
+        help="Recursively get checksums (not yet implemented).",
         action="store_true")
     # group mutual exclusive
     group =  parser_checksum.add_mutually_exclusive_group()
@@ -154,11 +153,75 @@ def parse_args() -> argparse.ArgumentParser:
         'path',
         nargs="?",
         type=str,
+        help="Path to file or directory to show checksums for.",
     )
     group.add_argument(
         '--from-file',
-        type=str
+        type=str,
+        help='File containing list of files or directories to show checksums for.'
     )
+
+    # stage
+    parser_stage = subparsers.add_parser(
+        'stage',  
+        help="Stage/pin a file from tape (bring to disk/online)."
+    )
+    parser_stage.set_defaults(func=stage)
+    parser_stage.add_argument(
+        "--recursive",
+        help="Recursively stage files.",
+        action="store_true")
+    parser_stage.add_argument(
+        "--lifetime",
+        help="Pin lifetime duration in units of\n"
+	        "S, M, H, or D; standing for seconds,\n"
+	        "minutes, hours, and days. Default is 7D.",          
+        type=str,
+        default="7D"
+    )
+    # group mutual exclusive
+    group =  parser_stage.add_mutually_exclusive_group()
+    group.add_argument(
+        'path',
+        nargs="?",
+        type=str,
+        help="Path to file or directory for stage.",
+    )
+    group.add_argument(
+        '--from-file',  
+        type=str,
+        help='File containing list of files or directories to stage.'
+    )
+
+    # unstage
+    parser_unstage = subparsers.add_parser(
+        'unstage',  
+        help="Unstage/unpin file so dCache may purge its online replica."
+    )
+    parser_unstage.set_defaults(func=unstage)
+    parser_unstage.add_argument(
+        "--recursive",
+        help="Recursively unstage files.",
+        action="store_true")
+    parser_unstage.add_argument(
+        "--request-id",
+        type=str,
+        help="If --request-id is given, release only the associated pin; by default all pins are released.",
+    )
+    # group mutual exclusive
+    group =  parser_unstage.add_mutually_exclusive_group()
+    group.add_argument(
+        'path',
+        nargs="?",
+        type=str,
+        help="Path to file or directory for unstage.",
+    )
+    group.add_argument(
+        '--from-file',  
+        type=str,
+        help='File containing list of files or directories to unstage.'
+    )
+
 
     return parser
 
@@ -257,6 +320,43 @@ def checksum(parsed_args) -> None:
         )
         for cs in checksums:
             print(f"{cs.value}  {cs.path}  ({cs.checksum_type})")
+
+def stage(parsed_args) -> None:
+    """Bring files from tape to disk (stage/pin)."""
+
+    if not parsed_args.path and not parsed_args.from_file:
+        raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
+
+    with get_client(parsed_args) as client:
+        result = client.stage(
+            paths=parsed_args.path or [],
+            recursive=parsed_args.recursive,
+            lifetime=parsed_args.lifetime,
+            from_file=parsed_args.from_file,
+        )
+        print(f"Stage request submitted: {result.request_id}")
+        if result.request_url:
+            print(f"Request URL: {result.request_url}")
+        print(f"Targets: {len(result.targets)} file(s)")
+
+
+def unstage(parsed_args) -> None:
+    """Release file(s) from disk so dCache may purge their online replica (unstage/unpin)."""
+
+    if not parsed_args.path and not parsed_args.from_file:
+        raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
+
+    with get_client(parsed_args) as client:
+        result = client.unstage(
+            paths=parsed_args.path or [],
+            recursive=parsed_args.recursive,
+            request_id=parsed_args.request_id,
+            from_file=parsed_args.from_file,
+        )
+        print(f"Unstage request submitted: {result.request_id}")
+        if result.request_url:
+            print(f"Request URL: {result.request_url}")
+        print(f"Targets: {len(result.targets)} file(s)")
 
 
 def main():

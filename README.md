@@ -10,8 +10,8 @@ Currently, `dcache-pyclient` can only be installed from source. The package will
 
 To install the `dcache-pyclient` source code, you first need to clone this repository:
 ```
-git clone https://github.com/sara-nl/picasclient.git
-cd picasclient
+git clone https://github.com/sara-nl/dcache-pyclient.git
+cd dcache-pyclient
 ```
 
 We recommend working in a virtual environment. You can create one with:
@@ -73,9 +73,31 @@ with AdaClient(api="https://...", tokenfile="/path/to/token") as client:
 
 
 ### Using ADA as a Command Line Interface tool
+For more information abpout how to use ADA CLI:
+```
+ada-cli --help
+```
+This will show the currently supported ADA commands:
+```
+whoami          Show how dCache identifies you.
+list            List files in a directory.
+longlist        List a file or directory with details.
+mkdir           Create a directory.
+delete          Delete a file or directory.
+mv              Rename or move a file or directory. Note that moving a file will not change its properties. A tape file will remain on tape, even when you
+                move it to a disk directory.
+checksum        Show MD5/Adler32 checksums for a file, files in directory, or files listed in a file.
+stage           Stage/pin a file from tape (bring to disk/online).
+unstage         Unstage/unpin file so dCache may purge its online replica.
+```
+To get details for a specific ADA command:
+```
+ada-cli <command> --help
+```
+
 Examples:
 ```
-adapy --help
-adapy --tokenfile </path/to/token> --api <URL> whoami 
-adapy --tokenfile </path/to/token> --api <URL> list </pnfs/data/mydir>
+ada-cli --tokenfile </path/to/token> --api <URL> whoami 
+ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
+ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
 ```
