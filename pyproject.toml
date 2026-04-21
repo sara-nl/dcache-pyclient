@@ -3,7 +3,7 @@ name = "dcache-pyclient"
 version = "0.1.0"
 description = "Python client for user interaction with dCache"
 authors = ["Onno Zweers, Haili Hu"]
-license = "Apache-2.0 license"
+license = "GPL-3.0 license"
 readme = "README.md"
 packages = [
     { include = "ada", from = "src" },

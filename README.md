@@ -5,7 +5,7 @@ A Python implementation of [ADA](https://github.com/sara-nl/SpiderScripts) (Adva
 
 
 
-### Prerequisites
+## Prerequisites
 
 - [Installation](docs/installation.md)
 - [Configuration](docs/configuration.md)
