@@ -7,8 +7,8 @@ A Python implementation of [ADA](https://github.com/sara-nl/SpiderScripts) (Adva
 
 ### Prerequisites
 
-- [Installation](installation.md)
-- [Configuration](configuration.md)
+- [Installation](docs/installation.md)
+- [Configuration](docs/configuration.md)
 
 
 ## Usage

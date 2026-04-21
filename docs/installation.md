@@ -14,18 +14,24 @@ source .venv/bin/activate
 pip install --upgrade pip
 ```
 
-## Use Poetry or Pip
+## Install with Poetry or Pip
+
+### Poetry
 If you are a developer, we recommend using [Poetry](https://python-poetry.org/docs/) to install, build, and distribute the package. Poetry is a tool for dependency managing and packaging in Python. If you don't have Poetry, install it first with `pipx install poetry`.
 ```
 poetry install --with test
 ```
 Note that Poetry will create a virtual environment if it is not running within an activated virtual environment already. In that case, you will need to run `poetry run` before your commands to execute them within the Poetry virtual environment.
 
+
+### Pip
 If you prefer not to use Poetry, then you can install `dcache-pyclient` with:
 ```
 pip install -U -e .
 pip install pytest
 ```
+
+## Test installation
 
 To perform the unit tests, run:
 ```
