@@ -1,6 +1,6 @@
 """Integration tests for ADA library:
 Put configuration in tests/prod.json and pass to test:
-> pytest tests/integration --target-env tests/prod.json -v
+> pytest tests/integration/test_library.py --target-env tests/prod.json -v
 """
 
 from __future__ import annotations
