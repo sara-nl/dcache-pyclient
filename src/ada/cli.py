@@ -21,15 +21,13 @@ def parse_args() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tokenfile",
         type=str,
-        help="Path to tokenfile.",
-        required=True
+        help="Path to tokenfile."
     )
 
     parser.add_argument(
         "--api",
         type=str,
-        help="The dCache API URL to talk to.",
-        required=True
+        help="The dCache API URL to talk to."
     )
 
     parser.add_argument(
