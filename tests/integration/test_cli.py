@@ -10,8 +10,13 @@ import subprocess
 
 class TestClassSystem:
 
-    def test_whoami(self, target_env):
+    def test_help(self):
+        """Get help"""
+        out = subprocess.check_output(["ada-cli", "--help"], text=True)
+        assert "usage: ada-cli" in out
 
+    def test_whoami(self, target_env):
+        """Authenticate and get userinfo"""
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"whoami"], text=True)
         assert "AUTHENTICATED" in out
         assert target_env["user"] in out
@@ -53,7 +58,6 @@ class TestClassNamespace:
 
         # check if file was moved
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"list", tmp_file], text=True)
-
         assert os.path.basename(tmp_file) in out
 
         # move back
@@ -82,7 +86,7 @@ class TestClassNamespace:
 class TestStaging:
 
     def test_stage_unstage(self, target_env, setup_data):
-
+        """Stage and unstage file on dCache"""
         # create testfile on dCache
         dcache_file = setup_data
     

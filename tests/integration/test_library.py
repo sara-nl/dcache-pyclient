@@ -11,6 +11,7 @@ import os
 class TestClassSystem:
 
     def test_whoami(self, ada_client, target_env):
+        """Authenticate and get userinfo"""
         userinfo = ada_client.whoami()
         assert 'AUTHENTICATED' == userinfo.status
         assert target_env['user'] == userinfo.username
@@ -75,7 +76,7 @@ class TestClassNamespace:
 class TestStaging:
 
     def test_stage_unstage(self, ada_client, setup_data):
-
+        """Stage and unstage file on dCache"""
         # create testfile on dCache
         dcache_file = setup_data
 

@@ -66,9 +66,9 @@ Then run:
 pytest tests/integration --target-env tests/env.json -v
 ```
 
-This will run integration tests for both the ADA CLI and library. You can also run them seprately with:
+This will run integration tests for both the ADA CLI and library. You can also run them separately with:
 
 ```
 pytest tests/integration/test_cli.py --target-env tests/env.json -v
 pytest tests/integration/test_library.py --target-env tests/env.json -v
-``
+```
