@@ -23,7 +23,7 @@ class TestClassNamespace:
         """Create directory on dCache"""
         dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'] + '/' + testnames['subdir']
         out = ada_client.mkdir(dcache_dir, recursive=True)
-        assert out == 'created' 
+        assert out == 'created'
 
         # list empty dir
         out = ada_client.list(dcache_dir)
@@ -32,8 +32,8 @@ class TestClassNamespace:
 
     def test_delete_dir(self, ada_client, target_env, testnames):
         """Delete directory on dCache"""        
-        out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True)     
-        assert out == None
+        out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True)
+        assert out is None
 
 
     def test_mv(self, ada_client, setup_data):
@@ -50,16 +50,16 @@ class TestClassNamespace:
         out = ada_client.list(tmp_file)
         assert out == [os.path.basename(tmp_file)]
 
-        #move back
+        # move back
         ada_client.mv(tmp_file, dcache_file)
-    
 
-    def test_longlist_checksum_delete(self, ada_client, setup_data):    
+
+    def test_longlist_checksum_delete(self, ada_client, setup_data):
         """longlist, checksum and delete file on dCache""" 
 
         # create testfile on dCache
         dcache_file = setup_data
-        
+
         out = ada_client.longlist(dcache_file)
         assert out[0].path == dcache_file
 
@@ -69,16 +69,16 @@ class TestClassNamespace:
 
         # delete file
         out = ada_client.delete(dcache_file)
-        assert out == None
+        assert out is None
 
 
 class TestStaging:
 
-    def test_stage_unstage(self, ada_client, setup_data):    
+    def test_stage_unstage(self, ada_client, setup_data):
 
         # create testfile on dCache
         dcache_file = setup_data
-        
+
         # stage
         out = ada_client.stage(dcache_file)
         assert out.activity == 'PIN'

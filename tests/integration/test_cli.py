@@ -12,82 +12,88 @@ class TestClassSystem:
 
     def test_whoami(self, target_env):
 
-        output = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"whoami"], text=True)
-        assert output.__contains__("AUTHENTICATED")
-        assert output.__contains__(target_env["user"] )
-        assert output.__contains__(target_env["homedir"])        
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"whoami"], text=True)
+        assert "AUTHENTICATED" in out
+        assert target_env["user"] in out
+        assert target_env["homedir"] in out
 
 
-# class TestClassNamespace:
+class TestClassNamespace:
 
-#     def test_mkdir(self, ada_client, target_env, testnames):
-#         """Create directory on dCache"""
-#         dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'] + '/' + testnames['subdir']
-#         out = ada_client.mkdir(dcache_dir, recursive=True)
-#         assert out == 'created' 
+    def test_mkdir(self, target_env, testnames):
+        """Create directory on dCache"""
+        dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'] + '/' + testnames['subdir']
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"mkdir", dcache_dir, "--recursive"], text=True)
 
-#         # list empty dir
-#         out = ada_client.list(dcache_dir)
-#         assert out == []
-
-
-#     def test_delete_dir(self, ada_client, target_env, testnames):
-#         """Delete directory on dCache"""        
-#         out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True)     
-#         assert out == None
+        assert "created" in out
+        # list empty dir
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"list", dcache_dir], text=True)
+        assert out == ""
 
 
-#     def test_mv(self, ada_client, setup_data):
-#         """Move file on dCache""" 
-#         # create testfile on dCache
-#         dcache_file = setup_data
+    def test_delete_dir(self,  target_env, testnames):
+        """Delete directory on dCache"""
+        dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir']
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"delete", dcache_dir, "--recursive"], text=True)
 
-#         # move file on dCache
-#         tmp_file = dcache_file + '_tmp'
-#         out = ada_client.mv(dcache_file, tmp_file )
-#         assert out == 'moved'
+        assert "Deleted" in out
 
-#         # check if file was moved
-#         out = ada_client.list(tmp_file)
-#         assert out == [os.path.basename(tmp_file)]
 
-#         #move back
-#         ada_client.mv(tmp_file, dcache_file)
+    def test_mv(self, target_env, setup_data):
+        """Move file on dCache""" 
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # move file on dCache
+        tmp_file = dcache_file + '_tmp'
+        #out = ada_client.mv(dcache_file, tmp_file )
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"mv", dcache_file, tmp_file], text=True)
+
+        assert "moved" in out
+
+        # check if file was moved
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"list", tmp_file], text=True)
+
+        assert os.path.basename(tmp_file) in out
+
+        # move back
+        subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"mv", tmp_file,  dcache_file], text=True)
+
+
+    def test_longlist_checksum_delete(self, target_env, setup_data):
+        """longlist, checksum and delete file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # longlist
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"longlist", dcache_file], text=True)
+        assert dcache_file in out
+
+        # checksum
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"checksum", dcache_file], text=True)
+        assert dcache_file in out
+
+        # # delete file
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"delete", dcache_file], text=True)
+        assert f"Deleted: {dcache_file}" in out
+
+
+class TestStaging:
+
+    def test_stage_unstage(self, target_env, setup_data):
+
+        # create testfile on dCache
+        dcache_file = setup_data
     
+        # stage
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stage", dcache_file], text=True)
+        assert "Stage request submitted" in out
+        assert "Request URL" in out
+        assert "Targets: 1 file" in out
 
-#     def test_longlist_checksum_delete(self, ada_client, setup_data):    
-#         """longlist, checksum and delete file on dCache""" 
-
-#         # create testfile on dCache
-#         dcache_file = setup_data
-        
-#         out = ada_client.longlist(dcache_file)
-#         assert out[0].path == dcache_file
-
-#         # checksum
-#         out = ada_client.checksum(dcache_file)
-#         assert out[0].path == dcache_file
-
-#         # delete file
-#         out = ada_client.delete(dcache_file)
-#         assert out == None
-
-
-# class TestStaging:
-
-#     def test_stage_unstage(self, ada_client, setup_data):    
-
-#         # create testfile on dCache
-#         dcache_file = setup_data
-        
-#         # stage
-#         out = ada_client.stage(dcache_file)
-#         assert out.activity == 'PIN'
-#         assert out.targets[0] ==  dcache_file
-#         assert out.request_id != ""
-
-#         # unstage
-#         out = ada_client.unstage(dcache_file)
-#         assert out.activity == 'UNPIN'
-#         assert out.targets[0] ==  dcache_file
-#         assert out.request_id != ""
+        # unstage
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"unstage", dcache_file], text=True)
+        assert "Unstage request submitted" in out
+        assert "Request URL" in out
+        assert "Targets: 1 file" in out
