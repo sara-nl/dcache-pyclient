@@ -6,6 +6,9 @@ Put configuration in tests/prod.json and pass to test:
 from __future__ import annotations
 
 import os
+import pytest
+
+from ada.exceptions import AdaValidationError
 
 
 class TestClassSystem:
@@ -82,6 +85,7 @@ class TestStaging:
 
         # stage
         out = ada_client.stage(dcache_file)
+        print("out", out)
         assert out.activity == 'PIN'
         assert out.targets[0] ==  dcache_file
         assert out.request_id != ""
@@ -91,3 +95,48 @@ class TestStaging:
         assert out.activity == 'UNPIN'
         assert out.targets[0] ==  dcache_file
         assert out.request_id != ""
+
+
+    def test_stage_unstage_from_file(self, ada_client, setup_data, tmp_path):
+        """Stage and unstage file on dCache from filelist"""
+        # create testfile on dCache
+        dcache_file = setup_data
+        filelist = tmp_path / "file_list"
+        with open(filelist, "w") as f:
+            f.write(dcache_file)
+
+        # stage
+        out = ada_client.stage(from_file=filelist)
+        assert out.activity == 'PIN'
+        assert out.targets[0] ==  dcache_file
+        assert out.request_id != ""
+
+        # unstage
+        out = ada_client.unstage(from_file=filelist)
+        assert out.activity == 'UNPIN'
+        assert out.targets[0] ==  dcache_file
+        assert out.request_id != ""
+
+
+    def test_stage_unstage_errors(self, ada_client, setup_data, tmp_path):
+        """Stage and unstage file on dCache with errors"""
+        # create testfile on dCache
+        dcache_file = setup_data
+        filelist = tmp_path / "file_list"
+        with open(filelist, "w") as f:
+            f.write(dcache_file)
+
+        # stage
+        with pytest.raises(AdaValidationError):
+            out = ada_client.stage(dcache_file, from_file=filelist)
+
+        with pytest.raises(AdaValidationError):
+            out = ada_client.stage()            
+
+        # unstage
+        with pytest.raises(AdaValidationError):
+            out = ada_client.unstage(dcache_file, from_file=filelist)
+
+        with pytest.raises(AdaValidationError):
+            out = ada_client.unstage()            
+

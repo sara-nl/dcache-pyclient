@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Optional
 from ada.exceptions import (
     AdaAPIError,
     AdaForbiddenError,
+    AdaValidationError
 )
 from ada.models import BulkRequest, BulkRequestStatus
 from ada.utils import parse_lifetime, read_file_list
@@ -37,7 +38,7 @@ class StagingService:
 
     def stage(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         lifetime: str = "7D",
         from_file: Optional[str] = None,
@@ -111,7 +112,7 @@ class StagingService:
 
     def unstage(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         request_id: Optional[str] = None,
         from_file: Optional[str] = None,
@@ -205,11 +206,17 @@ class StagingService:
         self, paths: str | list[str], from_file: Optional[str] = None
     ) -> list[str]:
         """Resolve paths from arguments or file list."""
+
+        if paths is None and from_file is None:
+            raise AdaValidationError("Neither path nor from_file is given")
+        if paths is not None and from_file is not None:
+            raise AdaValidationError("Both path and from_file are given")
         if from_file:
             return read_file_list(from_file)
         if isinstance(paths, str):
             return [paths]
         return list(paths)
+
 
     @staticmethod
     def _lifetime_to_millis(value: int, unit: str) -> int:
