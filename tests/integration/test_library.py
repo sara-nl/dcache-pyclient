@@ -85,7 +85,6 @@ class TestStaging:
 
         # stage
         out = ada_client.stage(dcache_file)
-        print("out", out)
         assert out.activity == 'PIN'
         assert out.targets[0] ==  dcache_file
         assert out.request_id != ""
@@ -127,16 +126,18 @@ class TestStaging:
             f.write(dcache_file)
 
         # stage
+        # Catch error when both path and from_file are given
         with pytest.raises(AdaValidationError):
             out = ada_client.stage(dcache_file, from_file=filelist)
-
+        # Catch error when neither path nor from_file are given
         with pytest.raises(AdaValidationError):
             out = ada_client.stage()            
 
         # unstage
+        # Catch error when both path and from_file are given        
         with pytest.raises(AdaValidationError):
             out = ada_client.unstage(dcache_file, from_file=filelist)
-
+        # Catch error when neither path nor from_file are given
         with pytest.raises(AdaValidationError):
             out = ada_client.unstage()            
 

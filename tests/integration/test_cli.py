@@ -8,6 +8,9 @@ from __future__ import annotations
 import os
 import subprocess
 
+import pytest
+
+
 class TestClassSystem:
 
     def test_help(self):
@@ -101,3 +104,50 @@ class TestStaging:
         assert "Unstage request submitted" in out
         assert "Request URL" in out
         assert "Targets: 1 file" in out
+
+
+    def test_stage_unstage_from_file(self, target_env, setup_data, tmp_path):
+        """Stage and unstage file on dCache from filelist"""
+        # create testfile on dCache
+        dcache_file = setup_data
+        filelist = tmp_path / "file_list"
+        with open(filelist, "w") as f:
+            f.write(dcache_file)
+
+        # stage
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stage", "--from-file", filelist], text=True)
+        assert "Stage request submitted" in out
+        assert "Request URL" in out
+        assert "Targets: 1 file" in out
+
+        # unstage
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"unstage", "--from-file", filelist], text=True)        
+        assert "Unstage request submitted" in out
+        assert "Request URL" in out
+        assert "Targets: 1 file" in out
+
+
+    def test_stage_unstage_errors(self, target_env, setup_data, tmp_path):
+        """Stage and unstage file on dCache with errors"""
+        # create testfile on dCache
+        dcache_file = setup_data
+        filelist = tmp_path / "file_list"
+        with open(filelist, "w") as f:
+            f.write(dcache_file)
+
+        # stage
+        # Catch error when both path and from_file are given
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stage", dcache_file, "--from-file", filelist], text=True)
+        # Catch error when neither path nor from_file are given    
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'], "stage"], text=True)
+         
+        # unstage
+        # Catch error when both path and from_file are given
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'], "unstage", dcache_file, "--from-file", filelist], text=True)
+        # Catch error when neither path nor from_file are given    
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'],"unstage"], text=True)  
+   

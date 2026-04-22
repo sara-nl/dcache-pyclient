@@ -5,6 +5,7 @@ import argparse
 
 from ada.client import AdaClient
 from ada.formatters import format_longlist
+from ada.exceptions import AdaValidationError
 
 def parse_args() -> argparse.ArgumentParser:
     """
@@ -183,7 +184,7 @@ def parse_args() -> argparse.ArgumentParser:
         'path',
         nargs="?",
         type=str,
-        help="Path to file or directory for stage.",
+        help="Path to file or directory for stage. Either path or --from-file must be given.",
     )
     group.add_argument(
         '--from-file',  
@@ -212,7 +213,7 @@ def parse_args() -> argparse.ArgumentParser:
         'path',
         nargs="?",
         type=str,
-        help="Path to file or directory for unstage.",
+        help="Path to file or directory for unstage. Either path or --from-file must be given.",
     )
     group.add_argument(
         '--from-file',  
@@ -312,7 +313,7 @@ def checksum(parsed_args) -> None:
 
     with get_client(parsed_args) as client:
         checksums = client.checksum(
-            paths=parsed_args.path or [],
+            paths=parsed_args.path,
             recursive=parsed_args.recursive, # TODO: recursive option does not work
             from_file=parsed_args.from_file,
         )
@@ -327,7 +328,7 @@ def stage(parsed_args) -> None:
 
     with get_client(parsed_args) as client:
         result = client.stage(
-            paths=parsed_args.path or [],
+            paths=parsed_args.path,
             recursive=parsed_args.recursive,
             lifetime=parsed_args.lifetime,
             from_file=parsed_args.from_file,
@@ -346,7 +347,7 @@ def unstage(parsed_args) -> None:
 
     with get_client(parsed_args) as client:
         result = client.unstage(
-            paths=parsed_args.path or [],
+            paths=parsed_args.path,
             recursive=parsed_args.recursive,
             request_id=parsed_args.request_id,
             from_file=parsed_args.from_file,
@@ -366,7 +367,7 @@ def main():
     if hasattr(args, 'func'):
         args.func(args)
     else:
-        print("ERROR. Please specify a command. See --help for more information.")
+        raise AdaValidationError("ERROR. Please specify a command. See --help for more information.")
 
 
 if __name__ == "__main__":
