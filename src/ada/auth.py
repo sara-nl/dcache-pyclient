@@ -223,10 +223,10 @@ def resolve_auth(
 ) -> AuthProvider:
     """Resolve authentication method from args, env vars, and config.
 
-    Precedence (matching Bash):
+    Precedence (from high to low):
         1. Explicit arguments (token, tokenfile, netrc, proxy)
-        2. Environment variables ($BEARER_TOKEN, $ada_tokenfile, etc.)
-        3. Config file values
+        2. Environment variables ($BEARER_TOKEN, $ada_tokenfile, $ada_netrcfile)
+        3. Config file values (tokenfile, netrcfile)
 
     Raises:
         AdaAuthError: If no authentication method can be resolved.
