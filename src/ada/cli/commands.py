@@ -4,6 +4,7 @@ ADA CLI commands
 from __future__ import annotations
 
 from ada.client import AdaClient
+from ada.exceptions import AdaValidationError
 from ada.cli.formatters import format_longlist
 
 
@@ -74,7 +75,7 @@ def checksum(parsed_args) -> None:
     """Get MD5/Adler32 checksums for file(s)."""
 
     if not parsed_args.path and not parsed_args.from_file:
-        raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
+        raise AdaValidationError("Provide a PATH or --from-file.")
 
     with __get_client__(parsed_args) as client:
         checksums = client.checksum(
@@ -90,7 +91,7 @@ def stage(parsed_args) -> None:
     """Bring files from tape to disk (stage/pin)."""
 
     if not parsed_args.path and not parsed_args.from_file:
-        raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
+        raise AdaValidationError("Provide a PATH or --from-file.")
 
     with __get_client__(parsed_args) as client:
         result = client.stage(
@@ -109,7 +110,7 @@ def unstage(parsed_args) -> None:
     """Release file(s) from disk so dCache may purge their online replica (unstage/unpin)."""
 
     if not parsed_args.path and not parsed_args.from_file:
-        raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
+        raise AdaValidationError("Provide a PATH or --from-file.")
 
     with __get_client__(parsed_args) as client:
         result = client.unstage(
