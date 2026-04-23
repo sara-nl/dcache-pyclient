@@ -48,7 +48,7 @@ pytest tests/unit
 ```
 
 To perform the integration tests, that interact with a dCache instance, you need to create a json file with the
-following information (see `tests/input.json` for a template):
+following information (see `tests/env.json` for a template):
 ```
 {
     "user": "user_name",
@@ -63,5 +63,12 @@ where `user_homedir_on_dcache` is the full path of the user's home directory on 
 
 Then run:
 ```
-pytest tests/integration --target-env tests/input.json
+pytest tests/integration --target-env tests/env.json -v
+```
+
+This will run integration tests for both the ADA CLI and library. You can also run them separately with:
+
+```
+pytest tests/integration/test_cli.py --target-env tests/env.json -v
+pytest tests/integration/test_library.py --target-env tests/env.json -v
 ```

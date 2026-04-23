@@ -5,6 +5,8 @@ import argparse
 
 from ada.client import AdaClient
 from ada.formatters import format_longlist
+from ada.exceptions import AdaValidationError
+
 
 def parse_args() -> argparse.ArgumentParser:
     """
@@ -52,19 +54,19 @@ def parse_args() -> argparse.ArgumentParser:
     )
     parser_list.set_defaults(func=list_cmd)
     parser_list.add_argument(
-        'path',       
+        'path',
         type=str,
         help='Path of file or directory to list.'
     )
 
     # longlist
     parser_longlist = subparsers.add_parser(
-        'longlist',  
+        'longlist',
         help='List a file or directory with details.',
     )
     parser_longlist.set_defaults(func=longlist)
     # group mutual exclusive
-    group =  parser_longlist.add_mutually_exclusive_group()
+    group = parser_longlist.add_mutually_exclusive_group()
     group.add_argument(
         'path',
         nargs="?",
@@ -79,7 +81,7 @@ def parse_args() -> argparse.ArgumentParser:
 
     # mkdir
     parser_mkdir = subparsers.add_parser(
-        'mkdir',  
+        'mkdir',
         help="Create a directory."
     )
     parser_mkdir.set_defaults(func=mkdir)
@@ -90,13 +92,13 @@ def parse_args() -> argparse.ArgumentParser:
     parser_mkdir.add_argument(
         "--recursive",
         help="Recursively create a directory.\n"
-	        "For safety, the maximum number\n"
-	        "of directories that can be created is 10."    ,
+             "For safety, the maximum number\n"
+             "of directories that can be created is 10.",
         action="store_true")
 
     # delete
     parser_delete = subparsers.add_parser(
-        'delete',  
+        'delete',
         help="Delete a file or directory."
     )
     parser_delete.set_defaults(func=delete)
@@ -108,7 +110,7 @@ def parse_args() -> argparse.ArgumentParser:
     parser_delete.add_argument(
         "--recursive",
         help="Recursively delete directories. You will need to confirm\n"
-	        "deletion of each subdir, unless you add --force.",
+             "deletion of each subdir, unless you add --force.",
         action="store_true")
     parser_delete.add_argument(
         "--force",
@@ -119,9 +121,9 @@ def parse_args() -> argparse.ArgumentParser:
     parser_mv = subparsers.add_parser(
         'mv',
         help="Rename or move a file or directory.\n"
-	        "Note that moving a file will not change its\n"
-	        "properties. A tape file will remain on tape,\n"
-	        "even when you move it to a disk directory."
+             "Note that moving a file will not change its\n"
+             "properties. A tape file will remain on tape,\n"
+             "even when you move it to a disk directory."
     )
     parser_mv.set_defaults(func=mv)
     parser_mv.add_argument(
@@ -137,7 +139,7 @@ def parse_args() -> argparse.ArgumentParser:
 
     # checksum
     parser_checksum = subparsers.add_parser(
-        'checksum',  
+        'checksum',
         help='Show MD5/Adler32 checksums for a file, files in directory, or files listed in a file.',
     )
     parser_checksum.set_defaults(func=checksum)
@@ -146,7 +148,7 @@ def parse_args() -> argparse.ArgumentParser:
         help="Recursively get checksums (not yet implemented).",
         action="store_true")
     # group mutual exclusive
-    group =  parser_checksum.add_mutually_exclusive_group()
+    group = parser_checksum.add_mutually_exclusive_group()
     group.add_argument(
         'path',
         nargs="?",
@@ -161,7 +163,7 @@ def parse_args() -> argparse.ArgumentParser:
 
     # stage
     parser_stage = subparsers.add_parser(
-        'stage',  
+        'stage',
         help="Stage/pin a file from tape (bring to disk/online)."
     )
     parser_stage.set_defaults(func=stage)
@@ -172,28 +174,28 @@ def parse_args() -> argparse.ArgumentParser:
     parser_stage.add_argument(
         "--lifetime",
         help="Pin lifetime duration in units of\n"
-	        "S, M, H, or D; standing for seconds,\n"
-	        "minutes, hours, and days. Default is 7D.",          
+             "S, M, H, or D; standing for seconds,\n"
+             "minutes, hours, and days. Default is 7D.",
         type=str,
         default="7D"
     )
     # group mutual exclusive
-    group =  parser_stage.add_mutually_exclusive_group()
+    group = parser_stage.add_mutually_exclusive_group()
     group.add_argument(
         'path',
         nargs="?",
         type=str,
-        help="Path to file or directory for stage.",
+        help="Path to file or directory for stage. Either path or --from-file must be given.",
     )
     group.add_argument(
-        '--from-file',  
+        '--from-file',
         type=str,
         help='File containing list of files or directories to stage.'
     )
 
     # unstage
     parser_unstage = subparsers.add_parser(
-        'unstage',  
+        'unstage',
         help="Unstage/unpin file so dCache may purge its online replica."
     )
     parser_unstage.set_defaults(func=unstage)
@@ -207,19 +209,18 @@ def parse_args() -> argparse.ArgumentParser:
         help="If --request-id is given, release only the associated pin; by default all pins are released.",
     )
     # group mutual exclusive
-    group =  parser_unstage.add_mutually_exclusive_group()
+    group = parser_unstage.add_mutually_exclusive_group()
     group.add_argument(
         'path',
         nargs="?",
         type=str,
-        help="Path to file or directory for unstage.",
+        help="Path to file or directory for unstage. Either path or --from-file must be given.",
     )
     group.add_argument(
-        '--from-file',  
+        '--from-file',
         type=str,
         help='File containing list of files or directories to unstage.'
     )
-
 
     return parser
 
@@ -233,7 +234,8 @@ def get_client(parsed_args):
         debug=parsed_args.debug,    # TODO: debug option does not work
     )
 
-# Commands
+
+# ---- Internal ----
 
 def whoami(parsed_args) -> None:
     """Show the authenticated user's identity."""
@@ -269,15 +271,7 @@ def longlist(parsed_args) -> None:
     """List file(s) or directory with details (size, date, QoS, locality)."""
 
     with get_client(parsed_args) as client:
-        if parsed_args.from_file:
-            with open(parsed_args.from_file, encoding="utf-8") as f:
-                paths = f.read().strip().splitlines()
-        elif parsed_args.path:
-            paths = [parsed_args.path]
-        else:
-            raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
-        results = client.longlist(paths)
-
+        results = client.longlist(parsed_args.path, from_file=parsed_args.from_file)
         for line in format_longlist(results):
             print(line)
 
@@ -297,12 +291,14 @@ def delete(parsed_args) -> None:
         client.delete(parsed_args.path, recursive=parsed_args.recursive, force=parsed_args.force)
         print(f"Deleted: {parsed_args.path}")
 
+
 def mv(parsed_args) -> None:
     """Move or rename a file or directory."""
 
     with get_client(parsed_args) as client:
         result = client.mv(parsed_args.source, parsed_args.destination)
         print(result)
+
 
 def checksum(parsed_args) -> None:
     """Get MD5/Adler32 checksums for file(s)."""
@@ -312,12 +308,13 @@ def checksum(parsed_args) -> None:
 
     with get_client(parsed_args) as client:
         checksums = client.checksum(
-            paths=parsed_args.path or [],
-            recursive=parsed_args.recursive, # TODO: recursive option does not work
+            paths=parsed_args.path,
+            recursive=parsed_args.recursive,
             from_file=parsed_args.from_file,
         )
         for cs in checksums:
             print(f"{cs.value}  {cs.path}  ({cs.checksum_type})")
+
 
 def stage(parsed_args) -> None:
     """Bring files from tape to disk (stage/pin)."""
@@ -327,7 +324,7 @@ def stage(parsed_args) -> None:
 
     with get_client(parsed_args) as client:
         result = client.stage(
-            paths=parsed_args.path or [],
+            paths=parsed_args.path,
             recursive=parsed_args.recursive,
             lifetime=parsed_args.lifetime,
             from_file=parsed_args.from_file,
@@ -346,7 +343,7 @@ def unstage(parsed_args) -> None:
 
     with get_client(parsed_args) as client:
         result = client.unstage(
-            paths=parsed_args.path or [],
+            paths=parsed_args.path,
             recursive=parsed_args.recursive,
             request_id=parsed_args.request_id,
             from_file=parsed_args.from_file,
@@ -366,7 +363,7 @@ def main():
     if hasattr(args, 'func'):
         args.func(args)
     else:
-        print("ERROR. Please specify a command. See --help for more information.")
+        raise AdaValidationError("ERROR. Please specify a command. See --help for more information.")
 
 
 if __name__ == "__main__":

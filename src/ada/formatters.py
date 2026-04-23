@@ -56,6 +56,6 @@ def format_longlist(files: list[FileInfo]) -> list[str]:
 
     result = []
     for row in lines:
-        result.append("\t".join(word.ljust(col_width[idx]) for idx,word in enumerate(row)))
+        result.append("\t".join(word.ljust(col_width[idx]) for idx, word in enumerate(row)))
 
     return result

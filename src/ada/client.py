@@ -99,9 +99,12 @@ class AdaClient:
         """List directory contents."""
         return self.namespace.list(path)
 
-    def longlist(self, paths: str | list[str]) -> list[FileInfo]:
+    def longlist(
+            self, paths: Optional[str | list[str]] = None,
+            from_file: Optional[str] = None
+            ) -> list[FileInfo]:
         """Get detailed file listing."""
-        return self.namespace.longlist(paths)
+        return self.namespace.longlist(paths, from_file=from_file)
 
     def stat(self, path: str) -> FileInfo:
         """Get complete file/directory metadata."""
@@ -178,7 +181,7 @@ class AdaClient:
 
     def checksum(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         from_file: Optional[str] = None,
     ) -> list[Checksum]:
@@ -189,7 +192,7 @@ class AdaClient:
 
     def stage(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         lifetime: str = "7D",
         from_file: Optional[str] = None,
@@ -198,19 +201,19 @@ class AdaClient:
         # self.auth.validate(command="stage")
         # this gives ada.exceptions.AdaAuthError
         return self.staging.stage(
-            paths, recursive=recursive, lifetime=lifetime, from_file=from_file
+            paths=paths, recursive=recursive, lifetime=lifetime, from_file=from_file
         )
 
     def unstage(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         request_id: Optional[str] = None,
         from_file: Optional[str] = None,
     ) -> BulkRequest:
         """Unstage files — release disk pins."""
         return self.staging.unstage(
-            paths,
+            paths=paths,
             recursive=recursive,
             request_id=request_id,
             from_file=from_file,

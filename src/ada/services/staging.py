@@ -11,10 +11,10 @@ from typing import TYPE_CHECKING, Optional
 
 from ada.exceptions import (
     AdaAPIError,
-    AdaForbiddenError,
+    AdaForbiddenError
 )
 from ada.models import BulkRequest, BulkRequestStatus
-from ada.utils import parse_lifetime, read_file_list
+from ada.utils import parse_lifetime, resolve_paths
 from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class StagingService:
 
     def stage(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         lifetime: str = "7D",
         from_file: Optional[str] = None,
@@ -59,13 +59,14 @@ class StagingService:
         if recursive:
             expand = "ALL"
         else:
+            # Get list of paths
+            target_paths = resolve_paths(paths, from_file)
             # Check if any path is a directory
-            target_paths = self._resolve_paths(paths, from_file)
             ns = self._get_namespace()
             has_dir = any(ns.is_dir(p) for p in target_paths)
             expand = "TARGETS" if has_dir else "NONE"
 
-        target_paths = self._resolve_paths(paths, from_file)
+        target_paths = resolve_paths(paths, from_file)
         lifetime_millis = self._lifetime_to_millis(lifetime_value, lifetime_unit)
 
         body = {
@@ -111,7 +112,7 @@ class StagingService:
 
     def unstage(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         request_id: Optional[str] = None,
         from_file: Optional[str] = None,
@@ -127,7 +128,7 @@ class StagingService:
         Returns:
             BulkRequest with details.
         """
-        target_paths = self._resolve_paths(paths, from_file)
+        target_paths = resolve_paths(paths, from_file)
 
         if recursive:
             expand = "ALL"
@@ -200,16 +201,6 @@ class StagingService:
         self._api.delete(f"bulk-requests/{request_id}")
 
     # ---- Internal ----
-
-    def _resolve_paths(
-        self, paths: str | list[str], from_file: Optional[str] = None
-    ) -> list[str]:
-        """Resolve paths from arguments or file list."""
-        if from_file:
-            return read_file_list(from_file)
-        if isinstance(paths, str):
-            return [paths]
-        return list(paths)
 
     @staticmethod
     def _lifetime_to_millis(value: int, unit: str) -> int:
