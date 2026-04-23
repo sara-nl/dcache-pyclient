@@ -1,5 +1,5 @@
 # dcache-pyclient
-Python client for user interaction with dCache. Currently under development. 
+Python client for user interaction with dCache. Currently under development, usage only advised for (beta) testing.
 
 A Python implementation of [ADA](https://github.com/sara-nl/SpiderScripts) (Advanced dCache API) to manage data in a [dCache storage system](https://dcache.org/) through the dCache API and WebDAV door.
 
@@ -7,8 +7,8 @@ A Python implementation of [ADA](https://github.com/sara-nl/SpiderScripts) (Adva
 
 ## Prerequisites
 
-- [Installation](docs/installation.md)
-- [Configuration](docs/configuration.md)
+- [Installation](https://github.com/sara-nl/dcache-pyclient/blob/main/docs/installation.md)
+- [Configuration](https://github.com/sara-nl/dcache-pyclient/blob/main/docs/configuration.md)
 
 
 ## Usage

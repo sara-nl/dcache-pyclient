@@ -10,8 +10,6 @@
 
 ## Install from source
 
-Currently, `dcache-pyclient` can only be installed from source. The package will be published on PyPI in a a later phase.
-
 To install the `dcache-pyclient` source code, you first need to clone this repository:
 ```
 git clone https://github.com/sara-nl/dcache-pyclient.git
@@ -40,7 +38,7 @@ pip install -U -e .
 pip install pytest
 ```
 
-## Test installation
+### Test installation
 
 To perform the unit tests, run:
 ```
@@ -71,4 +69,15 @@ This will run integration tests for both the ADA CLI and library. You can also r
 ```
 pytest tests/integration/test_cli.py --target-env tests/env.json -v
 pytest tests/integration/test_library.py --target-env tests/env.json -v
+```
+
+## Install package from PyPI
+The latest release of dcache-pyclient can be installed as a package from PyPI with:
+```
+pip install dcache-pyclient
+```
+
+Check the installation of the CLI application:
+```
+ada-cli --help
 ```

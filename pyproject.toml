@@ -27,4 +27,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-ada-cli = "src.ada.cli.app:main"
+ada-cli = "ada.cli.app:main"
