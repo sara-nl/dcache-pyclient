@@ -178,3 +178,20 @@ def read_file_list(filepath: str) -> list[str]:
     if not lines:
         raise AdaValidationError(f"File list is empty: {filepath}")
     return lines
+
+
+def resolve_paths(
+    paths: Optional[str | list[str]] = None, from_file: Optional[str] = None
+) -> list[str]:
+    """Resolve paths from arguments or file list."""
+
+    if paths is None and from_file is None:
+        raise AdaValidationError("Neither path nor from_file is given")
+    if paths is not None and from_file is not None:
+        raise AdaValidationError("Both path and from_file are given")
+    if from_file:
+        return read_file_list(from_file)
+    if isinstance(paths, str):
+        return [paths]
+    return list(paths)
+

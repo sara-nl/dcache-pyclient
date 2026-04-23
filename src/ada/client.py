@@ -178,7 +178,7 @@ class AdaClient:
 
     def checksum(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         from_file: Optional[str] = None,
     ) -> list[Checksum]:

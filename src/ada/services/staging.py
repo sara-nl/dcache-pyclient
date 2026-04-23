@@ -15,7 +15,7 @@ from ada.exceptions import (
     AdaValidationError
 )
 from ada.models import BulkRequest, BulkRequestStatus
-from ada.utils import parse_lifetime, read_file_list
+from ada.utils import parse_lifetime, resolve_paths
 from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
@@ -61,12 +61,12 @@ class StagingService:
             expand = "ALL"
         else:
             # Check if any path is a directory
-            target_paths = self._resolve_paths(paths, from_file)
+            target_paths = resolve_paths(paths, from_file)
             ns = self._get_namespace()
             has_dir = any(ns.is_dir(p) for p in target_paths)
             expand = "TARGETS" if has_dir else "NONE"
 
-        target_paths = self._resolve_paths(paths, from_file)
+        target_paths = resolve_paths(paths, from_file)
         lifetime_millis = self._lifetime_to_millis(lifetime_value, lifetime_unit)
 
         body = {
@@ -128,7 +128,7 @@ class StagingService:
         Returns:
             BulkRequest with details.
         """
-        target_paths = self._resolve_paths(paths, from_file)
+        target_paths = resolve_paths(paths, from_file)
 
         if recursive:
             expand = "ALL"
@@ -201,22 +201,6 @@ class StagingService:
         self._api.delete(f"bulk-requests/{request_id}")
 
     # ---- Internal ----
-
-    def _resolve_paths(
-        self, paths: str | list[str], from_file: Optional[str] = None
-    ) -> list[str]:
-        """Resolve paths from arguments or file list."""
-
-        if paths is None and from_file is None:
-            raise AdaValidationError("Neither path nor from_file is given")
-        if paths is not None and from_file is not None:
-            raise AdaValidationError("Both path and from_file are given")
-        if from_file:
-            return read_file_list(from_file)
-        if isinstance(paths, str):
-            return [paths]
-        return list(paths)
-
 
     @staticmethod
     def _lifetime_to_millis(value: int, unit: str) -> int:

@@ -10,7 +10,7 @@ import logging
 from typing import TYPE_CHECKING, Optional
 
 from ada.models import Checksum, FileType
-from ada.utils import encode_path, read_file_list
+from ada.utils import encode_path, resolve_paths
 from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ class ChecksumService:
 
     def get(
         self,
-        paths: str | list[str],
+        paths: Optional[str | list[str]] = None,
         recursive: bool = False,
         from_file: Optional[str] = None,
     ) -> list[Checksum]:
@@ -48,17 +48,13 @@ class ChecksumService:
         Returns:
             List of Checksum objects.
         """
-        if from_file:
-            file_paths = read_file_list(from_file)
-            return self._get_checksums_for_paths(file_paths)
 
-        if isinstance(paths, str):
-            paths = [paths]
+        target_paths = resolve_paths(paths, from_file)    
 
         results: list[Checksum] = []
         ns = self._get_namespace()
 
-        for path in paths:
+        for path in target_paths:
             try:
                 file_type = ns.get_file_type(path)
             except Exception:

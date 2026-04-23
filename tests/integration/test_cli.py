@@ -50,7 +50,7 @@ class TestClassNamespace:
 
 
     def test_mv_delete_file(self, target_env, setup_data):
-        """Move and delete file on dCache""" 
+        """Move and delete file on dCache"""
         # create testfile on dCache
         dcache_file = setup_data
 
@@ -152,19 +152,20 @@ class TestStaging:
         dcache_file = setup_data
         filelist = tmp_path / "file_list"
         with open(filelist, "w", encoding="utf-8") as f:
-            f.write(dcache_file)
+            f.write(dcache_file + "\n")
+            f.write(os.path.dirname(dcache_file))
 
         # stage
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stage", "--from-file", filelist], text=True)
         assert "Stage request submitted" in out
         assert "Request URL" in out
-        assert "Targets: 1 file" in out
+        assert "Targets: 2 file(s)" in out
 
         # unstage
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"unstage", "--from-file", filelist], text=True)
         assert "Unstage request submitted" in out
         assert "Request URL" in out
-        assert "Targets: 1 file" in out
+        assert "Targets: 2 file(s)" in out
 
 
     def test_stage_unstage_errors(self, target_env, setup_data, tmp_path):
@@ -173,7 +174,8 @@ class TestStaging:
         dcache_file = setup_data
         filelist = tmp_path / "file_list"
         with open(filelist, "w", encoding="utf-8") as f:
-            f.write(dcache_file)
+            f.write(dcache_file + "\n")
+            f.write(os.path.dirname(dcache_file))
 
         # stage
         # Catch error when both path and from_file are given

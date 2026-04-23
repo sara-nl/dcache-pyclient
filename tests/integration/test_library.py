@@ -12,6 +12,7 @@ from ada.exceptions import AdaValidationError
 
 
 class TestClassSystem:
+    """Test system information commands"""
 
     def test_whoami(self, ada_client, target_env):
         """Authenticate and get userinfo"""
@@ -22,9 +23,12 @@ class TestClassSystem:
 
 
 class TestClassNamespace:
+    """Test namespace commands"""
 
-    def test_mkdir(self, ada_client, target_env, testnames):
-        """Create directory on dCache"""
+    def test_mkdir_delete(self, ada_client, target_env, testnames):
+        """Create and delete directory on dCache"""
+
+        # Create directory recursively        
         dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'] + '/' + testnames['subdir']
         out = ada_client.mkdir(dcache_dir, recursive=True)
         assert out == 'created'
@@ -33,15 +37,14 @@ class TestClassNamespace:
         out = ada_client.list(dcache_dir)
         assert out == []
 
-
-    def test_delete_dir(self, ada_client, target_env, testnames):
-        """Delete directory on dCache"""        
+        # Delete directory recursively
         out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True)
         assert out is None
 
 
-    def test_mv(self, ada_client, setup_data):
-        """Move file on dCache""" 
+    def test_mv_delete_file(self, ada_client, setup_data):
+        """Move and delete file on dCache"""
+
         # create testfile on dCache
         dcache_file = setup_data
 
@@ -54,12 +57,13 @@ class TestClassNamespace:
         out = ada_client.list(tmp_file)
         assert out == [os.path.basename(tmp_file)]
 
-        # move back
-        ada_client.mv(tmp_file, dcache_file)
+        # delete file
+        out = ada_client.delete(tmp_file)
+        assert out is None
 
 
-    def test_longlist_checksum_delete(self, ada_client, setup_data):
-        """longlist, checksum and delete file on dCache""" 
+    def test_longlist(self, ada_client, setup_data, tmp_path):
+        """Longlist file(s) on dCache"""
 
         # create testfile on dCache
         dcache_file = setup_data
@@ -67,13 +71,43 @@ class TestClassNamespace:
         out = ada_client.longlist(dcache_file)
         assert out[0].path == dcache_file
 
+        # # write file and folder to filelist
+        # filelist = tmp_path / "file_list"
+        # with open(filelist, "w", encoding="utf-8") as f:
+        #     f.write(dcache_file + "\n")
+        #     f.write(os.path.dirname(dcache_file))
+
+        # out = ada_client.longlist(from_file=filelist)
+        # print("out", out)
+        # assert out[0].path == dcache_file
+        # assert 1==0
+
+
+    def test_checksum(self, ada_client, setup_data, tmp_path):
+        """Get checksum of file(s) on dCache"""
+    
+        # create testfile on dCache
+        dcache_file = setup_data
+
         # checksum
         out = ada_client.checksum(dcache_file)
         assert out[0].path == dcache_file
 
-        # delete file
-        out = ada_client.delete(dcache_file)
-        assert out is None
+        # write file and folder to filelist
+        filelist = tmp_path / "file_list"
+        with open(filelist, "w", encoding="utf-8") as f:
+            f.write(dcache_file + "\n")
+            f.write(os.path.dirname(dcache_file))
+
+        out = ada_client.checksum(from_file=filelist)
+        assert out[0].path == dcache_file
+
+        # Catch error when both path and from_file are given        
+        with pytest.raises(AdaValidationError):
+            ada_client.checksum(dcache_file, from_file=filelist)
+        # Catch error when neither path nor from_file are given
+        with pytest.raises(AdaValidationError):
+            ada_client.checksum()
 
 
 class TestStaging:
@@ -102,7 +136,8 @@ class TestStaging:
         dcache_file = setup_data
         filelist = tmp_path / "file_list"
         with open(filelist, "w") as f:
-            f.write(dcache_file)
+            f.write(dcache_file + "\n")
+            f.write(os.path.dirname(dcache_file))
 
         # stage
         out = ada_client.stage(from_file=filelist)
@@ -123,7 +158,8 @@ class TestStaging:
         dcache_file = setup_data
         filelist = tmp_path / "file_list"
         with open(filelist, "w") as f:
-            f.write(dcache_file)
+            f.write(dcache_file + "\n")
+            f.write(os.path.dirname(dcache_file))
 
         # stage
         # Catch error when both path and from_file are given
