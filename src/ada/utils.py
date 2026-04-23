@@ -11,6 +11,7 @@ import re
 import stat
 from pathlib import Path
 from urllib.parse import quote as urlquote
+from typing import Optional
 
 from ada.exceptions import AdaSecurityError, AdaValidationError
 
@@ -194,4 +195,3 @@ def resolve_paths(
     if isinstance(paths, str):
         return [paths]
     return list(paths)
-

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from ada.exceptions import AdaNotFoundError, AdaPathError, AdaValidationError
 from ada.models import Checksum, FileInfo, FileType, Locality
-from ada.utils import encode_path
+from ada.utils import encode_path, resolve_paths
 
 if TYPE_CHECKING:
     from ada.api import DcacheAPI
@@ -48,15 +48,21 @@ class NamespaceService:
             return sorted(result)
         return [path.rsplit("/", 1)[-1]]
 
-    def longlist(self, paths: str | list[str]) -> list[FileInfo]:
+    def longlist(
+            self,
+            paths: Optional[str | list[str]] = None,
+            from_file: Optional[str] = None
+        ) -> list[FileInfo]:
         """Get detailed file information for one or more paths.
 
         For directories, lists children with size, mtime, QoS, and locality.
         """
-        if isinstance(paths, str):
-            paths = [paths]
+
+        # Get list of paths
+        target_paths = resolve_paths(paths, from_file)   
+
         results: list[FileInfo] = []
-        for path in paths:
+        for path in target_paths:
             file_type = self.get_file_type(path)
             if file_type == FileType.DIR:
                 data = self._api.get(

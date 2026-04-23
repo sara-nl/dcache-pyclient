@@ -71,16 +71,21 @@ class TestClassNamespace:
         out = ada_client.longlist(dcache_file)
         assert out[0].path == dcache_file
 
-        # # write file and folder to filelist
-        # filelist = tmp_path / "file_list"
-        # with open(filelist, "w", encoding="utf-8") as f:
-        #     f.write(dcache_file + "\n")
-        #     f.write(os.path.dirname(dcache_file))
+        # write file and folder to filelist
+        filelist = tmp_path / "file_list"
+        with open(filelist, "w", encoding="utf-8") as f:
+            f.write(dcache_file + "\n")
+            f.write(os.path.dirname(dcache_file))
 
-        # out = ada_client.longlist(from_file=filelist)
-        # print("out", out)
-        # assert out[0].path == dcache_file
-        # assert 1==0
+        out = ada_client.longlist(from_file=filelist)
+        assert out[0].path == dcache_file
+
+        # Catch error when both path and from_file are given        
+        with pytest.raises(AdaValidationError):
+            ada_client.longlist(dcache_file, from_file=filelist)
+        # Catch error when neither path nor from_file are given
+        with pytest.raises(AdaValidationError):
+            ada_client.longlist()
 
 
     def test_checksum(self, ada_client, setup_data, tmp_path):

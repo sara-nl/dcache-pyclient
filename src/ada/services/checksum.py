@@ -49,7 +49,8 @@ class ChecksumService:
             List of Checksum objects.
         """
 
-        target_paths = resolve_paths(paths, from_file)    
+        # Get list of paths
+        target_paths = resolve_paths(paths, from_file)
 
         results: list[Checksum] = []
         ns = self._get_namespace()

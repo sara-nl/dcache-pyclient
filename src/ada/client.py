@@ -99,9 +99,12 @@ class AdaClient:
         """List directory contents."""
         return self.namespace.list(path)
 
-    def longlist(self, paths: str | list[str]) -> list[FileInfo]:
+    def longlist(
+            self, paths: Optional[str | list[str]] = None,
+            from_file: Optional[str] = None
+        ) -> list[FileInfo]:
         """Get detailed file listing."""
-        return self.namespace.longlist(paths)
+        return self.namespace.longlist(paths, from_file=from_file)
 
     def stat(self, path: str) -> FileInfo:
         """Get complete file/directory metadata."""

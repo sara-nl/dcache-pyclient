@@ -270,15 +270,7 @@ def longlist(parsed_args) -> None:
     """List file(s) or directory with details (size, date, QoS, locality)."""
 
     with get_client(parsed_args) as client:
-        if parsed_args.from_file:
-            with open(parsed_args.from_file, encoding="utf-8") as f:
-                paths = f.read().strip().splitlines()
-        elif parsed_args.path:
-            paths = [parsed_args.path]
-        else:
-            raise argparse.ArgumentTypeError("Provide a PATH or --from-file.")
-        results = client.longlist(paths)
-
+        results = client.longlist(parsed_args.path, from_file=parsed_args.from_file)
         for line in format_longlist(results):
             print(line)
 
@@ -298,12 +290,14 @@ def delete(parsed_args) -> None:
         client.delete(parsed_args.path, recursive=parsed_args.recursive, force=parsed_args.force)
         print(f"Deleted: {parsed_args.path}")
 
+
 def mv(parsed_args) -> None:
     """Move or rename a file or directory."""
 
     with get_client(parsed_args) as client:
         result = client.mv(parsed_args.source, parsed_args.destination)
         print(result)
+
 
 def checksum(parsed_args) -> None:
     """Get MD5/Adler32 checksums for file(s)."""
@@ -314,11 +308,12 @@ def checksum(parsed_args) -> None:
     with get_client(parsed_args) as client:
         checksums = client.checksum(
             paths=parsed_args.path,
-            recursive=parsed_args.recursive, # TODO: recursive option does not work
+            recursive=parsed_args.recursive,
             from_file=parsed_args.from_file,
         )
         for cs in checksums:
             print(f"{cs.value}  {cs.path}  ({cs.checksum_type})")
+
 
 def stage(parsed_args) -> None:
     """Bring files from tape to disk (stage/pin)."""

@@ -11,8 +11,7 @@ from typing import TYPE_CHECKING, Optional
 
 from ada.exceptions import (
     AdaAPIError,
-    AdaForbiddenError,
-    AdaValidationError
+    AdaForbiddenError
 )
 from ada.models import BulkRequest, BulkRequestStatus
 from ada.utils import parse_lifetime, resolve_paths
@@ -60,8 +59,9 @@ class StagingService:
         if recursive:
             expand = "ALL"
         else:
-            # Check if any path is a directory
+            # Get list of paths
             target_paths = resolve_paths(paths, from_file)
+            # Check if any path is a directory
             ns = self._get_namespace()
             has_dir = any(ns.is_dir(p) for p in target_paths)
             expand = "TARGETS" if has_dir else "NONE"
