@@ -1,6 +1,6 @@
-"""AdaClient — main entry point for using ADA as a library.
+"""AdaClient: main entry point for using ADA as a library.
 
-Composes all services and provides a clean, high-level API for
+Composes all services and provides a high-level interface for
 interacting with dCache. Fully independent of the CLI layer.
 
 Usage::
@@ -12,7 +12,6 @@ Usage::
         client.stage("/pnfs/data/mydir/file.dat", lifetime="7D")
         info = client.whoami()
 """
-
 from __future__ import annotations
 
 import logging
