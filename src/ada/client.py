@@ -102,7 +102,7 @@ class AdaClient:
     def longlist(
             self, paths: Optional[str | list[str]] = None,
             from_file: Optional[str] = None
-        ) -> list[FileInfo]:
+            ) -> list[FileInfo]:
         """Get detailed file listing."""
         return self.namespace.longlist(paths, from_file=from_file)
 

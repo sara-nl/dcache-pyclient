@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 from pathlib import PurePosixPath
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ada.exceptions import AdaNotFoundError, AdaPathError, AdaValidationError
 from ada.models import Checksum, FileInfo, FileType, Locality
@@ -52,14 +52,14 @@ class NamespaceService:
             self,
             paths: Optional[str | list[str]] = None,
             from_file: Optional[str] = None
-        ) -> list[FileInfo]:
+            ) -> list[FileInfo]:
         """Get detailed file information for one or more paths.
 
         For directories, lists children with size, mtime, QoS, and locality.
         """
 
         # Get list of paths
-        target_paths = resolve_paths(paths, from_file)   
+        target_paths = resolve_paths(paths, from_file)
 
         results: list[FileInfo] = []
         for path in target_paths:
