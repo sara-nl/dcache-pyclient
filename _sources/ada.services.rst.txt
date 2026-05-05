@@ -1,0 +1,69 @@
+ada.services package
+====================
+
+Submodules
+----------
+
+ada.services.checksum module
+----------------------------
+
+.. automodule:: ada.services.checksum
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.services.events module
+--------------------------
+
+.. automodule:: ada.services.events
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.services.labels module
+--------------------------
+
+.. automodule:: ada.services.labels
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.services.namespace module
+-----------------------------
+
+.. automodule:: ada.services.namespace
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.services.staging module
+---------------------------
+
+.. automodule:: ada.services.staging
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.services.system module
+--------------------------
+
+.. automodule:: ada.services.system
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.services.xattr module
+-------------------------
+
+.. automodule:: ada.services.xattr
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: ada.services
+   :members:
+   :show-inheritance:
+   :undoc-members:

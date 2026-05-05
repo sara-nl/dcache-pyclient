@@ -1,0 +1,668 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ada.services package &mdash; dcache-pyclient  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ada package" href="ada.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            dcache-pyclient
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">dcache-pyclient</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="ada.html">ada package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="ada.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ada.services package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.checksum">ada.services.checksum module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.events">ada.services.events module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.labels">ada.services.labels module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.namespace">ada.services.namespace module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.staging">ada.services.staging module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.system">ada.services.system module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.xattr">ada.services.xattr module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.api">ada.api module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.auth">ada.auth module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.client">ada.client module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.config">ada.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.exceptions">ada.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.models">ada.models module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.utils">ada.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">dcache-pyclient</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="ada.html">ada package</a></li>
+      <li class="breadcrumb-item active">ada.services package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ada.services.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ada-services-package">
+<h1>ada.services package<a class="headerlink" href="#ada-services-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-ada.services.checksum">
+<span id="ada-services-checksum-module"></span><h2>ada.services.checksum module<a class="headerlink" href="#module-ada.services.checksum" title="Link to this heading"></a></h2>
+<p>Checksum service — retrieve file checksums from dCache.</p>
+<p>Supports MD5 and Adler32 checksums, with recursive directory traversal
+and file-list input.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.checksum.ChecksumService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.checksum.</span></span><span class="sig-name descname"><span class="pre">ChecksumService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.services.namespace.NamespaceService" title="ada.services.namespace.NamespaceService"><span class="pre">NamespaceService</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.checksum.ChecksumService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Checksum retrieval for dCache files.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.checksum.ChecksumService.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="ada.html#ada.models.Checksum" title="ada.models.Checksum"><span class="pre">Checksum</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.checksum.ChecksumService.get" title="Link to this definition"></a></dt>
+<dd><p>Get checksums for one or more files.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>paths: File or directory path(s).
+recursive: If True, recurse into directories.
+from_file: Path to a file containing one path per line.</p>
+</dd>
+<dt>Returns:</dt><dd><p>List of Checksum objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services.events">
+<span id="ada-services-events-module"></span><h2>ada.services.events module<a class="headerlink" href="#module-ada.services.events" title="Link to this heading"></a></h2>
+<p>Event service — SSE event streaming and channel management.</p>
+<p>Handles subscribing to inotify events, monitoring staging progress,
+and managing event channels in the dCache API.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.events.AdaState">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.events.</span></span><span class="sig-name descname"><span class="pre">AdaState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.events.AdaState" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Manages ~/.ada/ state directory.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.delete_channel_files">
+<span class="sig-name descname"><span class="pre">delete_channel_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.AdaState.delete_channel_files" title="Link to this definition"></a></dt>
+<dd><p>Remove all state files for a channel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.find_channel_id_by_name">
+<span class="sig-name descname"><span class="pre">find_channel_id_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.AdaState.find_channel_id_by_name" title="Link to this definition"></a></dt>
+<dd><p>Find a channel ID by its human-readable name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.get_channel_name">
+<span class="sig-name descname"><span class="pre">get_channel_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.AdaState.get_channel_name" title="Link to this definition"></a></dt>
+<dd><p>Get the human-readable name for a channel ID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.get_last_event_id">
+<span class="sig-name descname"><span class="pre">get_last_event_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.AdaState.get_last_event_id" title="Link to this definition"></a></dt>
+<dd><p>Get the last processed event ID for a channel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.list_channels">
+<span class="sig-name descname"><span class="pre">list_channels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.events.AdaState.list_channels" title="Link to this definition"></a></dt>
+<dd><p>List all known channels with their IDs and names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.log_request">
+<span class="sig-name descname"><span class="pre">log_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.AdaState.log_request" title="Link to this definition"></a></dt>
+<dd><p>Append lines to the requests log.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.save_channel_name">
+<span class="sig-name descname"><span class="pre">save_channel_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.AdaState.save_channel_name" title="Link to this definition"></a></dt>
+<dd><p>Save the mapping of channel ID to human-readable name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.AdaState.save_last_event_id">
+<span class="sig-name descname"><span class="pre">save_last_event_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.AdaState.save_last_event_id" title="Link to this definition"></a></dt>
+<dd><p>Save the last processed event ID for resume support.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.events.EventService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.events.</span></span><span class="sig-name descname"><span class="pre">EventService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.services.events.AdaState" title="ada.services.events.AdaState"><span class="pre">AdaState</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.events.EventService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>SSE event streaming and channel management for dCache.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.EventService.delete_channel">
+<span class="sig-name descname"><span class="pre">delete_channel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.events.EventService.delete_channel" title="Link to this definition"></a></dt>
+<dd><p>Delete an event channel by name.</p>
+<p>Removes both the API-side channel and local state files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.EventService.list_channels">
+<span class="sig-name descname"><span class="pre">list_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#ada.services.events.EventService.list_channels" title="Link to this definition"></a></dt>
+<dd><p>List event channels.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>name: If specified, return details for this channel.</dt><dd><p>Otherwise, return all channels.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>Channel details dict or list of channels.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.EventService.report_staged">
+<span class="sig-name descname"><span class="pre">report_staged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.events.EventService.report_staged" title="Link to this definition"></a></dt>
+<dd><p>Monitor file locality/QoS changes (staging progress).</p>
+<p>Similar to subscribe but watches for QoS transition events.</p>
+<dl class="simple">
+<dt>Yields:</dt><dd><p>Events related to file staging status changes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.events.EventService.subscribe">
+<span class="sig-name descname"><span class="pre">subscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3600</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.events.EventService.subscribe" title="Link to this definition"></a></dt>
+<dd><p>Subscribe to inotify events on a path.</p>
+<p>Creates (or reuses) an event channel, adds a subscription for
+inotify events, then streams events via SSE.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>channel_name: Human-readable channel name.
+path: dCache path to watch.
+recursive: If True, watch subdirectories too.
+resume: If True, resume from last processed event.
+force: If True, create a new channel even if one exists.
+timeout: SSE connection timeout in seconds.</p>
+</dd>
+<dt>Yields:</dt><dd><p>Parsed event dicts from the SSE stream.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services.labels">
+<span id="ada-services-labels-module"></span><h2>ada.services.labels module<a class="headerlink" href="#module-ada.services.labels" title="Link to this heading"></a></h2>
+<p>Label service — file metadata tagging on dCache.</p>
+<p>Labels are simple string tags attached to files. Directories cannot
+have labels (dCache restriction).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.labels.LabelService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.labels.</span></span><span class="sig-name descname"><span class="pre">LabelService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.services.namespace.NamespaceService" title="ada.services.namespace.NamespaceService"><span class="pre">NamespaceService</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.labels.LabelService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Label management for dCache files.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.labels.LabelService.find">
+<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.labels.LabelService.find" title="Link to this definition"></a></dt>
+<dd><p>Find files with labels matching a regex pattern.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: Directory to search.
+regex: Regular expression to match against labels.
+recursive: If True, search subdirectories.</p>
+</dd>
+<dt>Returns:</dt><dd><p>List of (file_path, matching_labels) tuples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.labels.LabelService.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.labels.LabelService.list" title="Link to this definition"></a></dt>
+<dd><p>List labels attached to a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: File path.
+label: If specified, check if this specific label exists.</p>
+</dd>
+<dt>Returns:</dt><dd><p>List of label strings.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.labels.LabelService.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.labels.LabelService.remove" title="Link to this definition"></a></dt>
+<dd><p>Remove a label from a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: File path.
+label: Specific label to remove.
+all_labels: If True, remove all labels.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Status message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.labels.LabelService.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.labels.LabelService.set" title="Link to this definition"></a></dt>
+<dd><p>Attach a label to a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: File path (must be a regular file, not a directory).
+label: Label string to attach.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Status message.</p>
+</dd>
+<dt>Raises:</dt><dd><p>AdaPathError: If the path is a directory.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services.namespace">
+<span id="ada-services-namespace-module"></span><h2>ada.services.namespace module<a class="headerlink" href="#module-ada.services.namespace" title="Link to this heading"></a></h2>
+<p>Namespace service — file and directory operations on dCache.</p>
+<p>Handles list, longlist, stat, mkdir, mv, delete, and helper functions
+for recursive traversal and path type detection.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.namespace.</span></span><span class="sig-name descname"><span class="pre">NamespaceService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.namespace.NamespaceService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>File and directory operations on the dCache namespace.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.delete" title="Link to this definition"></a></dt>
+<dd><p>Delete a file or directory.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: Path to delete.
+recursive: If True, delete directory contents recursively.
+force: If True, skip confirmation prompts (library usage).</p>
+</dd>
+<dt>Raises:</dt><dd><p>AdaPathError: If the directory is not empty and recursive is False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.get_file_type">
+<span class="sig-name descname"><span class="pre">get_file_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.FileType" title="ada.models.FileType"><span class="pre">FileType</span></a></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.get_file_type" title="Link to this definition"></a></dt>
+<dd><p>Get the type of a path (DIR, REGULAR, LINK).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.get_files_in_dir">
+<span class="sig-name descname"><span class="pre">get_files_in_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.get_files_in_dir" title="Link to this definition"></a></dt>
+<dd><p>Get regular file names within a directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.get_pnfs_id">
+<span class="sig-name descname"><span class="pre">get_pnfs_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.get_pnfs_id" title="Link to this definition"></a></dt>
+<dd><p>Get the PNFS ID of a file or directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.get_subdirs">
+<span class="sig-name descname"><span class="pre">get_subdirs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.get_subdirs" title="Link to this definition"></a></dt>
+<dd><p>Get subdirectory names within a directory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.is_dir">
+<span class="sig-name descname"><span class="pre">is_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.is_dir" title="Link to this definition"></a></dt>
+<dd><p>Check if a path is a directory. Returns False if not found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.is_online">
+<span class="sig-name descname"><span class="pre">is_online</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.is_online" title="Link to this definition"></a></dt>
+<dd><p>Check if a file is online (not only on tape).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.list" title="Link to this definition"></a></dt>
+<dd><p>List directory contents or return the file path itself.</p>
+<p>For directories, returns sorted child names with ‘/’ appended for subdirs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.longlist">
+<span class="sig-name descname"><span class="pre">longlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="ada.html#ada.models.FileInfo" title="ada.models.FileInfo"><span class="pre">FileInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.longlist" title="Link to this definition"></a></dt>
+<dd><p>Get detailed file information for one or more paths.</p>
+<p>For directories, lists children with size, mtime, QoS, and locality.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.mkdir">
+<span class="sig-name descname"><span class="pre">mkdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.mkdir" title="Link to this definition"></a></dt>
+<dd><p>Create a directory.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: The directory path to create.
+recursive: If True, create parent directories as needed.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Status message.</p>
+</dd>
+<dt>Raises:</dt><dd><p>AdaValidationError: If recursive depth exceeds MAX_RECURSIVE_MKDIR.
+AdaPathError: If parent does not exist and recursive is False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.mv">
+<span class="sig-name descname"><span class="pre">mv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.mv" title="Link to this definition"></a></dt>
+<dd><p>Move or rename a file or directory.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>AdaPathError: If the destination already exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.stat">
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.FileInfo" title="ada.models.FileInfo"><span class="pre">FileInfo</span></a></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.stat" title="Link to this definition"></a></dt>
+<dd><p>Get complete metadata for a file or directory.</p>
+<p>Includes children, locality, locations, QoS, xattr, labels, checksums.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.with_files_in_dir">
+<span class="sig-name descname"><span class="pre">with_files_in_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.with_files_in_dir" title="Link to this definition"></a></dt>
+<dd><p>Get full paths of all regular files in a directory.</p>
+<p>If recursive, traverses subdirectories.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services.staging">
+<span id="ada-services-staging-module"></span><h2>ada.services.staging module<a class="headerlink" href="#module-ada.services.staging" title="Link to this heading"></a></h2>
+<p>Staging service — tape staging and unstaging operations.</p>
+<p>Handles bringing files from tape to disk (staging), releasing disk copies
+(unstaging), and managing bulk requests.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.staging.StagingService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.staging.</span></span><span class="sig-name descname"><span class="pre">StagingService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.services.namespace.NamespaceService" title="ada.services.namespace.NamespaceService"><span class="pre">NamespaceService</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.staging.StagingService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Stage/unstage operations for dCache tape-backed storage.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.staging.StagingService.delete_request">
+<span class="sig-name descname"><span class="pre">delete_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.services.staging.StagingService.delete_request" title="Link to this definition"></a></dt>
+<dd><p>Delete a bulk request.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request_id: The bulk request ID to delete.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.staging.StagingService.stage">
+<span class="sig-name descname"><span class="pre">stage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lifetime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'7D'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.BulkRequest" title="ada.models.BulkRequest"><span class="pre">BulkRequest</span></a></span></span><a class="headerlink" href="#ada.services.staging.StagingService.stage" title="Link to this definition"></a></dt>
+<dd><p>Stage files from tape to disk.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>paths: File or directory path(s) to stage.
+recursive: If True, stage files recursively in directories.
+lifetime: How long to keep files online (e.g., ‘7D’, ‘24H’).
+from_file: Path to a file containing one path per line.</p>
+</dd>
+<dt>Returns:</dt><dd><p>BulkRequest with the request ID and details.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.staging.StagingService.stat_request">
+<span class="sig-name descname"><span class="pre">stat_request</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.BulkRequestStatus" title="ada.models.BulkRequestStatus"><span class="pre">BulkRequestStatus</span></a></span></span><a class="headerlink" href="#ada.services.staging.StagingService.stat_request" title="Link to this definition"></a></dt>
+<dd><p>Get the status of a bulk request.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>request_id: The bulk request ID.</p>
+</dd>
+<dt>Returns:</dt><dd><p>BulkRequestStatus with target details.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.staging.StagingService.unstage">
+<span class="sig-name descname"><span class="pre">unstage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.BulkRequest" title="ada.models.BulkRequest"><span class="pre">BulkRequest</span></a></span></span><a class="headerlink" href="#ada.services.staging.StagingService.unstage" title="Link to this definition"></a></dt>
+<dd><p>Unstage files — release pins so dCache can purge disk copies.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>paths: File or directory path(s) to unstage.
+recursive: If True, unstage files recursively.
+request_id: Specific bulk request ID to unpin.
+from_file: Path to a file containing one path per line.</p>
+</dd>
+<dt>Returns:</dt><dd><p>BulkRequest with details.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services.system">
+<span id="ada-services-system-module"></span><h2>ada.services.system module<a class="headerlink" href="#module-ada.services.system" title="Link to this heading"></a></h2>
+<p>System service — whoami, space, and quota operations.</p>
+<p>Provides user identity, storage space, and quota information.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.system.SystemService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.system.</span></span><span class="sig-name descname"><span class="pre">SystemService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.system.SystemService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>System information from the dCache API.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.system.SystemService.check_authenticated">
+<span class="sig-name descname"><span class="pre">check_authenticated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#ada.services.system.SystemService.check_authenticated" title="Link to this definition"></a></dt>
+<dd><p>Check if the user is authenticated by calling the user endpoint.</p>
+<p>Returns True if authenticated, raises on failure.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.system.SystemService.quota">
+<span class="sig-name descname"><span class="pre">quota</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="ada.html#ada.models.QuotaInfo" title="ada.models.QuotaInfo"><span class="pre">QuotaInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.system.SystemService.quota" title="Link to this definition"></a></dt>
+<dd><p>Get storage quota information for the current user.</p>
+<p>Returns a list of quota entries (user and group quotas,
+for both disk and tape storage).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.system.SystemService.space">
+<span class="sig-name descname"><span class="pre">space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poolgroup</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.SpaceInfo" title="ada.models.SpaceInfo"><span class="pre">SpaceInfo</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.system.SystemService.space" title="Link to this definition"></a></dt>
+<dd><p>Get storage space information.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>poolgroup: If specified, return space info for this pool group.</dt><dd><p>If None, return a list of available pool group names.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>SpaceInfo for a specific pool group, or list of pool group names.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.system.SystemService.whoami">
+<span class="sig-name descname"><span class="pre">whoami</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.UserInfo" title="ada.models.UserInfo"><span class="pre">UserInfo</span></a></span></span><a class="headerlink" href="#ada.services.system.SystemService.whoami" title="Link to this definition"></a></dt>
+<dd><p>Get the authenticated user’s identity.</p>
+<p>Returns user info including UID, GIDs, username, home directory,
+and the dCache version.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services.xattr">
+<span id="ada-services-xattr-module"></span><h2>ada.services.xattr module<a class="headerlink" href="#module-ada.services.xattr" title="Link to this heading"></a></h2>
+<p>Extended attributes service — key-value metadata on dCache files.</p>
+<p>Extended attributes (xattr) are key-value pairs that can be attached
+to files for custom metadata storage.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.xattr.XattrService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.xattr.</span></span><span class="sig-name descname"><span class="pre">XattrService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.services.namespace.NamespaceService" title="ada.services.namespace.NamespaceService"><span class="pre">NamespaceService</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.xattr.XattrService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Extended attribute management for dCache files.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.xattr.XattrService.find">
+<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.xattr.XattrService.find" title="Link to this definition"></a></dt>
+<dd><p>Find files with extended attributes matching a regex.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: Directory to search.
+key: Attribute key to match against (or search all keys if all_keys=True).
+regex: Regular expression to match against attribute values.
+recursive: If True, search subdirectories.
+all_keys: If True, search all attribute keys.</p>
+</dd>
+<dt>Returns:</dt><dd><p>List of (file_path, matching_attributes) tuples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.xattr.XattrService.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.xattr.XattrService.list" title="Link to this definition"></a></dt>
+<dd><p>List extended attributes of a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: File path.
+key: If specified, return only this attribute.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Dict of attribute key-value pairs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.xattr.XattrService.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.xattr.XattrService.remove" title="Link to this definition"></a></dt>
+<dd><p>Remove extended attribute(s) from a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: File path.
+key: Specific attribute key to remove.
+all_keys: If True, remove all extended attributes.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Status message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.xattr.XattrService.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.xattr.XattrService.set" title="Link to this definition"></a></dt>
+<dd><p>Set extended attributes on a file.</p>
+<dl>
+<dt>Args:</dt><dd><p>path: File path.
+attributes: Either a dict of key-value pairs, or a string</p>
+<blockquote>
+<div><p>in JSON/key=value format that will be parsed.</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>Status message.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.xattr.XattrService.set_from_file">
+<span class="sig-name descname"><span class="pre">set_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.services.xattr.XattrService.set_from_file" title="Link to this definition"></a></dt>
+<dd><p>Set extended attributes from a file.</p>
+<p>The file can contain JSON or key=value pairs.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ada.services" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ada.html" class="btn btn-neutral float-left" title="ada package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Onno Zweers, Haili Hu.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

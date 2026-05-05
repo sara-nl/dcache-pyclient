@@ -1,0 +1,77 @@
+ada package
+===========
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   ada.services
+
+Submodules
+----------
+
+ada.api module
+--------------
+
+.. automodule:: ada.api
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.auth module
+---------------
+
+.. automodule:: ada.auth
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.client module
+-----------------
+
+.. automodule:: ada.client
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.config module
+-----------------
+
+.. automodule:: ada.config
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.exceptions module
+---------------------
+
+.. automodule:: ada.exceptions
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.models module
+-----------------
+
+.. automodule:: ada.models
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+ada.utils module
+----------------
+
+.. automodule:: ada.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: ada
+   :members:
+   :show-inheritance:
+   :undoc-members:
