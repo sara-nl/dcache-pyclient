@@ -4,13 +4,6 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 
-import os
-import sys
-
-here = os.path.dirname(__file__)
-sys.path.insert(0, os.path.abspath(os.path.join(here, '..')))
-
-
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
