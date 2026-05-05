@@ -4,7 +4,6 @@ Python client for user interaction with dCache. Currently under development, usa
 A Python implementation of [ADA](https://github.com/sara-nl/SpiderScripts) (Advanced dCache API) to manage data in a [dCache storage system](https://dcache.org/) through the dCache API and WebDAV door.
 
 
-
 ## Prerequisites
 
 - [Installation](https://github.com/sara-nl/dcache-pyclient/blob/main/docs/installation.md)
@@ -24,6 +23,7 @@ with AdaClient(api="https://...", tokenfile="/path/to/token") as client:
     info = client.whoami()
 ```
 
+Read the documentation for a complete description of the [ADA package](https://sara-nl.github.io/dcache-pyclient/ada.html).
 
 ### Using ADA as a Command Line Interface tool
 For more information abpout how to use ADA CLI:
