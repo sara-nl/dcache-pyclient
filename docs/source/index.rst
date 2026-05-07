@@ -16,8 +16,7 @@ This tool is a Python implementation of the `ADA <https://github.com/sara-nl/Spi
    :maxdepth: 2
    :caption: Contents:
 
-   Installation <installation>
-   Configuration <configuration>
-   Usage <usage>
-   API Reference <ada>
-
+   installation
+   configuration
+   usage
+   ADA API Reference <ada>

@@ -11,7 +11,7 @@ with AdaClient(api="https://...", tokenfile="/path/to/token") as client:
     info = client.whoami()
 ```
 
-Read the documentation for a complete description of the [ADA package](https://sara-nl.github.io/dcache-pyclient/ada.html).
+Find a complete description of the interface in the [ADA API Reference](https://sara-nl.github.io/dcache-pyclient/ada.html).
 
 ## Using ADA as a CLI tool
 For more information abpout how to use the ADA command line interface tool:
