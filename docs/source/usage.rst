@@ -1,3 +1,3 @@
 
-.. include:: ../../README.md
+.. include:: ../usage.md
    :parser: myst_parser.sphinx_

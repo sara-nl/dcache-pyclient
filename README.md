@@ -1,56 +1,81 @@
 # dcache-pyclient
-Python client for user interaction with dCache. Currently under development, usage only advised for (beta) testing.
+A Python client for user interaction with a [dCache](https://dcache.org/) instance to manage data through the REST API and WebDAV door.
+This tool is a Python implementation of the [ADA](https://github.com/sara-nl/SpiderScripts) (Advanced dCache API)  bash script.
 
-A Python implementation of [ADA](https://github.com/sara-nl/SpiderScripts) (Advanced dCache API) to manage data in a [dCache storage system](https://dcache.org/) through the dCache API and WebDAV door.
-
-
-## Prerequisites
-
-- [Installation](https://github.com/sara-nl/dcache-pyclient/blob/main/docs/installation.md)
-- [Configuration](https://github.com/sara-nl/dcache-pyclient/blob/main/docs/configuration.md)
+**_Disclaimer:_**  Currently under development, usage only advised for (beta) testing.
 
 
-## Usage
+## Documentation
+If you want to use a released version of `dcache-pyclient`, find the instructions in the [documentation](https://sara-nl.github.io/dcache-pyclient).
 
-### Using ADA as a Python package
-Examples:
+
+## Development
+If you want to install an unreleased version, develop, or test locally, you can download the `dcache-pyclient` source code by cloning this repository:
 ```
-from ada import AdaClient
-
-with AdaClient(api="https://...", tokenfile="/path/to/token") as client:
-    files = client.list("/pnfs/data/mydir")
-    client.stage("/pnfs/data/mydir/file.dat", lifetime="7D")
-    info = client.whoami()
+git clone https://github.com/sara-nl/dcache-pyclient.git
+cd dcache-pyclient
 ```
-
-Read the documentation for a complete description of the [ADA package](https://sara-nl.github.io/dcache-pyclient/ada.html).
-
-### Using ADA as a Command Line Interface tool
-For more information abpout how to use ADA CLI:
+We recommend working in a virtual environment. You can create one with:
 ```
-ada-cli --help
-```
-This will show the currently supported ADA commands:
-```
-whoami          Show how dCache identifies you.
-list            List files in a directory.
-longlist        List a file or directory with details.
-mkdir           Create a directory.
-delete          Delete a file or directory.
-mv              Rename or move a file or directory. Note that moving a file will not change its properties. A tape file will remain on tape, even when you
-                move it to a disk directory.
-checksum        Show MD5/Adler32 checksums for a file, files in directory, or files listed in a file.
-stage           Stage/pin a file from tape (bring to disk/online).
-unstage         Unstage/unpin file so dCache may purge its online replica.
-```
-To get details for a specific ADA command:
-```
-ada-cli <command> --help
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
 ```
 
-Examples:
+### Install with Poetry
+If you plan to publish the package, we recommend using [Poetry](https://python-poetry.org/docs/) to install, build, and distribute the package. Poetry is a tool for dependency managing and packaging in Python. If you don't have Poetry, install it first with `pipx install poetry`.
 ```
-ada-cli --tokenfile </path/to/token> --api <URL> whoami 
-ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
-ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
+poetry install --with test
 ```
+Note that Poetry will create a virtual environment if it is not running within an activated virtual environment already. In that case, you will need to run `poetry run` before your commands to execute them within the Poetry virtual environment.
+
+
+### Install with Pip
+If you prefer not to use Poetry, then you can install `dcache-pyclient` with:
+```
+pip install -U -e .
+pip install pytest
+```
+
+### Test installation
+
+To perform the unit tests, run:
+```
+pytest tests/unit
+```
+
+To perform the integration tests, that actually interact with a dCache instance, you need to create a json file with the
+following information (see `tests/env.json` for a template):
+```
+{
+    "user": "user_name",
+    "api": "api_url",
+    "webdav": "webdav_url",
+    "homedir": "user_homedir_on_dcache",    
+    "testdir": "test_dirname",
+    "tokenfile": "tokenfile.conf"
+}
+```
+where `user_homedir_on_dcache` is the full path of the user's home directory on dCache; `testdir` is the directory in which test data will be written (without `user_homedir_on_dcache` in front); `tokenfile.conf` is an rclone config file that can be created with [`get-macaroon`](https://doc.spider.surfsara.nl/en/latest/Pages/storage/ada-interface.html#create-a-macaroon).
+
+Then run:
+```
+pytest tests/integration --target-env tests/env.json -v
+```
+
+This will run integration tests for both the ADA CLI and library. You can also run them separately with:
+
+```
+pytest tests/integration/test_cli.py --target-env tests/env.json -v
+pytest tests/integration/test_library.py --target-env tests/env.json -v
+```
+
+### Build documentation
+The documentation is generated automatically with [Sphinx](https://www.sphinx-doc.org) and Github Actions, see the [workflow](.github/workflows/documentation.yml). If you want to build the documentation locally, run:
+
+```
+pip install sphinx sphinx_rtd_theme myst_parser
+sphinx-apidoc -o docs/source src/ada
+sphinx-build -M html docs/source docs/build   
+```
+This will create html files in `docs/build/html`. 

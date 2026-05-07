@@ -6,10 +6,17 @@
 dcache-pyclient documentation
 =============================
 
+A Python client for user interaction with a `dCache <https://dcache.org/>`__ instance to manage data through the REST API and WebDAV door.
+This tool is a Python implementation of the `ADA <https://github.com/sara-nl/SpiderScripts>`__ (Advanced dCache API) bash script.
+
+.. note::
+   Disclaimer: Currently under development, usage only advised for (beta) testing.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   readme
-   ada
-
+   installation
+   configuration
+   usage
+   ADA API Reference <ada>

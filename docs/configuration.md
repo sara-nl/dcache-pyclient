@@ -22,9 +22,9 @@ Note that the order of precedence for authentication is (high-to-low):
 tokenfile ← netrcfile ← Grid proxy
 ```
 
-## Config File Format
+## Config File
 
-ADA uses a simple `key=value` format, with lines starting with `#` as comments. This is compatible with the original Bash version. An example can be found in [ada.conf](../src/ada/etc/ada.conf).
+ADA uses a simple `key=value` format, with lines starting with `#` as comments. This is compatible with the original Bash version. An example can be found in [ada.conf](https://github.com/sara-nl/dcache-pyclient/blob/main/src/ada/etc/ada.conf).
 
 ```ini
 # ADA configuration
@@ -36,9 +36,7 @@ debug=false
 netrcfile=~/.netrc
 ```
 
-## Config File Locations
-
-Config files are in order of precedence, from high to low:
+Config file location, in order of precedence from high to low, is expected to be:
 
 | Priority | Path | Description |
 |----------|------|-------------|
@@ -95,7 +93,7 @@ ada-cli list /pnfs/grid.sara.nl/data/myproject
 
 ## Library Configuration
 
-When using ADA as a library, you can pass custom config paths (in order of low-to-high precedence):
+When using ADA as a library, you can also pass custom config paths (in order of high-to-low precedence):
 
 ```python
 from ada.client import AdaClient
