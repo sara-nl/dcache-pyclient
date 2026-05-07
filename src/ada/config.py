@@ -81,18 +81,19 @@ def load_config(paths: Optional[list[str]] = None) -> AdaConfig:
                 logger.warning("Skipping config file with insecure permissions: %s", path)
                 raise
             _load_config_file(config, path)
+            break
 
     _apply_env_vars(config)
     return config
 
 
 def _default_config_paths() -> list[str]:
-    """Return default config search paths in order of precedence (lowest first)."""
+    """Return default config search paths in order of precedence (highest first)."""
     script_dir = str(Path(__file__).parent)
     return [
-        f"{script_dir}/etc/ada.conf",  # Bundled defaults
-        "/etc/ada.conf",  # System-wide
         "~/.ada/ada.conf",  # User-level
+        "/etc/ada.conf",  # System-wide
+        f"{script_dir}/etc/ada.conf",  # Bundled defaults
     ]
 
 
