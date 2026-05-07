@@ -2,11 +2,12 @@
 A Python client for user interaction with a [dCache](https://dcache.org/) instance to manage data through the REST API and WebDAV door.
 This tool is a Python implementation of the [ADA](https://github.com/sara-nl/SpiderScripts) (Advanced dCache API)  bash script.
 
-**_Disclaimer:_**  Currently under development. usage only advised for (beta) testing.
+**_Disclaimer:_**  Currently under development, usage only advised for (beta) testing.
 
 
 ## Documentation
 If you want to use a released version of dcache-pyclient, find the instructions in the [documentation](https://sara-nl.github.io/dcache-pyclient).
+
 
 ## Development
 If you want to install an unreleased version, develop, or test locally, you can download the `dcache-pyclient` source code by cloning this repository:
@@ -62,3 +63,13 @@ This will run integration tests for both the ADA CLI and library. You can also r
 pytest tests/integration/test_cli.py --target-env tests/env.json -v
 pytest tests/integration/test_library.py --target-env tests/env.json -v
 ```
+
+### Build documentation
+The documentation is generated automatically with [Sphinx](https://www.sphinx-doc.org) and Github Actions, see the [workflow](.github/workflows/documentation.yml). If you want to build the documentation locally, run:
+
+```
+pip install sphinx sphinx_rtd_theme myst_parser
+sphinx-apidoc -o docs/source src/ada
+sphinx-build -M html docs/source docs/build   
+```
+This will create html files in `docs/build/html`. 
