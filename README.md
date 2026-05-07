@@ -6,7 +6,7 @@ This tool is a Python implementation of the [ADA](https://github.com/sara-nl/Spi
 
 
 ## Documentation
-If you want to use a released version of dcache-pyclient, find the instructions in the [documentation](https://sara-nl.github.io/dcache-pyclient).
+If you want to use a released version of `dcache-pyclient`, find the instructions in the [documentation](https://sara-nl.github.io/dcache-pyclient).
 
 
 ## Development
@@ -14,6 +14,12 @@ If you want to install an unreleased version, develop, or test locally, you can 
 ```
 git clone https://github.com/sara-nl/dcache-pyclient.git
 cd dcache-pyclient
+```
+We recommend working in a virtual environment. You can create one with:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
 ```
 
 ### Install with Poetry
