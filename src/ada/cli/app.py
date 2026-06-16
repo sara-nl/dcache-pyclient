@@ -108,13 +108,13 @@ def parse_args() -> argparse.ArgumentParser:
     # delete
     parser_delete = subparsers.add_parser(
         'delete',
-        help="Delete a file or directory. \n"
-             "The dir must be empty, or use --recursive to force deletion."
+        help="Delete a file or directory."
     )
     parser_delete.set_defaults(func=delete)
     parser_delete.add_argument(
         'path',
-        help="Path to file or directory to delete.",
+        help="Path to file or directory to delete.\n"
+             "The dir must be empty, or use --recursive to force deletion.",
         type=str
     )
     parser_delete.add_argument(
