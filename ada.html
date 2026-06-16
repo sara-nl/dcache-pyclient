@@ -273,7 +273,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.check_config_permissions"><code class="docutils literal notranslate"><span class="pre">check_config_permissions()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.check_file_permissions"><code class="docutils literal notranslate"><span class="pre">check_file_permissions()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.encode_path"><code class="docutils literal notranslate"><span class="pre">encode_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#ada.utils.human_readable_size"><code class="docutils literal notranslate"><span class="pre">human_readable_size()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.normalize_path"><code class="docutils literal notranslate"><span class="pre">normalize_path()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.parse_lifetime"><code class="docutils literal notranslate"><span class="pre">parse_lifetime()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.read_file_list"><code class="docutils literal notranslate"><span class="pre">read_file_list()</span></code></a></li>
@@ -1547,12 +1546,6 @@ FileNotFoundError: If the file does not exist.</p>
 <p>Equivalent to the Bash <code class="docutils literal notranslate"><span class="pre">urlencode</span></code> function (<code class="docutils literal notranslate"><span class="pre">jq</span> <span class="pre">-sRr</span> <span class="pre">&#64;uri</span></code>).
 Encodes all characters including <code class="docutils literal notranslate"><span class="pre">/</span></code> so the entire path becomes
 a single URL path segment (e.g., <code class="docutils literal notranslate"><span class="pre">/pnfs/data</span></code> → <code class="docutils literal notranslate"><span class="pre">%2Fpnfs%2Fdata</span></code>).</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="ada.utils.human_readable_size">
-<span class="sig-prename descclassname"><span class="pre">ada.utils.</span></span><span class="sig-name descname"><span class="pre">human_readable_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size_bytes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.utils.human_readable_size" title="Link to this definition"></a></dt>
-<dd><p>Convert bytes to a human-readable string (e.g., ‘1.5 GiB’).</p>
 </dd></dl>
 
 <dl class="py function">
