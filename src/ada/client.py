@@ -118,10 +118,10 @@ class AdaClient:
         return self.namespace.mv(source, destination)
 
     def delete(
-        self, path: str, recursive: bool = False, force: bool = False
+        self, path: str, recursive: bool = False
     ) -> None:
         """Delete a file or directory."""
-        self.namespace.delete(path, recursive=recursive, force=force)
+        self.namespace.delete(path, recursive=recursive)
 
     # ---- Label Operations ----
 

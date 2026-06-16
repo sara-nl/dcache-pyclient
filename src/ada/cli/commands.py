@@ -59,7 +59,7 @@ def delete(parsed_args) -> None:
     """Delete a file or directory."""
 
     with __get_client__(parsed_args) as client:
-        client.delete(parsed_args.path, recursive=parsed_args.recursive, force=parsed_args.force)
+        client.delete(parsed_args.path, recursive=parsed_args.recursive)
         print(f"Deleted: {parsed_args.path}")
 
 

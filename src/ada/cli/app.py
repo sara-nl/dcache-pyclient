@@ -108,7 +108,8 @@ def parse_args() -> argparse.ArgumentParser:
     # delete
     parser_delete = subparsers.add_parser(
         'delete',
-        help="Delete a file or directory."
+        help="Delete a file or directory. \n"
+             "The dir must be empty, or use --recursive to force deletion."
     )
     parser_delete.set_defaults(func=delete)
     parser_delete.add_argument(
@@ -118,12 +119,7 @@ def parse_args() -> argparse.ArgumentParser:
     )
     parser_delete.add_argument(
         "--recursive",
-        help="Recursively delete directories. You will need to confirm\n"
-             "deletion of each subdir, unless you add --force.",
-        action="store_true")
-    parser_delete.add_argument(
-        "--force",
-        help="Force recursive deletion of directories.",
+        help="Recursively delete directories, inlcuding all subdirs.",
         action="store_true")
 
     # mv
