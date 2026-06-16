@@ -6,7 +6,6 @@ import pytest
 
 from ada.utils import (
     encode_path,
-    human_readable_size,
     normalize_path,
     parse_lifetime,
     to_json,
@@ -87,23 +86,6 @@ class TestToJson:
     def test_invalid_input(self):
         with pytest.raises(AdaValidationError, match="Cannot parse"):
             to_json("completely invalid input without delimiters")
-
-
-class TestHumanReadableSize:
-    def test_bytes(self):
-        assert human_readable_size(500) == "500 B"
-
-    def test_kib(self):
-        assert human_readable_size(1024) == "1.0 KiB"
-
-    def test_mib(self):
-        assert human_readable_size(1048576) == "1.0 MiB"
-
-    def test_gib(self):
-        assert human_readable_size(1073741824) == "1.0 GiB"
-
-    def test_tib(self):
-        assert human_readable_size(1099511627776) == "1.0 TiB"
 
 
 class TestNormalizePath:

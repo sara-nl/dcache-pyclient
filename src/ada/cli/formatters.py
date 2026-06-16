@@ -6,7 +6,6 @@ Provides human-readable formatting of file listings, space info, etc.
 from __future__ import annotations
 
 from ada.models import FileInfo
-from ada.utils import human_readable_size
 
 
 def format_longlist(files: list[FileInfo]) -> list[str]:
@@ -27,7 +26,7 @@ def format_longlist(files: list[FileInfo]) -> list[str]:
 
         # Size
         if info.size is not None:
-            parts.append(human_readable_size(info.size))
+            parts.append(str(info.size))
         else:
             parts.append("-")
 
