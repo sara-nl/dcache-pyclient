@@ -170,14 +170,13 @@ class NamespaceService:
         return "moved"
 
     def delete(
-        self, path: str, recursive: bool = False, force: bool = False
+        self, path: str, recursive: bool = False
     ) -> None:
         """Delete a file or directory.
 
         Args:
             path: Path to delete.
             recursive: If True, delete directory contents recursively.
-            force: If True, skip confirmation prompts (library usage).
 
         Raises:
             AdaPathError: If the directory is not empty and recursive is False.
