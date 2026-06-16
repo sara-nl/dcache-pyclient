@@ -109,19 +109,6 @@ def to_json(input_str: str) -> dict[str, str]:
     return result
 
 
-def human_readable_size(size_bytes: int) -> str:
-    """Convert bytes to a human-readable string (e.g., '1.5 GiB')."""
-    if size_bytes < 1024:
-        return f"{size_bytes} B"
-    units = ["KiB", "MiB", "GiB", "TiB", "PiB"]
-    value = float(size_bytes)
-    for unit in units:
-        value /= 1024.0
-        if value < 1024.0 or unit == units[-1]:
-            return f"{value:.1f} {unit}"
-    return f"{value:.1f} PiB"  # pragma: no cover
-
-
 def parse_lifetime(lifetime_str: str) -> tuple[int, str]:
     """Parse a lifetime string like '7D', '24H', '30M' into (value, unit).
 
