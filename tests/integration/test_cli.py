@@ -44,7 +44,7 @@ class TestClassNamespace:
 
         # Delete directory recursively
         dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir']
-        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"delete", dcache_dir, "--recursive"], text=True)
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"delete", dcache_dir, "--recursive", "--force"], text=True)
 
         assert "Deleted" in out
 

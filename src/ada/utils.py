@@ -182,3 +182,8 @@ def resolve_paths(
     if isinstance(paths, str):
         return [paths]
     return list(paths)
+
+
+def confirm_deletion(path):
+    confirmation = input(f"Delete all items in '{path}'? (y/n): ")
+    return confirmation.lower() == 'y'
