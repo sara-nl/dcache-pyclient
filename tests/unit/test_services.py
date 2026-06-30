@@ -84,13 +84,13 @@ class TestDelete:
         svc.delete("/data/file.txt")
         mock_api.delete.assert_called_once()
 
-    def test_delete_nonempty_dir_without_recursive(self, mock_api):
+    def test_delete_dir_without_recursive(self, mock_api):
         mock_api.get.side_effect = [
             {"fileType": "DIR"},  # get_file_type
             {"fileType": "DIR", "children": [{"fileName": "child"}]},  # _get_children
         ]
         svc = NamespaceService(mock_api)
-        with pytest.raises(AdaPathError, match="not empty"):
+        with pytest.raises(AdaPathError, match="'/data/mydir' is a directory, use --recursive to delete it."):
             svc.delete("/data/mydir")
 
 
