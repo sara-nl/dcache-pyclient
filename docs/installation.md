@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.10 or higher
+- Python 3.9 or higher
 - Dependency on [`httpx`](https://www.python-httpx.org/) - HTTP client that supports sync/async requests
 - Access to a dCache instance with a valid API endpoint
 - Authentication credentials (token, netrc, or X.509 proxy)
