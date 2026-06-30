@@ -172,7 +172,7 @@ def setup_data(target_env, tmp_path, testnames, ada_client):
 
     try:
         # delete temporary test folder on dCache
-        ada_client.delete(testfolder, recursive=True)
+        ada_client.delete(testfolder, recursive=True, force=True)
     except:
         print(f"Cannot delete {testfolder} on dCache")
 

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Optional
 
 from ada.exceptions import AdaNotFoundError, AdaPathError, AdaValidationError
 from ada.models import Checksum, FileInfo, FileType, Locality
-from ada.utils import encode_path, resolve_paths
+from ada.utils import encode_path, resolve_paths, confirm_deletion
 
 if TYPE_CHECKING:
     from ada.api import DcacheAPI
@@ -170,31 +170,53 @@ class NamespaceService:
         return "moved"
 
     def delete(
-        self, path: str, recursive: bool = False
+        self, path: str, recursive: bool = False, force: bool = False
     ) -> None:
         """Delete a file or directory.
 
         Args:
             path: Path to delete.
             recursive: If True, delete directory contents recursively.
+            force: If True, skip confirmation prompts.
 
         Raises:
-            AdaPathError: If the directory is not empty and recursive is False.
+            AdaPathError: If path is a directory and recursive is False.
+            SystemExit: If user does not confirm deletion.
         """
+
+        """Recursively delete all children then the directory itself."""
+
         file_type = self.get_file_type(path)
         if file_type == FileType.DIR:
-            children = self._get_children(path)
-            if children and not recursive:
+            if not recursive:     
                 raise AdaPathError(
-                    f"Directory '{path}' is not empty ({len(children)} items). "
-                    f"Use --recursive to delete it and its contents."
+                    f"'{path}' is a directory, use --recursive to delete it."
                 )
-            if children and recursive:
-                self._delete_recursive(path)
-            else:
-                self._delete_single(path)
+            base = path.rstrip("/")
+            data = self._api.get(
+                f"namespace/{self._enc(path)}", params={"children": "true"}
+            )
+            # delete children
+            for child in data.get("children", []):
+                child_path = f"{base}/{child['fileName']}"
+                if child["fileType"] == FileType.REGULAR:
+                    self._delete_single(child_path)
+                elif child["fileType"] == FileType.DIR:
+                    if not force:
+                        # prompt confirmation of deletion
+                        if confirm_deletion(path):
+                            self.delete(child_path, recursive, force)
+                        else:
+                            raise SystemExit(f"Deleting '{path}' aborted.")                    
+                    else:
+                        # delete all children recursively
+                        self.delete(child_path, recursive, force)
+            # delete empty dir
+            self._delete_single(path)            
         else:
+            # delete file
             self._delete_single(path)
+
 
     # ---- Helper Methods (also used by other services) ----
 
@@ -266,13 +288,6 @@ class NamespaceService:
         return files
 
     # ---- Internal ----
-
-    def _get_children(self, path: str) -> list[str]:
-        """Get all child names in a directory."""
-        data = self._api.get(
-            f"namespace/{self._enc(path)}", params={"children": "true"}
-        )
-        return [child["fileName"] for child in data.get("children", [])]
 
     def _delete_recursive(self, path: str) -> None:
         """Recursively delete all children then the directory itself."""

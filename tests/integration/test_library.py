@@ -38,7 +38,7 @@ class TestClassNamespace:
         assert out == []
 
         # Delete directory recursively
-        out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True)
+        out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True, force=True)
         assert out is None
 
 
