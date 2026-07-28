@@ -38,6 +38,7 @@ class DcacheAPI:
         self,
         base_url: str,
         auth: AuthProvider,
+        verify: bool = True,        
         debug: bool = False,
     ) -> None:
         self.base_url = base_url.rstrip("/")
@@ -50,8 +51,11 @@ class DcacheAPI:
             "follow_redirects": True,
         }
 
+        # verify: False to disable verification       
         ssl_ctx = auth.get_ssl_context()
-        if ssl_ctx:
+        if verify is False:
+            client_kwargs["verify"] = False
+        elif ssl_ctx:
             client_kwargs["verify"] = ssl_ctx
 
         self._client = httpx.Client(**client_kwargs)

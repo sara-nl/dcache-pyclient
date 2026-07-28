@@ -57,6 +57,7 @@ class AdaClient:
         proxy: Optional[str] = None,
         igtf: bool = True,
         config_paths: Optional[list[str]] = None,
+        verify: bool = True,
         debug: bool = False,
     ) -> None:
         # Load config from files and env vars
@@ -81,6 +82,7 @@ class AdaClient:
         self._api = DcacheAPI(
             base_url=self.config.api,
             auth=self.auth,
+            verify=verify,
             debug=self.config.debug,
         )
 
