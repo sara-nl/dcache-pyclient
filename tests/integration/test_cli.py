@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import logging
 
 import pytest
 
@@ -22,6 +23,14 @@ class TestClassSystem:
     def test_whoami(self, target_env):
         """Authenticate and get userinfo"""
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"whoami"], text=True)
+        assert "AUTHENTICATED" in out
+        assert target_env["user"] in out
+        assert target_env["homedir"] in out
+
+    def test_no_verify(self, target_env):
+        """Authenticate and get userinfo without SSL verification"""
+        out = subprocess.check_output(["ada-cli", "--no-verify", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"whoami"], stderr=subprocess.STDOUT, text=True)
+        assert "WARNING: You have disabled SSL verification, connection may be insecure!" in out
         assert "AUTHENTICATED" in out
         assert target_env["user"] in out
         assert target_env["homedir"] in out

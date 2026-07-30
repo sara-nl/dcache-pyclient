@@ -131,5 +131,6 @@ def __get_client__(parsed_args):
     return AdaClient(
         api=parsed_args.api,
         tokenfile=parsed_args.tokenfile,
+        verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work
     )
