@@ -42,6 +42,11 @@ def parse_args() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--no-verify",
+        help="Disable SSL verification. Do not use in production, connection may be insecure!",
+        action="store_true")
+
+    parser.add_argument(
         "--debug",
         help="Run in debug mode (not yet implemented).",
         action="store_true")
