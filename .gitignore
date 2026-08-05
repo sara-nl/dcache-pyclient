@@ -1,3 +1,7 @@
 *.py[cod]
 __pycache__
 dist
+tests/env-test.json
+tests/env-prod.json
+tokenfile_test.conf
+tokenfile_prod.conf
