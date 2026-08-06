@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dcache-pyclient"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python client for user interaction with dCache"
 authors = ["Onno Zweers, Haili Hu"]
 license = "GPL-3.0 license"
