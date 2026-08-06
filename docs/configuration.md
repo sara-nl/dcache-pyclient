@@ -19,8 +19,14 @@ The configuration options are:
 
 Note that the order of precedence for authentication is (high-to-low):
 ```
-tokenfile ← netrcfile ← Grid proxy
+token ← tokenfile ← netrcfile ← Grid proxy
 ```
+
+The CLI `--token` flag does not take a value; it explicitly selects token
+authentication and reads the token from the `$BEARER_TOKEN` environment
+variable, raising an error if it is not set. It is mutually exclusive with
+`--tokenfile`. If neither `--token` nor `--tokenfile` is given, `$BEARER_TOKEN`
+is still used automatically when set (see [Environment Variables](#environment-variables)).
 
 ## Config File
 

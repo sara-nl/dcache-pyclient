@@ -3,6 +3,8 @@ ADA CLI commands
 """
 from __future__ import annotations
 
+import os
+
 from ada.client import AdaClient
 from ada.exceptions import AdaValidationError
 from ada.cli.formatters import format_longlist
@@ -128,8 +130,18 @@ def unstage(parsed_args) -> None:
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 
+    token = None
+    if parsed_args.token:
+        token = os.environ.get("BEARER_TOKEN")
+        if not token:
+            raise AdaValidationError(
+                "--token was specified, but the $BEARER_TOKEN environment "
+                "variable is not set."
+            )
+
     return AdaClient(
         api=parsed_args.api,
+        token=token,
         tokenfile=parsed_args.tokenfile,
         verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work

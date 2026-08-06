@@ -29,10 +29,16 @@ def parse_args() -> argparse.ArgumentParser:
         )
     )
 
-    parser.add_argument(
+    auth_group = parser.add_mutually_exclusive_group()
+    auth_group.add_argument(
         "--tokenfile",
         type=str,
         help="Path to tokenfile."
+    )
+    auth_group.add_argument(
+        "--token",
+        action="store_true",
+        help="Use token authentication, reading the token from $BEARER_TOKEN."
     )
 
     parser.add_argument(

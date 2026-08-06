@@ -42,3 +42,11 @@ ada-cli --tokenfile </path/to/token> --api <URL> whoami
 ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
 ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
 ```
+
+`--tokenfile` and `--token` are mutually exclusive. Use `--token` to explicitly
+request token authentication from the `$BEARER_TOKEN` environment variable
+(the token value itself is never passed on the command line):
+```
+export BEARER_TOKEN=<your-bearer-token>
+ada-cli --token --api <URL> whoami
+```
