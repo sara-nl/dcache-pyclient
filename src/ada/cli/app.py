@@ -40,6 +40,15 @@ def parse_args() -> argparse.ArgumentParser:
         action="store_true",
         help="Use token authentication, reading the token from $BEARER_TOKEN."
     )
+    auth_group.add_argument(
+        "--netrc",
+        nargs="?",
+        const="",
+        default=None,
+        metavar="NETRCFILE",
+        help="Use netrc-based password authentication. "
+             "If no file is given, ~/.netrc is used."
+    )
 
     parser.add_argument(
         "--api",

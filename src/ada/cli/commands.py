@@ -143,6 +143,7 @@ def __get_client__(parsed_args):
         api=parsed_args.api,
         token=token,
         tokenfile=parsed_args.tokenfile,
+        netrc=parsed_args.netrc,
         verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work
     )

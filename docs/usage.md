@@ -43,10 +43,18 @@ ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
 ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
 ```
 
-`--tokenfile` and `--token` are mutually exclusive. Use `--token` to explicitly
+`--tokenfile`, `--token`, and `--netrc` are mutually exclusive. Use `--token` to explicitly
 request token authentication from the `$BEARER_TOKEN` environment variable
 (the token value itself is never passed on the command line):
 ```
 export BEARER_TOKEN=<your-bearer-token>
 ada-cli --token --api <URL> whoami
+```
+
+Use `--netrc` to explicitly request netrc-based password authentication. Without
+a value, `~/.netrc` is used; a path can be given to use a different file. The
+file must not be world-readable or world-writable:
+```
+ada-cli --netrc --api <URL> whoami
+ada-cli --netrc /path/to/netrc --api <URL> whoami
 ```

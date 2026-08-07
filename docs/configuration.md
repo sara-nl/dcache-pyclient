@@ -25,8 +25,14 @@ token ← tokenfile ← netrcfile ← Grid proxy
 The CLI `--token` flag does not take a value; it explicitly selects token
 authentication and reads the token from the `$BEARER_TOKEN` environment
 variable, raising an error if it is not set. It is mutually exclusive with
-`--tokenfile`. If neither `--token` nor `--tokenfile` is given, `$BEARER_TOKEN`
-is still used automatically when set (see [Environment Variables](#environment-variables)).
+`--tokenfile` and `--netrc`. If none of `--token`, `--tokenfile`, or `--netrc`
+is given, `$BEARER_TOKEN` is still used automatically when set (see [Environment Variables](#environment-variables)).
+
+The CLI `--netrc` flag explicitly selects netrc-based password authentication.
+It takes an optional value: without one, `~/.netrc` is used; with a path, that
+file is used instead. Either way, the file must exist and must not be
+world-readable or world-writable, or an error is raised. It is mutually
+exclusive with `--token` and `--tokenfile`.
 
 ## Config File
 
