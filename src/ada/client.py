@@ -55,7 +55,7 @@ class AdaClient:
         token: Optional[str] = None,
         netrc: Optional[str] = None,
         proxy: Optional[str] = None,
-        igtf: bool = True,
+        igtf: Optional[bool] = None,
         config_paths: Optional[list[str]] = None,
         verify: bool = True,
         debug: bool = False,
@@ -66,7 +66,8 @@ class AdaClient:
             self.config.api = api
         if debug:
             self.config.debug = debug
-        self.config.igtf = igtf
+        if igtf is not None:
+            self.config.igtf = igtf
         self.config.validate()
 
         # Resolve authentication

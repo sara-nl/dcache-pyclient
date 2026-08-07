@@ -143,11 +143,19 @@ def __get_client__(parsed_args):
     if parsed_args.netrc:
         netrc = ""
 
+    proxy = parsed_args.proxyfile
+    if parsed_args.proxy:
+        proxy = ""
+
+    igtf = False if parsed_args.no_igtf else None
+
     return AdaClient(
         api=parsed_args.api,
         token=token,
         tokenfile=parsed_args.tokenfile,
         netrc=netrc,
+        proxy=proxy,
+        igtf=igtf,
         verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work
     )

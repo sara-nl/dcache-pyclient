@@ -25,15 +25,24 @@ token ← tokenfile ← netrcfile ← Grid proxy
 The CLI `--token` flag does not take a value; it explicitly selects token
 authentication and reads the token from the `$BEARER_TOKEN` environment
 variable, raising an error if it is not set. It is mutually exclusive with
-`--tokenfile`, `--netrcfile`, and `--netrc`. If none of `--token`, `--tokenfile`,
-`--netrcfile`, or `--netrc` is given, `$BEARER_TOKEN` is still used automatically
-when set (see [Environment Variables](#environment-variables)).
+`--tokenfile`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`. If none
+of these is given, `$BEARER_TOKEN` is still used automatically when set (see
+[Environment Variables](#environment-variables)).
 
 The CLI `--netrc` flag does not take a value; it explicitly selects netrc-based
 password authentication from `~/.netrc`. Use `--netrcfile PATH` instead to use a
 different file. Either way, the file must exist and must not be world-readable
-or world-writable, or an error is raised. Both are mutually exclusive with
-`--token` and `--tokenfile`.
+or world-writable, or an error is raised.
+
+The CLI `--proxy` flag does not take a value; it explicitly selects X.509
+proxy authentication, reading the proxy certificate from `$X509_USER_PROXY`
+(or `/tmp/x509up_u<uid>` if unset). Use `--proxyfile PATH` instead to use a
+different file. By default the proxy is verified against IGTF Grid CA
+certificates; pass `--no-igtf` to disable this (overriding the `igtf` config
+value for this run).
+
+All of `--token`, `--tokenfile`, `--netrc`, `--netrcfile`, `--proxy`, and
+`--proxyfile` are mutually exclusive with each other.
 
 ## Config File
 

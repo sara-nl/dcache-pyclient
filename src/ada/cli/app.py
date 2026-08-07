@@ -50,6 +50,23 @@ def parse_args() -> argparse.ArgumentParser:
         action="store_true",
         help="Use netrc-based password authentication, reading from ~/.netrc."
     )
+    auth_group.add_argument(
+        "--proxyfile",
+        type=str,
+        help="Path to X.509 proxy file."
+    )
+    auth_group.add_argument(
+        "--proxy",
+        action="store_true",
+        help="Use X.509 proxy authentication, reading from $X509_USER_PROXY "
+             "or /tmp/x509up_u<uid>."
+    )
+
+    parser.add_argument(
+        "--no-igtf",
+        help="Disable IGTF Grid CA certificate verification "
+             "(only relevant for --proxy/--proxyfile authentication).",
+        action="store_true")
 
     parser.add_argument(
         "--api",
