@@ -22,7 +22,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 from urllib.parse import urlparse
-import netrc as netrc_module
 import ssl
 
 import httpx
@@ -125,6 +124,50 @@ class TokenFileAuth(TokenAuth):
         raise AdaAuthError(f"Could not read token from file: {path}")
 
 
+def _parse_netrc(path: str, hostname: str) -> tuple[str, str]:
+    """Parse a netrc file for the login/password of the given host.
+
+    Reimplemented instead of using the stdlib ``netrc`` module, which
+    silently strips backslashes from values — a long-standing, deliberately
+    unfixed bug (https://github.com/python/cpython/issues/99080) that
+    corrupts any password containing one. ``curl --netrc`` does not have
+    this bug, so this parser matches curl's plain whitespace-tokenized
+    behavior instead.
+    """
+    text = Path(path).read_text(encoding="utf-8")
+    entries: dict[str, dict[str, str]] = {}
+    default: dict[str, str] = {}
+    current: Optional[dict[str, str]] = None
+    in_macdef = False
+    for line in text.splitlines():
+        if in_macdef:
+            if not line.strip():
+                in_macdef = False
+            continue
+        tokens = line.split()
+        i = 0
+        while i < len(tokens):
+            keyword = tokens[i]
+            if keyword == "machine" and i + 1 < len(tokens):
+                current = entries.setdefault(tokens[i + 1], {})
+                i += 2
+            elif keyword == "default":
+                current = default
+                i += 1
+            elif keyword in ("login", "password", "account") and current is not None and i + 1 < len(tokens):
+                current[keyword] = tokens[i + 1]
+                i += 2
+            elif keyword == "macdef":
+                # Macro bodies run until a blank line; not used by ADA, so skip them.
+                in_macdef = True
+                break
+            else:
+                i += 1
+
+    entry = entries.get(hostname, default)
+    return entry.get("login", ""), entry.get("password", "")
+
+
 class NetrcAuth(AuthProvider):
     """Netrc-based username/password (Basic) authentication."""
 
@@ -142,26 +185,19 @@ class NetrcAuth(AuthProvider):
 
     def get_httpx_auth(self) -> Any:
         """Parse netrc and return httpx BasicAuth for the API host."""
-        try:
-            nrc = netrc_module.netrc(self.netrcfile)
-        except Exception as exc:
-            raise AdaAuthError(f"Cannot parse netrc file '{self.netrcfile}': {exc}") from exc
-
         if not self.hostname:
             raise AdaAuthError(
                 "Cannot use netrc authentication without knowing the API hostname."
             )
 
-        auth_tuple = nrc.authenticators(self.hostname)
-        if auth_tuple is None:
-            raise AdaAuthError(
-                f"No credentials found for host '{self.hostname}' in '{self.netrcfile}'."
-            )
+        try:
+            login, password = _parse_netrc(self.netrcfile, self.hostname)
+        except OSError as exc:
+            raise AdaAuthError(f"Cannot read netrc file '{self.netrcfile}': {exc}") from exc
 
-        login, _, password = auth_tuple
         if not login or not password:
             raise AdaAuthError(
-                f"Incomplete credentials for host '{self.hostname}' in '{self.netrcfile}'."
+                f"No credentials found for host '{self.hostname}' in '{self.netrcfile}'."
             )
 
         return httpx.BasicAuth(username=login, password=password)
