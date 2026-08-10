@@ -118,7 +118,11 @@ class TokenFileAuth(TokenAuth):
         """
         content = Path(path).read_text(encoding="utf-8")
 
-        # Try rclone config format first
+        # Try rclone config format first. A bearer_token key found with an
+        # empty value means this is an rclone-format file with no token
+        # configured — fail clearly rather than falling through to the
+        # plain-token fallback below, which would otherwise misread an
+        # unrelated line (e.g. the "[section]" header) as the token.
         for line in content.splitlines():
             stripped = line.strip()
             if stripped.startswith("bearer_token"):
@@ -127,8 +131,10 @@ class TokenFileAuth(TokenAuth):
                     token = parts[1].strip()
                     if token:
                         return token
+                    raise AdaAuthError(f"bearer_token is empty in tokenfile: {path}")
 
-        # Fall back to plain token (first non-empty line)
+        # Fall back to plain token (first non-empty line), only reached
+        # when the file has no bearer_token key at all.
         for line in content.splitlines():
             stripped = line.strip()
             if stripped:
