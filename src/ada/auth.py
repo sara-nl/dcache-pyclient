@@ -302,8 +302,10 @@ def resolve_auth(
             return NetrcAuth(config.netrcfile, hostname=hostname)
 
     raise AdaAuthError(
-        "No authentication method specified. "
-        "Use --tokenfile, --netrc, or --proxy."
+        "No authentication method configured. Use --token, --tokenfile, "
+        "--netrc, --netrcfile, --proxy, or --proxyfile; set $BEARER_TOKEN, "
+        "$ada_tokenfile, or $ada_netrcfile; or set tokenfile/netrcfile in "
+        "ada.conf."
     )
 
 
