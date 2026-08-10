@@ -423,6 +423,11 @@ def decode_macaroon(token: str) -> dict[str, str]:
     # Extract common Macaroon caveats
     for line in raw.splitlines():
         line = line.strip()
+        # Caveat lines carry a 4-hex-digit length header and a "cid "
+        # marker before the actual key:value pair, e.g.
+        # "002ecid before:2026-01-01T00:00:00Z" — strip that prefix so
+        # the key comparison below sees "before", not "002ecid before".
+        line = re.sub(r"^[0-9a-fA-F]{4}cid\s+", "", line)
         if ":" in line:
             key, _, value = line.partition(":")
             key = key.strip().lower()
