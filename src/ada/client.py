@@ -235,6 +235,10 @@ class AdaClient:
         """Get authenticated user identity."""
         return self.system.whoami()
 
+    def dcache_versions(self) -> list[str]:
+        """Get the dCache version(s) running on the server."""
+        return self.system.dcache_versions()
+
     def space(self, poolgroup: Optional[str] = None) -> SpaceInfo | list[str]:
         """Get storage space info."""
         return self.system.space(poolgroup)

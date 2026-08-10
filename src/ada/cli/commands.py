@@ -16,6 +16,9 @@ def whoami(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         info = client.whoami()
         print(f"API:      {client.config.api}")
+        versions = client.dcache_versions()
+        if versions:
+            print(f"Version:  {', '.join(versions)}")
         print(f"Auth:     {client.auth.describe()}")
         print(f"Status:   {info.status}")
         if info.username:
@@ -28,10 +31,6 @@ def whoami(parsed_args) -> None:
             print(f"Home:     {info.home}")
         if info.root:
             print(f"Root:     {info.root}")
-        # Show dCache version if available
-        raw = info.raw
-        if "version" in raw:
-            print(f"dCache:   {raw['version']}")
 
 
 def list_cmd(parsed_args) -> None:

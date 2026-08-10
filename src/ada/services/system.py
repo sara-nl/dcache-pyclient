@@ -39,6 +39,18 @@ class SystemService:
             raw=data,
         )
 
+    def dcache_versions(self) -> list[str]:
+        """Get the dCache version(s) running on this instance.
+
+        Each dCache cell (service) can report its own version, so this
+        returns the sorted set of unique versions found across all cells.
+        """
+        data = self._api.get("cells")
+        versions = {
+            item.get("version") for item in data if item.get("version")
+        } if isinstance(data, list) else set()
+        return sorted(versions)
+
     def check_authenticated(self) -> bool:
         """Check if the user is authenticated by calling the user endpoint.
 
