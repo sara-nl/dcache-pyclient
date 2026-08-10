@@ -90,6 +90,7 @@ class TokenFileAuth(TokenAuth):
     """Reads token from a file (rclone config format or plain bearer token)."""
 
     def __init__(self, tokenfile: str) -> None:
+        tokenfile = str(Path(tokenfile).expanduser())
         check_file_permissions(tokenfile)
         token = self._read_token(tokenfile)
         super().__init__(token, source=f"tokenfile: {tokenfile}")
@@ -172,7 +173,7 @@ class NetrcAuth(AuthProvider):
     """Netrc-based username/password (Basic) authentication."""
 
     def __init__(self, netrcfile: Optional[str] = None, hostname: Optional[str] = None) -> None:
-        self.netrcfile = netrcfile or str(Path.home() / ".netrc")
+        self.netrcfile = str(Path(netrcfile).expanduser()) if netrcfile else str(Path.home() / ".netrc")
         self.hostname = hostname
         check_file_permissions(self.netrcfile)
 
@@ -212,12 +213,14 @@ class ProxyAuth(AuthProvider):
         certdir: Optional[str] = None,
         igtf: bool = True,
     ) -> None:
-        self.proxyfile = proxyfile or os.environ.get(
+        proxyfile = proxyfile or os.environ.get(
             "X509_USER_PROXY", f"/tmp/x509up_u{os.getuid()}"
         )
-        self.certdir = certdir or os.environ.get(
+        certdir = certdir or os.environ.get(
             "X509_CERT_DIR", "/etc/grid-security/certificates"
         )
+        self.proxyfile = str(Path(proxyfile).expanduser())
+        self.certdir = str(Path(certdir).expanduser())
         self.igtf = igtf
 
         if not Path(self.proxyfile).exists():
