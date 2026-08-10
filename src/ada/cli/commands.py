@@ -16,6 +16,7 @@ def whoami(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         info = client.whoami()
         print(f"API:      {client.config.api}")
+        print(f"Auth:     {client.auth.describe()}")
         print(f"Status:   {info.status}")
         if info.username:
             print(f"Username: {info.username}")

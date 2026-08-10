@@ -46,6 +46,15 @@ class AuthProvider(ABC):
     def method_name(self) -> str:
         """Human-readable name like 'token', 'netrc', 'proxy'."""
 
+    def describe(self) -> str:
+        """Human-readable description of the method and where it was resolved from.
+
+        Auth methods can come from explicit CLI arguments, environment
+        variables, or ada.conf, so this is shown in ``whoami`` to make an
+        otherwise invisible choice visible.
+        """
+        return self.method_name()
+
     def view_token(self) -> dict[str, Any]:
         """Decode and return token properties for display."""
         raise NotImplementedError(
@@ -76,6 +85,9 @@ class TokenAuth(AuthProvider):
 
     def method_name(self) -> str:
         return "token"
+
+    def describe(self) -> str:
+        return f"token ({self.source})"
 
     def validate(self, command: Optional[str] = None) -> None:
         validate_token(self.token, source=self.source, command=command)
@@ -184,6 +196,9 @@ class NetrcAuth(AuthProvider):
     def method_name(self) -> str:
         return "netrc"
 
+    def describe(self) -> str:
+        return f"netrc ({self.netrcfile})"
+
     def get_httpx_auth(self) -> Any:
         """Parse netrc and return httpx BasicAuth for the API host."""
         if not self.hostname:
@@ -236,6 +251,9 @@ class ProxyAuth(AuthProvider):
 
     def method_name(self) -> str:
         return "proxy"
+
+    def describe(self) -> str:
+        return f"proxy ({self.proxyfile})"
 
     def get_ssl_context(self) -> Any:
         """Return an SSL context configured with the proxy certificate."""
