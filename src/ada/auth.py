@@ -377,8 +377,19 @@ def decode_macaroon_raw(token: str) -> str:
     Raises:
         AdaAuthError: If the token cannot be decoded.
     """
+    token = token.strip()
+    # Add padding if needed (macaroon tokens are commonly unpadded base64,
+    # which `base64 -d` accepts leniently but Python's strict decoder does not).
+    padding = 4 - len(token) % 4
+    if padding != 4:
+        token += "=" * padding
+
     try:
-        decoded_bytes = base64.b64decode(token.strip())
+        # dCache macaroons use URL-safe base64 (- and _ instead of + and /),
+        # not standard base64. base64.b64decode() silently discards those
+        # characters as invalid instead of raising, which throws off the
+        # length check and produces a misleading padding error.
+        decoded_bytes = base64.urlsafe_b64decode(token)
     except Exception as exc:
         raise AdaAuthError(f"Invalid macaroon: cannot base64 decode: {exc}") from exc
 
