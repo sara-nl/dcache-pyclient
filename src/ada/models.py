@@ -53,6 +53,16 @@ class FileInfo:
 
 
 @dataclass(frozen=True)
+class TransferResult:
+    """Result of an upload or download."""
+
+    local_path: str
+    remote_path: str
+    status: str  # "uploaded", "downloaded", or "already-verified" (checksum matched, no transfer needed)
+    checksum_verified: bool = False
+
+
+@dataclass(frozen=True)
 class BulkRequest:
     """Result of a bulk (stage/unstage) operation."""
 

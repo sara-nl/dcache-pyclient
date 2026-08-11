@@ -126,6 +126,42 @@ def unstage(parsed_args) -> None:
         print(f"Targets: {len(result.targets)} file(s)")
 
 
+def upload(parsed_args) -> None:
+    """Upload a local file to dCache."""
+
+    with __get_client__(parsed_args) as client:
+        result = client.upload(
+            parsed_args.local,
+            parsed_args.remote,
+            verify_checksum=parsed_args.verify_checksum,
+            allow_insecure_redirects=parsed_args.allow_insecure_redirects,
+        )
+        if result.status == "already-verified":
+            print(f"Target '{result.remote_path}' already exists and checksum matches. Nothing to do.")
+        else:
+            print(f"Uploaded '{result.local_path}' to '{result.remote_path}'.")
+            if result.checksum_verified:
+                print("Checksum verified.")
+
+
+def download(parsed_args) -> None:
+    """Download a file from dCache."""
+
+    with __get_client__(parsed_args) as client:
+        result = client.download(
+            parsed_args.remote,
+            parsed_args.local,
+            verify_checksum=parsed_args.verify_checksum,
+            allow_insecure_redirects=parsed_args.allow_insecure_redirects,
+        )
+        if result.status == "already-verified":
+            print(f"Target '{result.local_path}' already exists and checksum matches. Nothing to do.")
+        else:
+            print(f"Downloaded '{result.remote_path}' to '{result.local_path}'.")
+            if result.checksum_verified:
+                print("Checksum verified.")
+
+
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 
