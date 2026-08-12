@@ -164,6 +164,8 @@ def quota(parsed_args) -> None:
         quotas = client.quota()
         if not quotas:
             print("You do not have any quota set on your user ID or primary group ID.")
+            print("Tip: use 'ada-cli space <path>' to check available space in the "
+                  "pool group(s) serving your data.")
             return
         for line in format_quota(quotas):
             print(line)
