@@ -15,6 +15,7 @@ from ada.cli.commands import (
     stage,
     unstage,
     space,
+    quota,
 )
 
 
@@ -251,6 +252,13 @@ def parse_args() -> argparse.ArgumentParser:
              "(starting with '/') to look up the pool group(s) serving "
              "that path. If omitted, lists all pool group names.",
     )
+
+    # quota
+    parser_quota = subparsers.add_parser(
+        'quota',
+        help="Show storage quotas (tape/custodial and disk/replica), for user and group."
+    )
+    parser_quota.set_defaults(func=quota)
 
     return parser
 

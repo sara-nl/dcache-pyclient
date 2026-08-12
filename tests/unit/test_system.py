@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from ada.exceptions import AdaNotFoundError
-from ada.models import SpaceInfo
+from ada.models import QuotaInfo, SpaceInfo
 from ada.services.system import SystemService
 
 
@@ -138,3 +138,68 @@ class TestPoolgroupsForPath:
 
         with pytest.raises(AdaNotFoundError, match="No pool group found"):
             svc.poolgroups_for_path("/users/onno/disk")
+
+
+class TestQuota:
+    def test_returns_user_and_group_quota(self, mock_api):
+        mock_api.get.side_effect = [
+            [
+                {
+                    "id": 31029,
+                    "type": "USER",
+                    "custodial": 1084227602,
+                    "replica": 1267496085,
+                    "custodialLimit": 1000000000000000,
+                    "replicaLimit": 2000000000000,
+                }
+            ],
+            [
+                {
+                    "id": 31040,
+                    "type": "GROUP",
+                    "custodial": 1084227589,
+                    "replica": 1267496085,
+                    "custodialLimit": None,
+                    "replicaLimit": 1000000000000,
+                }
+            ],
+        ]
+        svc = SystemService(mock_api)
+
+        result = svc.quota()
+
+        assert result == [
+            QuotaInfo(
+                quota_type="user", id=31029, custodial=1084227602,
+                custodial_limit=1000000000000000, replica=1267496085,
+                replica_limit=2000000000000,
+            ),
+            QuotaInfo(
+                quota_type="group", id=31040, custodial=1084227589,
+                custodial_limit=None, replica=1267496085,
+                replica_limit=1000000000000,
+            ),
+        ]
+        assert mock_api.get.call_args_list[0].args[0] == "quota/user"
+        assert mock_api.get.call_args_list[0].kwargs == {"params": {"user": "true"}}
+        assert mock_api.get.call_args_list[1].args[0] == "quota/group"
+
+    def test_404_for_a_quota_type_is_not_an_error(self, mock_api):
+        # Bash treats a 404 as "no quota of this type set", not a failure.
+        mock_api.get.side_effect = [
+            AdaNotFoundError("no user quota"),
+            [{"id": 31040, "type": "GROUP", "custodial": 1, "replica": 2,
+              "custodialLimit": None, "replicaLimit": None}],
+        ]
+        svc = SystemService(mock_api)
+
+        result = svc.quota()
+
+        assert len(result) == 1
+        assert result[0].quota_type == "group"
+
+    def test_no_quota_at_all_returns_empty_list(self, mock_api):
+        mock_api.get.side_effect = AdaNotFoundError("no quota")
+        svc = SystemService(mock_api)
+
+        assert svc.quota() == []

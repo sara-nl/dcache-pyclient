@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from ada.client import AdaClient
 from ada.exceptions import AdaValidationError
-from ada.cli.formatters import format_longlist
+from ada.cli.formatters import format_longlist, format_quota
 
 
 def whoami(parsed_args) -> None:
@@ -155,6 +155,18 @@ def _print_space(result) -> None:
     print(f"Precious:  {result.precious}")
     print(f"Removable: {result.removable}  (cached replicas, reclaimable)")
     print(f"Available: {result.free + result.removable}  (free + removable)")
+
+
+def quota(parsed_args) -> None:
+    """Show storage quotas (tape/custodial and disk/replica), for user and group."""
+
+    with __get_client__(parsed_args) as client:
+        quotas = client.quota()
+        if not quotas:
+            print("You do not have any quota set on your user ID or primary group ID.")
+            return
+        for line in format_quota(quotas):
+            print(line)
 
 
 def __get_client__(parsed_args):

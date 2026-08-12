@@ -119,19 +119,28 @@ class SystemService:
         return poolgroups
 
     def quota(self) -> list[QuotaInfo]:
-        """Get storage quota information for the current user.
+        """Get storage quota information for the current user and their
+        primary group.
 
-        Returns a list of quota entries (user and group quotas,
-        for both disk and tape storage).
+        Queries user and group quota separately, since dCache returns
+        a 404 for a quota type that simply isn't set (not an error) --
+        matching the Bash version.
+
+        Returns:
+            A list of quota entries (user and/or group, for both
+            custodial/tape and replica/disk storage). Empty if neither
+            the user nor the group has any quota set.
         """
-        data = self._api.get("quota")
         quotas: list[QuotaInfo] = []
-
-        if isinstance(data, list):
+        for quota_type in ("user", "group"):
+            try:
+                data = self._api.get(f"quota/{quota_type}", params={"user": "true"})
+            except AdaNotFoundError:
+                continue
             for item in data:
                 quotas.append(
                     QuotaInfo(
-                        quota_type=item.get("type", "unknown"),
+                        quota_type=quota_type,
                         id=item.get("id", 0),
                         custodial=item.get("custodial", 0),
                         custodial_limit=item.get("custodialLimit"),
@@ -139,20 +148,4 @@ class SystemService:
                         replica_limit=item.get("replicaLimit"),
                     )
                 )
-        elif isinstance(data, dict):
-            # Some API versions return a dict with user/group keys
-            for qtype in ("user", "group"):
-                if qtype in data:
-                    for entry in data[qtype]:
-                        quotas.append(
-                            QuotaInfo(
-                                quota_type=qtype,
-                                id=entry.get("id", 0),
-                                custodial=entry.get("custodial", 0),
-                                custodial_limit=entry.get("custodialLimit"),
-                                replica=entry.get("replica", 0),
-                                replica_limit=entry.get("replicaLimit"),
-                            )
-                        )
-
         return quotas
