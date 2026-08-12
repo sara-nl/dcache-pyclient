@@ -153,7 +153,7 @@ def _print_space(result) -> None:
     print(f"Total:     {result.total}")
     print(f"Free:      {result.free}")
     print(f"Precious:  {result.precious}")
-    print(f"Removable: {result.removable}")
+    print(f"Removable: {result.removable}  (cached replicas, reclaimable)")
     print(f"Available: {result.free + result.removable}  (free + removable)")
 
 
