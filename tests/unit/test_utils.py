@@ -107,26 +107,36 @@ class TestNormalizePath:
         assert normalize_path("  /pnfs/data  ") == "/pnfs/data"
 
 
+def _fake_git_run(args, **kwargs):
+    if args[:2] == ["git", "rev-parse"]:
+        return subprocess.CompletedProcess(args, 0, stdout="my-branch\n")
+    return subprocess.CompletedProcess(args, 0, stdout="abc1234\n")
+
+
 class TestGetVersion:
     """get_version() must never raise — --version should always print
-    something, even when the package isn't installed and/or git isn't
-    available (e.g. running from a bare source checkout)."""
+    something, even when neither the package nor git is available
+    (e.g. running from a bare, uninstalled source checkout)."""
 
-    def test_returns_installed_package_version(self):
-        with patch("ada.utils._pkg_version", return_value="1.2.3"):
+    def test_package_version_only_when_not_a_git_checkout(self):
+        with patch("ada.utils._pkg_version", return_value="1.2.3"), \
+             patch("ada.utils._git_info", return_value=None):
             assert get_version() == "1.2.3"
 
-    def test_falls_back_to_git_branch_and_commit(self):
-        def fake_run(args, **kwargs):
-            if args[:2] == ["git", "rev-parse"]:
-                return subprocess.CompletedProcess(args, 0, stdout="my-branch\n")
-            return subprocess.CompletedProcess(args, 0, stdout="abc1234\n")
+    def test_appends_git_branch_and_commit_to_package_version(self):
+        # Editable dev installs (poetry install) have valid package
+        # metadata regardless of which branch is checked out, so the
+        # git info is appended rather than only used as a fallback.
+        with patch("ada.utils._pkg_version", return_value="1.2.3"), \
+             patch("ada.utils.subprocess.run", side_effect=_fake_git_run):
+            assert get_version() == "1.2.3 (branch: my-branch, commit: abc1234)"
 
+    def test_falls_back_to_git_info_when_package_not_installed(self):
         with patch("ada.utils._pkg_version", side_effect=PackageNotFoundError), \
-             patch("ada.utils.subprocess.run", side_effect=fake_run):
-            assert get_version() == "my-branch@abc1234 (development version)"
+             patch("ada.utils.subprocess.run", side_effect=_fake_git_run):
+            assert get_version() == "branch: my-branch, commit: abc1234 (development version)"
 
-    def test_falls_back_to_unknown_when_git_missing(self):
+    def test_falls_back_to_unknown_when_neither_available(self):
         with patch("ada.utils._pkg_version", side_effect=PackageNotFoundError), \
              patch("ada.utils.subprocess.run", side_effect=FileNotFoundError("no git")):
             assert get_version() == "unknown"

@@ -196,20 +196,38 @@ def confirm_deletion(path):
 def get_version() -> str:
     """Return ADA's version string.
 
-    Normally this is the installed package's version, from
-    pyproject.toml via package metadata. If the package isn't
-    installed (e.g. running from a git checkout without ``pip
-    install``/``poetry install``), falls back to the current git
-    branch and commit, so it's still possible to tell what code is
-    running.
+    The installed package's version (from pyproject.toml via package
+    metadata) is always shown when available. Since Poetry's editable
+    dev install has valid metadata regardless of which branch/commit
+    is checked out, the package version alone doesn't tell you that
+    you're on unreleased code — so when running from a git checkout,
+    the branch and commit are appended too, e.g.::
+
+        0.2.1 (branch: 26-add-ada-cli---version, commit: 5977a71)
+
+    If neither is available (not installed, and not a git checkout),
+    returns "unknown".
     """
     try:
-        return _pkg_version(DISTRIBUTION_NAME)
+        version = _pkg_version(DISTRIBUTION_NAME)
     except PackageNotFoundError:
-        return _git_fallback_version()
+        version = None
+
+    git_info = _git_info()
+
+    if version and git_info:
+        return f"{version} ({git_info})"
+    if version:
+        return version
+    if git_info:
+        return f"{git_info} (development version)"
+    return "unknown"
 
 
-def _git_fallback_version() -> str:
+def _git_info() -> Optional[str]:
+    """Return "branch: <branch>, commit: <commit>" if running from a git
+    checkout, else None. Independent of whether the package is installed.
+    """
     run_kwargs = dict(
         cwd=Path(__file__).resolve().parent,
         capture_output=True,
@@ -225,5 +243,5 @@ def _git_fallback_version() -> str:
             ["git", "describe", "--always", "--dirty"], **run_kwargs
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
-        return "unknown"
-    return f"{branch}@{commit} (development version)"
+        return None
+    return f"branch: {branch}, commit: {commit}"
