@@ -72,7 +72,9 @@ def load_config(paths: Optional[list[str]] = None) -> AdaConfig:
     config = AdaConfig()
     search_paths = paths or _default_config_paths()
 
-    for path_str in search_paths:
+    # search_paths is ordered highest-precedence first; apply lowest first
+    # so each subsequent file can override values set by the previous one.
+    for path_str in reversed(search_paths):
         path = Path(path_str).expanduser()
         if path.is_file():
             try:
@@ -81,14 +83,18 @@ def load_config(paths: Optional[list[str]] = None) -> AdaConfig:
                 logger.warning("Skipping config file with insecure permissions: %s", path)
                 raise
             _load_config_file(config, path)
-            break
 
     _apply_env_vars(config)
     return config
 
 
 def _default_config_paths() -> list[str]:
-    """Return default config search paths in order of precedence (highest first)."""
+    """Return default config search paths in order of precedence (highest first).
+
+    All files found are loaded and cascaded (lowest precedence first),
+    so a higher-precedence file only needs to set the values it wants to
+    override; anything it leaves unset falls through to the next file.
+    """
     script_dir = str(Path(__file__).parent)
     return [
         "~/.ada/ada.conf",  # User-level
