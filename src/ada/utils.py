@@ -9,11 +9,15 @@ from __future__ import annotations
 import json
 import re
 import stat
+import subprocess
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from pathlib import Path
 from urllib.parse import quote as urlquote
 from typing import Optional
 
 from ada.exceptions import AdaSecurityError, AdaValidationError
+
+DISTRIBUTION_NAME = "dcache-pyclient"
 
 
 def encode_path(path: str) -> str:
@@ -187,3 +191,39 @@ def resolve_paths(
 def confirm_deletion(path):
     confirmation = input(f"Delete all items in '{path}'? (y/n): ")
     return confirmation.lower() == 'y'
+
+
+def get_version() -> str:
+    """Return ADA's version string.
+
+    Normally this is the installed package's version, from
+    pyproject.toml via package metadata. If the package isn't
+    installed (e.g. running from a git checkout without ``pip
+    install``/``poetry install``), falls back to the current git
+    branch and commit, so it's still possible to tell what code is
+    running.
+    """
+    try:
+        return _pkg_version(DISTRIBUTION_NAME)
+    except PackageNotFoundError:
+        return _git_fallback_version()
+
+
+def _git_fallback_version() -> str:
+    run_kwargs = dict(
+        cwd=Path(__file__).resolve().parent,
+        capture_output=True,
+        text=True,
+        timeout=5,
+        check=True,
+    )
+    try:
+        branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], **run_kwargs
+        ).stdout.strip()
+        commit = subprocess.run(
+            ["git", "describe", "--always", "--dirty"], **run_kwargs
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+    return f"{branch}@{commit} (development version)"
