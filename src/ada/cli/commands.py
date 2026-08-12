@@ -126,6 +126,22 @@ def unstage(parsed_args) -> None:
         print(f"Targets: {len(result.targets)} file(s)")
 
 
+def space(parsed_args) -> None:
+    """Show pool group names, or space usage for a specific pool group."""
+
+    with __get_client__(parsed_args) as client:
+        result = client.space(parsed_args.poolgroup)
+        if parsed_args.poolgroup:
+            print(f"Total:     {result.total}")
+            print(f"Free:      {result.free}")
+            print(f"Precious:  {result.precious}")
+            print(f"Removable: {result.removable}")
+            print(f"Available: {result.free + result.removable}  (free + removable)")
+        else:
+            for name in result:
+                print(name)
+
+
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 

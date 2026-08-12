@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Optional
 from ada.models import QuotaInfo, SpaceInfo, UserInfo
 
 if TYPE_CHECKING:
-    from ada.core.api import DcacheAPI
+    from ada.api import DcacheAPI
 
 logger = logging.getLogger("ada.services.system")
 
@@ -61,31 +61,17 @@ class SystemService:
             SpaceInfo for a specific pool group, or list of pool group names.
         """
         if poolgroup:
-            data = self._api.get(f"space/tokens?poolGroup={poolgroup}")
-            # The API returns a list of space tokens for the pool group
-            if isinstance(data, list) and data:
-                token = data[0]
-                return SpaceInfo(
-                    total=token.get("totalSize", 0),
-                    free=token.get("freeSize", 0) + token.get("availableSize", 0),
-                    precious=token.get("preciousSize", 0),
-                    removable=token.get("removableSize", 0),
-                )
-            # Fallback: try poolgroups endpoint
-            data = self._api.get(f"poolgroups/{poolgroup}")
-            if isinstance(data, dict):
-                return SpaceInfo(
-                    total=data.get("total", 0),
-                    free=data.get("free", 0),
-                    precious=data.get("precious", 0),
-                    removable=data.get("removable", 0),
-                )
-            return SpaceInfo(total=0, free=0, precious=0, removable=0)
+            data = self._api.get(f"poolgroups/{poolgroup}/space")
+            group_space = data.get("groupSpaceData", {})
+            return SpaceInfo(
+                total=group_space.get("total", 0),
+                free=group_space.get("free", 0),
+                precious=group_space.get("precious", 0),
+                removable=group_space.get("removable", 0),
+            )
         # List all pool groups
         data = self._api.get("poolgroups")
-        if isinstance(data, list):
-            return [item.get("name", str(item)) for item in data]
-        return []
+        return [item.get("name", str(item)) for item in data]
 
     def quota(self) -> list[QuotaInfo]:
         """Get storage quota information for the current user.

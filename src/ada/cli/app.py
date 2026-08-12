@@ -14,6 +14,7 @@ from ada.cli.commands import (
     checksum,
     stage,
     unstage,
+    space,
 )
 
 
@@ -234,6 +235,20 @@ def parse_args() -> argparse.ArgumentParser:
         '--from-file',
         type=str,
         help='File containing list of files or directories to unstage.'
+    )
+
+    # space
+    parser_space = subparsers.add_parser(
+        'space',
+        help="Show pool group names, or space usage for a pool group."
+    )
+    parser_space.set_defaults(func=space)
+    parser_space.add_argument(
+        'poolgroup',
+        nargs="?",
+        type=str,
+        help="Pool group to show space usage for. If omitted, lists all "
+             "pool group names.",
     )
 
     return parser
