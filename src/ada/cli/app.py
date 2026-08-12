@@ -14,6 +14,10 @@ from ada.cli.commands import (
     checksum,
     stage,
     unstage,
+    setxattr,
+    rmxattr,
+    lsxattr,
+    findxattr,
 )
 
 
@@ -235,6 +239,101 @@ def parse_args() -> argparse.ArgumentParser:
         type=str,
         help='File containing list of files or directories to unstage.'
     )
+
+    # setxattr
+    parser_setxattr = subparsers.add_parser(
+        'setxattr',
+        help="Set extended attributes on a file."
+    )
+    parser_setxattr.set_defaults(func=setxattr)
+    parser_setxattr.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_setxattr.add_argument(
+        'attributes_file',
+        nargs="?",
+        type=str,
+        help="File containing the attributes, or '-' (or omit) to read "
+             "from stdin. Attributes are key=value pairs (one per line, "
+             "comma-, or tab-separated), or a JSON object.",
+    )
+
+    # rmxattr
+    parser_rmxattr = subparsers.add_parser(
+        'rmxattr',
+        help="Remove one extended attribute, or all, from a file."
+    )
+    parser_rmxattr.set_defaults(func=rmxattr)
+    parser_rmxattr.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    # group mutual exclusive
+    group = parser_rmxattr.add_mutually_exclusive_group()
+    group.add_argument(
+        'key',
+        nargs="?",
+        type=str,
+        help="Attribute key to remove. Either key or --all must be given.",
+    )
+    group.add_argument(
+        '--all',
+        help="Remove all extended attributes from the file.",
+        action="store_true")
+
+    # lsxattr
+    parser_lsxattr = subparsers.add_parser(
+        'lsxattr',
+        help="List extended attributes of a file, or check a specific key."
+    )
+    parser_lsxattr.set_defaults(func=lsxattr)
+    parser_lsxattr.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_lsxattr.add_argument(
+        'key',
+        nargs="?",
+        type=str,
+        help="If given, only check for this specific attribute key.",
+    )
+
+    # findxattr
+    parser_findxattr = subparsers.add_parser(
+        'findxattr',
+        help="Find files in a directory whose extended attributes match a regex."
+    )
+    parser_findxattr.set_defaults(func=findxattr)
+    parser_findxattr.add_argument(
+        'path',
+        type=str,
+        help="Directory to search.",
+    )
+    # group mutual exclusive
+    group = parser_findxattr.add_mutually_exclusive_group()
+    group.add_argument(
+        'key',
+        nargs="?",
+        type=str,
+        help="Attribute key to match. Either key or --all must be given.",
+    )
+    group.add_argument(
+        '--all',
+        help="Search all attribute keys.",
+        action="store_true")
+    parser_findxattr.add_argument(
+        'regex',
+        type=str,
+        help="Regular expression to match against attribute value(s).",
+    )
+    parser_findxattr.add_argument(
+        "--recursive",
+        help="Also search subdirectories.",
+        action="store_true")
 
     return parser
 

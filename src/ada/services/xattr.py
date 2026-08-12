@@ -17,7 +17,7 @@ from ada.utils import encode_path, to_json
 from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
-    from ada.core.api import DcacheAPI
+    from ada.api import DcacheAPI
 
 logger = logging.getLogger("ada.services.xattr")
 
@@ -44,14 +44,18 @@ class XattrService:
 
         Returns:
             Status message.
+
+        Raises:
+            AdaPathError: If the path is a directory.
         """
         if isinstance(attributes, str):
             attributes = to_json(attributes)
 
+        self._ensure_file(path)
         encoded = encode_path(path)
         self._api.post(
-            f"namespace/{encoded}/xattr",
-            json=attributes,
+            f"namespace/{encoded}",
+            json={"action": "set-xattr", "attributes": attributes},
         )
         return f"Extended attributes set on '{path}'"
 
@@ -73,6 +77,7 @@ class XattrService:
         Returns:
             Dict of attribute key-value pairs.
         """
+        self._ensure_file(path)
         encoded = encode_path(path)
         data = self._api.get(
             f"namespace/{encoded}", params={"xattr": "true"}
@@ -96,20 +101,26 @@ class XattrService:
         Returns:
             Status message.
         """
+        self._ensure_file(path)
         encoded = encode_path(path)
 
         if all_keys:
-            xattrs = self.list(path)
-            for k in xattrs:
-                self._api.delete(f"namespace/{encoded}/xattr/{k}")
-            return f"All extended attributes removed from '{path}'"
+            names = list(self.list(path))
+            if not names:
+                return "No attributes to remove."
+            self._api.post(
+                f"namespace/{encoded}", json={"action": "rm-xattr", "names": names}
+            )
+            return f"All extended attributes removed from '{path}': {', '.join(names)}"
 
         if not key:
             raise AdaValidationError(
-                "Specify an attribute key to remove, or use all__keys=True."
+                "Specify an attribute key to remove, or use all_keys=True."
             )
 
-        self._api.delete(f"namespace/{encoded}/xattr/{key}")
+        self._api.post(
+            f"namespace/{encoded}", json={"action": "rm-xattr", "names": [key]}
+        )
         return f"Extended attribute '{key}' removed from '{path}'"
 
     def find(
@@ -183,3 +194,17 @@ class XattrService:
                 self._find_xattr_in_dir(
                     child_path, key, pattern, recursive, all_keys, results
                 )
+
+    def _ensure_file(self, path: str) -> None:
+        """Verify the path is a regular file, not a directory."""
+        ns = self._get_namespace()
+        try:
+            ft = ns.get_file_type(path)
+            if ft == FileType.DIR:
+                raise AdaPathError(
+                    f"'{path}' is a directory. Extended attributes can only be set on files."
+                )
+        except AdaPathError:
+            raise
+        except Exception:
+            pass  # Let the API call handle non-existent paths
