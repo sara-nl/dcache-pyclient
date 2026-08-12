@@ -127,19 +127,34 @@ def unstage(parsed_args) -> None:
 
 
 def space(parsed_args) -> None:
-    """Show pool group names, or space usage for a specific pool group."""
+    """Show pool group names, space usage for a pool group, or (given a
+    path) space usage for the pool group(s) that serve that path."""
+
+    target = parsed_args.poolgroup
 
     with __get_client__(parsed_args) as client:
-        result = client.space(parsed_args.poolgroup)
-        if parsed_args.poolgroup:
-            print(f"Total:     {result.total}")
-            print(f"Free:      {result.free}")
-            print(f"Precious:  {result.precious}")
-            print(f"Removable: {result.removable}")
-            print(f"Available: {result.free + result.removable}  (free + removable)")
+        if target and target.startswith("/"):
+            poolgroups = client.poolgroups_for_path(target)
+            for i, name in enumerate(poolgroups):
+                if i > 0:
+                    print()
+                print(f"[{name}]")
+                _print_space(client.space(name))
+            return
+
+        if target:
+            _print_space(client.space(target))
         else:
-            for name in result:
+            for name in client.space():
                 print(name)
+
+
+def _print_space(result) -> None:
+    print(f"Total:     {result.total}")
+    print(f"Free:      {result.free}")
+    print(f"Precious:  {result.precious}")
+    print(f"Removable: {result.removable}")
+    print(f"Available: {result.free + result.removable}  (free + removable)")
 
 
 def __get_client__(parsed_args):

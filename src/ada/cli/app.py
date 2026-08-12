@@ -247,8 +247,9 @@ def parse_args() -> argparse.ArgumentParser:
         'poolgroup',
         nargs="?",
         type=str,
-        help="Pool group to show space usage for. If omitted, lists all "
-             "pool group names.",
+        help="Pool group to show space usage for, or a dCache path "
+             "(starting with '/') to look up the pool group(s) serving "
+             "that path. If omitted, lists all pool group names.",
     )
 
     return parser

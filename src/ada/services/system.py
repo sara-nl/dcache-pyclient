@@ -8,7 +8,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Optional
 
+from ada.exceptions import AdaNotFoundError
 from ada.models import QuotaInfo, SpaceInfo, UserInfo
+from ada.utils import encode_path
 
 if TYPE_CHECKING:
     from ada.api import DcacheAPI
@@ -72,6 +74,49 @@ class SystemService:
         # List all pool groups
         data = self._api.get("poolgroups")
         return [item.get("name", str(item)) for item in data]
+
+    def poolgroups_for_path(self, path: str) -> list[str]:
+        """Resolve which pool group(s) serve a namespace path.
+
+        Follows the same chain dCache itself uses to pick a pool group
+        for a path: storage class + HSM identify a storage unit, which
+        belongs to a unit group, which is attached to link(s), which
+        are attached to pool group(s).
+
+        Raises:
+            AdaNotFoundError: If the path has no storage class/HSM, or
+                no unit group/link/pool group could be found for it.
+        """
+        info = self._api.get(f"namespace/{encode_path(path)}", params={"optional": "true"})
+        storage_class = info.get("storageClass")
+        hsm = info.get("hsm")
+        if not storage_class or not hsm:
+            raise AdaNotFoundError(f"No storage class/HSM found for '{path}'.")
+        unit = f"{storage_class}@{hsm}"
+
+        link_names: list[str] = []
+        for group in self._api.get("units/groups"):
+            if unit in group.get("units", []):
+                for link in group.get("links", []):
+                    if link not in link_names:
+                        link_names.append(link)
+        if not link_names:
+            raise AdaNotFoundError(
+                f"No link found for storage unit '{unit}' (path '{path}')."
+            )
+
+        poolgroups: list[str] = []
+        for link in self._api.get("links"):
+            if link.get("name") in link_names:
+                for poolgroup in link.get("poolGroups", []):
+                    if poolgroup not in poolgroups:
+                        poolgroups.append(poolgroup)
+        if not poolgroups:
+            raise AdaNotFoundError(
+                f"No pool group found for path '{path}' (unit '{unit}')."
+            )
+
+        return poolgroups
 
     def quota(self) -> list[QuotaInfo]:
         """Get storage quota information for the current user.
