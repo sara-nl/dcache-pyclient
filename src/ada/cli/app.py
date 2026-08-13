@@ -8,6 +8,7 @@ from ada.cli.commands import (
     whoami,
     list_cmd,
     longlist,
+    stat,
     mkdir,
     delete,
     mv,
@@ -91,6 +92,18 @@ def parse_args() -> argparse.ArgumentParser:
         '--from-file',
         type=str,
         help='File containing list of files or directories to longlist.'
+    )
+
+    # stat
+    parser_stat = subparsers.add_parser(
+        'stat',
+        help='Show complete metadata for a file or directory.',
+    )
+    parser_stat.set_defaults(func=stat)
+    parser_stat.add_argument(
+        'path',
+        type=str,
+        help='Path of file or directory to stat.'
     )
 
     # mkdir
