@@ -66,27 +66,33 @@ def format_quota(quotas: list[QuotaInfo]) -> list[str]:
     """Format quota entries as an aligned table (with header row).
 
     Columns: quota (type:id), custodial (tape) usage/limit/percentage,
-    replica (disk) usage/limit/percentage.
+    replica (disk) usage/limit/percentage. Numeric columns are
+    right-aligned with space-separated thousands.
     """
     header = [
         "Quota", "custodial (tape)", "custodialLimit", "%",
         "replica (disk)", "replicaLimit", "%",
     ]
+    right_cols = {1, 2, 3, 4, 5, 6}
+
     rows = [header]
     for q in quotas:
         rows.append([
             f"{q.quota_type}:{q.id}",
-            str(q.custodial),
-            str(q.custodial_limit) if q.custodial_limit is not None else "-",
+            _format_number(q.custodial),
+            _format_number(q.custodial_limit) if q.custodial_limit is not None else "-",
             _percentage(q.custodial, q.custodial_limit),
-            str(q.replica),
-            str(q.replica_limit) if q.replica_limit is not None else "-",
+            _format_number(q.replica),
+            _format_number(q.replica_limit) if q.replica_limit is not None else "-",
             _percentage(q.replica, q.replica_limit),
         ])
 
     col_width = [max(len(row[i]) for row in rows) for i in range(len(header))]
     return [
-        "\t".join(cell.ljust(col_width[i]) for i, cell in enumerate(row))
+        "\t".join(
+            cell.rjust(col_width[i]) if i in right_cols else cell.ljust(col_width[i])
+            for i, cell in enumerate(row)
+        )
         for row in rows
     ]
 
