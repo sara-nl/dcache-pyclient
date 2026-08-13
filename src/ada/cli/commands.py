@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from ada.client import AdaClient
 from ada.exceptions import AdaValidationError
-from ada.cli.formatters import format_longlist, format_quota
+from ada.cli.formatters import format_longlist, format_quota, format_space, format_space_groups
 
 
 def whoami(parsed_args) -> None:
@@ -135,26 +135,17 @@ def space(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         if target and target.startswith("/"):
             poolgroups = client.poolgroups_for_path(target)
-            for i, name in enumerate(poolgroups):
-                if i > 0:
-                    print()
-                print(f"[{name}]")
-                _print_space(client.space(name))
+            groups = [(name, client.space(name)) for name in poolgroups]
+            for line in format_space_groups(groups):
+                print(line)
             return
 
         if target:
-            _print_space(client.space(target))
+            for line in format_space(client.space(target)):
+                print(line)
         else:
             for name in client.space():
                 print(name)
-
-
-def _print_space(result) -> None:
-    print(f"Total:     {result.total}")
-    print(f"Free:      {result.free}")
-    print(f"Precious:  {result.precious}")
-    print(f"Removable: {result.removable}  (cached replicas, reclaimable)")
-    print(f"Available: {result.free + result.removable}  (free + removable)")
 
 
 def quota(parsed_args) -> None:

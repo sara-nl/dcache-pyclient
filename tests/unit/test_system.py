@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ada.exceptions import AdaNotFoundError
+from ada.exceptions import AdaNotFoundError, AdaValidationError
 from ada.models import QuotaInfo, SpaceInfo
 from ada.services.system import SystemService
 
@@ -58,7 +58,7 @@ class TestPoolgroupsForPath:
 
     def test_resolves_single_poolgroup(self, mock_api):
         mock_api.get.side_effect = [
-            {"storageClass": "generic:disk", "hsm": "osm"},
+            {"fileType": "DIR", "storageClass": "generic:disk", "hsm": "osm"},
             [
                 {
                     "name": "generic_disk",
@@ -78,15 +78,15 @@ class TestPoolgroupsForPath:
         ]
         svc = SystemService(mock_api)
 
-        result = svc.poolgroups_for_path("/users/onno/disk")
+        result = svc.poolgroups_for_path("/users/homer/disk")
 
         assert result == ["generic_writediskpools"]
-        assert mock_api.get.call_args_list[0].args[0] == "namespace/%2Fusers%2Fonno%2Fdisk"
+        assert mock_api.get.call_args_list[0].args[0] == "namespace/%2Fusers%2Fhomer%2Fdisk"
 
     def test_resolves_multiple_poolgroups(self, mock_api):
         # A tape directory has separate read and write links/pool groups.
         mock_api.get.side_effect = [
-            {"storageClass": "generic:tape", "hsm": "osm"},
+            {"fileType": "DIR", "storageClass": "generic:tape", "hsm": "osm"},
             [
                 {
                     "name": "generic_tape",
@@ -101,7 +101,7 @@ class TestPoolgroupsForPath:
         ]
         svc = SystemService(mock_api)
 
-        result = svc.poolgroups_for_path("/users/onno/tape")
+        result = svc.poolgroups_for_path("/users/homer/tape")
 
         assert result == ["generic_readtapepools", "generic_writetapepools"]
 
@@ -114,17 +114,17 @@ class TestPoolgroupsForPath:
 
     def test_no_matching_unit_group_raises(self, mock_api):
         mock_api.get.side_effect = [
-            {"storageClass": "generic:disk", "hsm": "osm"},
+            {"fileType": "DIR", "storageClass": "generic:disk", "hsm": "osm"},
             [{"name": "other_group", "units": ["other:unit@osm"], "links": ["other_link"]}],
         ]
         svc = SystemService(mock_api)
 
         with pytest.raises(AdaNotFoundError, match="No link found"):
-            svc.poolgroups_for_path("/users/onno/disk")
+            svc.poolgroups_for_path("/users/homer/disk")
 
     def test_no_matching_poolgroup_raises(self, mock_api):
         mock_api.get.side_effect = [
-            {"storageClass": "generic:disk", "hsm": "osm"},
+            {"fileType": "DIR", "storageClass": "generic:disk", "hsm": "osm"},
             [
                 {
                     "name": "generic_disk",
@@ -137,7 +137,19 @@ class TestPoolgroupsForPath:
         svc = SystemService(mock_api)
 
         with pytest.raises(AdaNotFoundError, match="No pool group found"):
-            svc.poolgroups_for_path("/users/onno/disk")
+            svc.poolgroups_for_path("/users/homer/disk")
+
+    def test_raises_for_a_file_path(self, mock_api):
+        # Pool group info for a file is unreliable: a moved file's storage
+        # class/HSM updates to match its new directory, but its data stays
+        # in the pool group it was originally written to. So only
+        # directories are accepted.
+        mock_api.get.return_value = {"fileType": "REGULAR", "storageClass": "generic:disk", "hsm": "osm"}
+        svc = SystemService(mock_api)
+
+        with pytest.raises(AdaValidationError, match="is a file"):
+            svc.poolgroups_for_path("/users/homer/disk/file.txt")
+        mock_api.get.assert_called_once()
 
 
 class TestQuota:

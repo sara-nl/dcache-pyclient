@@ -239,7 +239,7 @@ class AdaClient:
         return self.system.space(poolgroup)
 
     def poolgroups_for_path(self, path: str) -> list[str]:
-        """Resolve which pool group(s) serve a namespace path."""
+        """Resolve which pool group(s) serve a namespace directory."""
         return self.system.poolgroups_for_path(path)
 
     def quota(self) -> list[QuotaInfo]:

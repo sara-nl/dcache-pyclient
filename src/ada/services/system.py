@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Optional
 
-from ada.exceptions import AdaNotFoundError
+from ada.exceptions import AdaNotFoundError, AdaValidationError
 from ada.models import QuotaInfo, SpaceInfo, UserInfo
 from ada.utils import encode_path
 
@@ -76,18 +76,35 @@ class SystemService:
         return [item.get("name", str(item)) for item in data]
 
     def poolgroups_for_path(self, path: str) -> list[str]:
-        """Resolve which pool group(s) serve a namespace path.
+        """Resolve which pool group(s) serve a namespace directory.
 
         Follows the same chain dCache itself uses to pick a pool group
         for a path: storage class + HSM identify a storage unit, which
         belongs to a unit group, which is attached to link(s), which
         are attached to pool group(s).
 
+        Only directories are accepted. When a file is moved, its storage
+        class/HSM is updated to match the new directory, but its data
+        stays put in the pool group it was originally written to. So a
+        moved file's storage class/HSM may point to a different pool
+        group than the one its data actually lives in, making pool
+        group resolution for a file unreliable.
+
         Raises:
+            AdaValidationError: If path is a file, not a directory.
             AdaNotFoundError: If the path has no storage class/HSM, or
                 no unit group/link/pool group could be found for it.
         """
         info = self._api.get(f"namespace/{encode_path(path)}", params={"optional": "true"})
+        if info.get("fileType") != "DIR":
+            raise AdaValidationError(
+                f"'{path}' is a file. Pool group info for a file may not "
+                "be reliable: when a file is moved, its storage class/HSM "
+                "updates to match the new directory, but its data stays "
+                "in the pool group it was originally written to. Please "
+                "specify a directory instead."
+            )
+
         storage_class = info.get("storageClass")
         hsm = info.get("hsm")
         if not storage_class or not hsm:

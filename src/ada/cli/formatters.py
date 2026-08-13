@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from ada.models import FileInfo, QuotaInfo
+from ada.models import FileInfo, QuotaInfo, SpaceInfo
 
 
 def format_longlist(files: list[FileInfo]) -> list[str]:
@@ -89,6 +89,66 @@ def format_quota(quotas: list[QuotaInfo]) -> list[str]:
         "\t".join(cell.ljust(col_width[i]) for i, cell in enumerate(row))
         for row in rows
     ]
+
+
+def format_space(result: SpaceInfo) -> list[str]:
+    """Format space info for a single pool group.
+
+    Labels are left-aligned, values right-aligned so the numbers line
+    up in a column.
+    """
+    rows = _space_rows(result)
+    label_width, value_width = _space_widths(rows)
+    return _render_space_rows(rows, label_width, value_width)
+
+
+def format_space_groups(groups: list[tuple[str, SpaceInfo]]) -> list[str]:
+    """Format space info for multiple pool groups, e.g. all the pool
+    groups serving a path.
+
+    Numbers are aligned across all pool groups (not just within each
+    one's own block), and each block is preceded by a '[name]' header.
+    """
+    all_rows = [row for _, result in groups for row in _space_rows(result)]
+    label_width, value_width = _space_widths(all_rows)
+
+    lines: list[str] = []
+    for i, (name, result) in enumerate(groups):
+        if i > 0:
+            lines.append("")
+        lines.append(f"[{name}]")
+        lines.extend(_render_space_rows(_space_rows(result), label_width, value_width))
+    return lines
+
+
+def _space_rows(result: SpaceInfo) -> list[tuple[str, int, str]]:
+    available = result.free + result.removable
+    return [
+        ("Total:", result.total, ""),
+        ("Free:", result.free, ""),
+        ("Precious:", result.precious, ""),
+        ("Removable:", result.removable, "  (cached replicas, reclaimable)"),
+        ("Available:", available, "  (free + removable)"),
+    ]
+
+
+def _space_widths(rows: list[tuple[str, int, str]]) -> tuple[int, int]:
+    label_width = max(len(label) for label, _, _ in rows) + 1
+    value_width = max(len(_format_number(value)) for _, value, _ in rows)
+    return label_width, value_width
+
+
+def _render_space_rows(
+    rows: list[tuple[str, int, str]], label_width: int, value_width: int
+) -> list[str]:
+    return [
+        f"{label:<{label_width}}{_format_number(value):>{value_width}}{suffix}"
+        for label, value, suffix in rows
+    ]
+
+
+def _format_number(value: int) -> str:
+    return f"{value:,}".replace(",", " ")
 
 
 def _percentage(value: int, limit: Optional[int]) -> str:
