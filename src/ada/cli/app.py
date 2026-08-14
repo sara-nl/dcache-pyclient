@@ -14,6 +14,8 @@ from ada.cli.commands import (
     checksum,
     stage,
     unstage,
+    upload,
+    download,
 )
 
 
@@ -235,6 +237,69 @@ def parse_args() -> argparse.ArgumentParser:
         type=str,
         help='File containing list of files or directories to unstage.'
     )
+
+    # upload
+    parser_upload = subparsers.add_parser(
+        'upload',
+        help="Upload a local file to dCache."
+    )
+    parser_upload.set_defaults(func=upload)
+    parser_upload.add_argument(
+        'local',
+        type=str,
+        help="Path of the local file to upload.",
+    )
+    parser_upload.add_argument(
+        'remote',
+        type=str,
+        help="Destination path in dCache, or a directory to upload into "
+             "(keeping the local filename). May be prefixed with a WebDAV "
+             "door, e.g. 'https://webdav.example.org/pnfs/...', to skip "
+             "door discovery.",
+    )
+    parser_upload.add_argument(
+        "--verify-checksum",
+        help="Verify the upload's checksum. Adds an MD5 checksum to the "
+             "upload so dCache can verify it server-side, and removes the "
+             "file automatically if it doesn't match. If the target "
+             "already exists, compares checksums instead of failing.",
+        action="store_true")
+    parser_upload.add_argument(
+        "--allow-insecure-redirects",
+        help="Allow following WebDAV redirects that downgrade from HTTPS "
+             "to plain HTTP. By default such redirects are refused.",
+        action="store_true")
+
+    # download
+    parser_download = subparsers.add_parser(
+        'download',
+        help="Download a file from dCache."
+    )
+    parser_download.set_defaults(func=download)
+    parser_download.add_argument(
+        'remote',
+        type=str,
+        help="Path of the remote file in dCache to download. May be "
+             "prefixed with a WebDAV door, e.g. "
+             "'https://webdav.example.org/pnfs/...', to skip door discovery.",
+    )
+    parser_download.add_argument(
+        'local',
+        type=str,
+        help="Destination local path, or a directory to download into "
+             "(keeping the remote filename).",
+    )
+    parser_download.add_argument(
+        "--verify-checksum",
+        help="Verify the downloaded file's checksum against dCache's. If "
+             "the target already exists locally, compares checksums "
+             "instead of failing.",
+        action="store_true")
+    parser_download.add_argument(
+        "--allow-insecure-redirects",
+        help="Allow following WebDAV redirects that downgrade from HTTPS "
+             "to plain HTTP. By default such redirects are refused.",
+        action="store_true")
 
     return parser
 

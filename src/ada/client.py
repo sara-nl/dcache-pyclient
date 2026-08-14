@@ -27,6 +27,7 @@ from ada.models import (
     FileInfo,
     QuotaInfo,
     SpaceInfo,
+    TransferResult,
     UserInfo,
 )
 from ada.services.checksum import ChecksumService
@@ -34,6 +35,7 @@ from ada.services.labels import LabelService
 from ada.services.namespace import NamespaceService
 from ada.services.staging import StagingService
 from ada.services.system import SystemService
+from ada.services.transfer import TransferService
 from ada.services.xattr import XattrService
 
 logger = logging.getLogger("ada")
@@ -93,6 +95,9 @@ class AdaClient:
         self.staging = StagingService(self._api, namespace=self.namespace)
         self.checksums = ChecksumService(self._api, namespace=self.namespace)
         self.system = SystemService(self._api)
+        self.transfer = TransferService(
+            self._api, namespace=self.namespace, checksums=self.checksums
+        )
 
     # ---- Namespace Operations ----
 
@@ -188,6 +193,38 @@ class AdaClient:
     ) -> list[Checksum]:
         """Get checksums for file(s)."""
         return self.checksums.get(paths, recursive=recursive, from_file=from_file)
+
+    # ---- Transfer Operations ----
+
+    def upload(
+        self,
+        local_path: str,
+        remote_path: str,
+        verify_checksum: bool = False,
+        allow_insecure_redirects: bool = False,
+    ) -> TransferResult:
+        """Upload a local file to dCache via WebDAV."""
+        return self.transfer.upload(
+            local_path,
+            remote_path,
+            verify_checksum=verify_checksum,
+            allow_insecure_redirects=allow_insecure_redirects,
+        )
+
+    def download(
+        self,
+        remote_path: str,
+        local_path: str,
+        verify_checksum: bool = False,
+        allow_insecure_redirects: bool = False,
+    ) -> TransferResult:
+        """Download a file from dCache via WebDAV."""
+        return self.transfer.download(
+            remote_path,
+            local_path,
+            verify_checksum=verify_checksum,
+            allow_insecure_redirects=allow_insecure_redirects,
+        )
 
     # ---- Staging Operations ----
 
