@@ -9,11 +9,15 @@ from __future__ import annotations
 import json
 import re
 import stat
+import subprocess
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from pathlib import Path
 from urllib.parse import quote as urlquote
 from typing import Optional
 
 from ada.exceptions import AdaSecurityError, AdaValidationError
+
+DISTRIBUTION_NAME = "dcache-pyclient"
 
 
 def encode_path(path: str) -> str:
@@ -187,3 +191,57 @@ def resolve_paths(
 def confirm_deletion(path):
     confirmation = input(f"Delete all items in '{path}'? (y/n): ")
     return confirmation.lower() == 'y'
+
+
+def get_version() -> str:
+    """Return ADA's version string.
+
+    The installed package's version (from pyproject.toml via package
+    metadata) is always shown when available. Since Poetry's editable
+    dev install has valid metadata regardless of which branch/commit
+    is checked out, the package version alone doesn't tell you that
+    you're on unreleased code — so when running from a git checkout,
+    the branch and commit are appended too, e.g.::
+
+        0.2.1 (branch: 26-add-ada-cli---version, commit: 5977a71)
+
+    If neither is available (not installed, and not a git checkout),
+    returns "unknown".
+    """
+    try:
+        version = _pkg_version(DISTRIBUTION_NAME)
+    except PackageNotFoundError:
+        version = None
+
+    git_info = _git_info()
+
+    if version and git_info:
+        return f"{version} ({git_info})"
+    if version:
+        return version
+    if git_info:
+        return f"{git_info} (development version)"
+    return "unknown"
+
+
+def _git_info() -> Optional[str]:
+    """Return "branch: <branch>, commit: <commit>" if running from a git
+    checkout, else None. Independent of whether the package is installed.
+    """
+    run_kwargs = dict(
+        cwd=Path(__file__).resolve().parent,
+        capture_output=True,
+        text=True,
+        timeout=5,
+        check=True,
+    )
+    try:
+        branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"], **run_kwargs
+        ).stdout.strip()
+        commit = subprocess.run(
+            ["git", "describe", "--always", "--dirty"], **run_kwargs
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return f"branch: {branch}, commit: {commit}"

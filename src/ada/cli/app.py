@@ -4,6 +4,7 @@ ADA Command Line Interface application
 import argparse
 
 from ada.exceptions import AdaValidationError
+from ada.utils import get_version
 from ada.cli.commands import (
     whoami,
     list_cmd,
@@ -86,6 +87,11 @@ def parse_args() -> argparse.ArgumentParser:
         "--debug",
         help="Run in debug mode (not yet implemented).",
         action="store_true")
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {get_version()}")
 
     subparsers = parser.add_subparsers(
         help='ADA supports these commands (put commands and their arguments at the end, after the options):')
