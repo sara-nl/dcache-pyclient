@@ -3,6 +3,8 @@ ADA CLI commands
 """
 from __future__ import annotations
 
+import os
+
 from ada.client import AdaClient
 from ada.exceptions import AdaValidationError
 from ada.cli.formatters import format_longlist
@@ -14,6 +16,10 @@ def whoami(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         info = client.whoami()
         print(f"API:      {client.config.api}")
+        versions = client.dcache_versions()
+        if versions:
+            print(f"Version:  {', '.join(versions)}")
+        print(f"Auth:     {client.auth.describe()}")
         print(f"Status:   {info.status}")
         if info.username:
             print(f"Username: {info.username}")
@@ -25,10 +31,6 @@ def whoami(parsed_args) -> None:
             print(f"Home:     {info.home}")
         if info.root:
             print(f"Root:     {info.root}")
-        # Show dCache version if available
-        raw = info.raw
-        if "version" in raw:
-            print(f"dCache:   {raw['version']}")
 
 
 def list_cmd(parsed_args) -> None:
@@ -129,9 +131,32 @@ def unstage(parsed_args) -> None:
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 
+    token = None
+    if parsed_args.token:
+        token = os.environ.get("BEARER_TOKEN")
+        if not token:
+            raise AdaValidationError(
+                "--token was specified, but the $BEARER_TOKEN environment "
+                "variable is not set."
+            )
+
+    netrc = parsed_args.netrcfile
+    if parsed_args.netrc:
+        netrc = ""
+
+    proxy = parsed_args.proxyfile
+    if parsed_args.proxy:
+        proxy = ""
+
+    igtf = False if parsed_args.no_igtf else None
+
     return AdaClient(
         api=parsed_args.api,
+        token=token,
         tokenfile=parsed_args.tokenfile,
+        netrc=netrc,
+        proxy=proxy,
+        igtf=igtf,
         verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work
     )
