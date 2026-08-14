@@ -290,6 +290,14 @@ class AdaClient:
         """Decode and display the current token."""
         return self.auth.view_token()
 
+    def token_expiry_status(self) -> str:
+        """Describe the current token's expiry, informationally.
+
+        Unlike commands that use the token, this never raises just
+        because the token is expired — it's meant for inspection.
+        """
+        return self.auth.expiry_status()
+
     # ---- Lifecycle ----
 
     def close(self) -> None:

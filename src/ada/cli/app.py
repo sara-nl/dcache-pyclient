@@ -16,6 +16,7 @@ from ada.cli.commands import (
     unstage,
     upload,
     download,
+    viewtoken,
 )
 
 
@@ -332,6 +333,18 @@ def parse_args() -> argparse.ArgumentParser:
         "--allow-insecure-redirects",
         help="Allow following WebDAV redirects that downgrade from HTTPS "
              "to plain HTTP. By default such redirects are refused.",
+        action="store_true")
+
+    # viewtoken
+    parser_viewtoken = subparsers.add_parser(
+        'viewtoken',
+        help="Decode and show the properties of the current token."
+    )
+    parser_viewtoken.set_defaults(func=viewtoken)
+    parser_viewtoken.add_argument(
+        "--minimal",
+        help="Show only minimal information: skip the token source, "
+             "and the macaroon IP caveat check.",
         action="store_true")
 
     return parser

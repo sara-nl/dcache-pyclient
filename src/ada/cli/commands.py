@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 
+from ada.auth import check_ip_caveat
 from ada.client import AdaClient
 from ada.exceptions import AdaValidationError
 from ada.cli.formatters import format_longlist
@@ -162,6 +163,35 @@ def download(parsed_args) -> None:
             print(f"Downloaded '{result.remote_path}' to '{result.local_path}'.")
             if result.checksum_verified:
                 print("Checksum verified.")
+
+
+def viewtoken(parsed_args) -> None:
+    """Decode and display the properties of the current token.
+
+    Purely for inspection: an expired token is shown as such, but
+    doesn't turn into an error, since viewing a token's properties
+    doesn't require it to still be usable.
+    """
+
+    with __get_client__(parsed_args) as client:
+        if not parsed_args.minimal:
+            source = getattr(client.auth, "source", None)
+            if source:
+                print(f"Token source: {source}")
+
+        decoded = client.view_token()
+        _print_token_properties(decoded)
+
+        if not parsed_args.minimal:
+            print(f"Status: {client.token_expiry_status()}")
+
+        if not parsed_args.minimal and "ip" in decoded:
+            print(f"IP caveat: {check_ip_caveat(decoded['ip'])}")
+
+
+def _print_token_properties(properties: dict) -> None:
+    for key, value in properties.items():
+        print(f"  {key}: {value}")
 
 
 def __get_client__(parsed_args):
