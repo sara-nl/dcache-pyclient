@@ -8,10 +8,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Optional
 
+from ada.exceptions import AdaNotFoundError, AdaValidationError
 from ada.models import QuotaInfo, SpaceInfo, UserInfo
+from ada.utils import encode_path
 
 if TYPE_CHECKING:
-    from ada.core.api import DcacheAPI
+    from ada.api import DcacheAPI
 
 logger = logging.getLogger("ada.services.system")
 
@@ -73,46 +75,101 @@ class SystemService:
             SpaceInfo for a specific pool group, or list of pool group names.
         """
         if poolgroup:
-            data = self._api.get(f"space/tokens?poolGroup={poolgroup}")
-            # The API returns a list of space tokens for the pool group
-            if isinstance(data, list) and data:
-                token = data[0]
-                return SpaceInfo(
-                    total=token.get("totalSize", 0),
-                    free=token.get("freeSize", 0) + token.get("availableSize", 0),
-                    precious=token.get("preciousSize", 0),
-                    removable=token.get("removableSize", 0),
-                )
-            # Fallback: try poolgroups endpoint
-            data = self._api.get(f"poolgroups/{poolgroup}")
-            if isinstance(data, dict):
-                return SpaceInfo(
-                    total=data.get("total", 0),
-                    free=data.get("free", 0),
-                    precious=data.get("precious", 0),
-                    removable=data.get("removable", 0),
-                )
-            return SpaceInfo(total=0, free=0, precious=0, removable=0)
+            data = self._api.get(f"poolgroups/{poolgroup}/space")
+            group_space = data.get("groupSpaceData", {})
+            return SpaceInfo(
+                total=group_space.get("total", 0),
+                free=group_space.get("free", 0),
+                precious=group_space.get("precious", 0),
+                removable=group_space.get("removable", 0),
+            )
         # List all pool groups
         data = self._api.get("poolgroups")
-        if isinstance(data, list):
-            return [item.get("name", str(item)) for item in data]
-        return []
+        return [item.get("name", str(item)) for item in data]
+
+    def poolgroups_for_path(self, path: str) -> list[str]:
+        """Resolve which pool group(s) serve a namespace directory.
+
+        Follows the same chain dCache itself uses to pick a pool group
+        for a path: storage class + HSM identify a storage unit, which
+        belongs to a unit group, which is attached to link(s), which
+        are attached to pool group(s).
+
+        Only directories are accepted. When a file is moved, its storage
+        class/HSM is updated to match the new directory, but its data
+        stays put in the pool group it was originally written to. So a
+        moved file's storage class/HSM may point to a different pool
+        group than the one its data actually lives in, making pool
+        group resolution for a file unreliable.
+
+        Raises:
+            AdaValidationError: If path is a file, not a directory.
+            AdaNotFoundError: If the path has no storage class/HSM, or
+                no unit group/link/pool group could be found for it.
+        """
+        info = self._api.get(f"namespace/{encode_path(path)}", params={"optional": "true"})
+        if info.get("fileType") != "DIR":
+            raise AdaValidationError(
+                f"'{path}' is a file. Pool group info for a file may not "
+                "be reliable: when a file is moved, its storage class/HSM "
+                "updates to match the new directory, but its data stays "
+                "in the pool group it was originally written to. Please "
+                "specify a directory instead."
+            )
+
+        storage_class = info.get("storageClass")
+        hsm = info.get("hsm")
+        if not storage_class or not hsm:
+            raise AdaNotFoundError(f"No storage class/HSM found for '{path}'.")
+        unit = f"{storage_class}@{hsm}"
+
+        link_names: list[str] = []
+        for group in self._api.get("units/groups"):
+            if unit in group.get("units", []):
+                for link in group.get("links", []):
+                    if link not in link_names:
+                        link_names.append(link)
+        if not link_names:
+            raise AdaNotFoundError(
+                f"No link found for storage unit '{unit}' (path '{path}')."
+            )
+
+        poolgroups: list[str] = []
+        for link in self._api.get("links"):
+            if link.get("name") in link_names:
+                for poolgroup in link.get("poolGroups", []):
+                    if poolgroup not in poolgroups:
+                        poolgroups.append(poolgroup)
+        if not poolgroups:
+            raise AdaNotFoundError(
+                f"No pool group found for path '{path}' (unit '{unit}')."
+            )
+
+        return poolgroups
 
     def quota(self) -> list[QuotaInfo]:
-        """Get storage quota information for the current user.
+        """Get storage quota information for the current user and their
+        primary group.
 
-        Returns a list of quota entries (user and group quotas,
-        for both disk and tape storage).
+        Queries user and group quota separately, since dCache returns
+        a 404 for a quota type that simply isn't set (not an error) --
+        matching the Bash version.
+
+        Returns:
+            A list of quota entries (user and/or group, for both
+            custodial/tape and replica/disk storage). Empty if neither
+            the user nor the group has any quota set.
         """
-        data = self._api.get("quota")
         quotas: list[QuotaInfo] = []
-
-        if isinstance(data, list):
+        for quota_type in ("user", "group"):
+            try:
+                data = self._api.get(f"quota/{quota_type}", params={"user": "true"})
+            except AdaNotFoundError:
+                continue
             for item in data:
                 quotas.append(
                     QuotaInfo(
-                        quota_type=item.get("type", "unknown"),
+                        quota_type=quota_type,
                         id=item.get("id", 0),
                         custodial=item.get("custodial", 0),
                         custodial_limit=item.get("custodialLimit"),
@@ -120,20 +177,4 @@ class SystemService:
                         replica_limit=item.get("replicaLimit"),
                     )
                 )
-        elif isinstance(data, dict):
-            # Some API versions return a dict with user/group keys
-            for qtype in ("user", "group"):
-                if qtype in data:
-                    for entry in data[qtype]:
-                        quotas.append(
-                            QuotaInfo(
-                                quota_type=qtype,
-                                id=entry.get("id", 0),
-                                custodial=entry.get("custodial", 0),
-                                custodial_limit=entry.get("custodialLimit"),
-                                replica=entry.get("replica", 0),
-                                replica_limit=entry.get("replicaLimit"),
-                            )
-                        )
-
         return quotas
