@@ -114,8 +114,8 @@ class AdaClient:
         """Get detailed file listing."""
         return self.namespace.longlist(paths, from_file=from_file)
 
-    def stat(self, path: str) -> FileInfo:
-        """Get complete file/directory metadata."""
+    def stat(self, path: str) -> dict:
+        """Get complete, raw file/directory metadata."""
         return self.namespace.stat(path)
 
     def mkdir(self, path: str, recursive: bool = False) -> str:

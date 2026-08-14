@@ -10,7 +10,13 @@ from pathlib import Path
 from ada.auth import check_ip_caveat
 from ada.client import AdaClient
 from ada.exceptions import AdaNotFoundError, AdaValidationError
-from ada.cli.formatters import format_longlist, format_quota, format_space, format_space_groups
+from ada.cli.formatters import (
+    format_longlist,
+    format_quota,
+    format_space,
+    format_space_groups,
+    format_stat,
+)
 
 
 def whoami(parsed_args) -> None:
@@ -50,6 +56,15 @@ def longlist(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         results = client.longlist(parsed_args.path, from_file=parsed_args.from_file)
         for line in format_longlist(results):
+            print(line)
+
+
+def stat(parsed_args) -> None:
+    """Show complete metadata for a file or directory."""
+
+    with __get_client__(parsed_args) as client:
+        info = client.stat(parsed_args.path)
+        for line in format_stat(info):
             print(line)
 
 
