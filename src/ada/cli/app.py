@@ -20,6 +20,10 @@ from ada.cli.commands import (
     viewtoken,
     space,
     quota,
+    setlabel,
+    rmlabel,
+    lslabel,
+    findlabel,
 )
 
 
@@ -376,6 +380,86 @@ def parse_args() -> argparse.ArgumentParser:
         help="Show storage quotas (tape/custodial and disk/replica), for user and group."
     )
     parser_quota.set_defaults(func=quota)
+
+    # setlabel
+    parser_setlabel = subparsers.add_parser(
+        'setlabel',
+        help="Attach a label to a file."
+    )
+    parser_setlabel.set_defaults(func=setlabel)
+    parser_setlabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_setlabel.add_argument(
+        'label',
+        type=str,
+        help="Label to attach.",
+    )
+
+    # rmlabel
+    parser_rmlabel = subparsers.add_parser(
+        'rmlabel',
+        help="Remove one label, or all labels, from a file."
+    )
+    parser_rmlabel.set_defaults(func=rmlabel)
+    parser_rmlabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    # group mutual exclusive
+    group = parser_rmlabel.add_mutually_exclusive_group()
+    group.add_argument(
+        'label',
+        nargs="?",
+        type=str,
+        help="Label to remove. Either label or --all must be given.",
+    )
+    group.add_argument(
+        '--all',
+        help="Remove all labels from the file.",
+        action="store_true")
+
+    # lslabel
+    parser_lslabel = subparsers.add_parser(
+        'lslabel',
+        help="List labels of a file, or check whether it has a specific label."
+    )
+    parser_lslabel.set_defaults(func=lslabel)
+    parser_lslabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_lslabel.add_argument(
+        'label',
+        nargs="?",
+        type=str,
+        help="If given, only check for this specific label.",
+    )
+
+    # findlabel
+    parser_findlabel = subparsers.add_parser(
+        'findlabel',
+        help="Find files in a directory whose labels match a regex pattern."
+    )
+    parser_findlabel.set_defaults(func=findlabel)
+    parser_findlabel.add_argument(
+        'path',
+        type=str,
+        help="Directory to search.",
+    )
+    parser_findlabel.add_argument(
+        'regex',
+        type=str,
+        help="Regular expression to match against labels.",
+    )
+    parser_findlabel.add_argument(
+        "--recursive",
+        help="Also search subdirectories.",
+        action="store_true")
 
     return parser
 
