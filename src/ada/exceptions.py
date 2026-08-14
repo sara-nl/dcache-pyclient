@@ -68,5 +68,13 @@ class AdaPathError(AdaError):
     """Invalid path or path type mismatch."""
 
 
+class AdaTransferError(AdaError):
+    """Upload/download (WebDAV) transfer could not proceed.
+
+    Covers issues that aren't an HTTP error response from the server,
+    e.g. no WebDAV door could be found, or a redirect was refused.
+    """
+
+
 class AdaValidationError(AdaError):
     """Input validation error."""
