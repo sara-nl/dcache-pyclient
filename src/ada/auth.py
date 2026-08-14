@@ -11,6 +11,7 @@ Precedence (matching Bash):
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import os
 import base64
@@ -49,8 +50,19 @@ class AuthProvider(ABC):
 
     def view_token(self) -> dict[str, Any]:
         """Decode and return token properties for display."""
-        raise NotImplementedError(
+        raise AdaAuthError(
             "Token viewing is not supported for this authentication method."
+        )
+
+    def expiry_status(self) -> str:
+        """Describe token expiry, informationally (never raises on expiry).
+
+        Unlike ``validate()``, this doesn't gate whether the token may
+        be used — it's for commands like ``viewtoken`` that just want
+        to show the status, even for an expired token.
+        """
+        raise AdaAuthError(
+            "Token expiry is not applicable for this authentication method."
         )
 
     def validate(self, command: Optional[str] = None) -> None:
@@ -85,6 +97,13 @@ class TokenAuth(AuthProvider):
         if is_jwt(self.token):
             return decode_jwt(self.token)
         return decode_macaroon(self.token)
+
+    def expiry_status(self) -> str:
+        if is_jwt(self.token):
+            exp_unix = get_jwt_expiry(self.token)
+        else:
+            exp_unix = extract_macaroon_expiry(decode_macaroon_raw(self.token))
+        return describe_expiry(exp_unix)
 
 
 class TokenFileAuth(TokenAuth):
@@ -377,8 +396,14 @@ def decode_macaroon_raw(token: str) -> str:
     Raises:
         AdaAuthError: If the token cannot be decoded.
     """
+    # Macaroons are often base64url-encoded (- and _ instead of + and /)
+    # and unpadded. urlsafe_b64decode() also accepts standard base64
+    # unchanged, so this handles both; add padding since it's commonly
+    # omitted.
+    stripped = token.strip()
+    padded = stripped + "=" * (-len(stripped) % 4)
     try:
-        decoded_bytes = base64.b64decode(token.strip())
+        decoded_bytes = base64.urlsafe_b64decode(padded)
     except Exception as exc:
         raise AdaAuthError(f"Invalid macaroon: cannot base64 decode: {exc}") from exc
 
@@ -400,23 +425,40 @@ def decode_macaroon_raw(token: str) -> str:
     return result
 
 
+_MACAROON_CAVEAT_PATTERN = re.compile(
+    r"\b(before|activity|path|id|ip|home|root):(.*)"
+)
+
+# The location and identifier are macaroon header fields, not caveats:
+# space-separated rather than colon-separated, and optionally preceded
+# by a 4-hex-digit length (e.g. "0018identifier jy4B2HLA").
+_MACAROON_HEADER_PATTERN = re.compile(r"^(?:[0-9a-f]{4})?(location|identifier)\s+(.*)$")
+
+
 def decode_macaroon(token: str) -> dict[str, str]:
     """Decode a Macaroon and return its properties as a dict.
 
-    Parses the decoded text for known fields like ``before:``,
-    ``activity:``, ``path:``, ``id:``, etc.
+    Parses the decoded text for the ``location``/``identifier`` header
+    fields and known caveats like ``before:``, ``activity:``,
+    ``path:``, ``id:``, etc. Real macaroons (v2 binary format) prefix
+    each caveat line with a hex length and a ``cid `` tag (e.g.
+    ``002ecid before:2026-...Z``), so caveats are searched for
+    anywhere in the line rather than requiring them at the start.
     """
     raw = decode_macaroon_raw(token)
-    properties: dict[str, str] = {"raw": raw}
+    properties: dict[str, str] = {}
 
-    # Extract common Macaroon caveats
     for line in raw.splitlines():
-        line = line.strip()
-        if ":" in line:
-            key, _, value = line.partition(":")
-            key = key.strip().lower()
-            if key in ("before", "activity", "path", "id", "ip", "home", "root"):
-                properties[key] = value.strip()
+        header_match = _MACAROON_HEADER_PATTERN.match(line)
+        if header_match:
+            key, value = header_match.group(1), header_match.group(2).strip()
+            properties.setdefault(key, value)
+            continue
+
+        caveat_match = _MACAROON_CAVEAT_PATTERN.search(line)
+        if caveat_match:
+            key, value = caveat_match.group(1), caveat_match.group(2).strip()
+            properties.setdefault(key, value)
 
     return properties
 
@@ -454,6 +496,83 @@ def extract_macaroon_expiry(decoded_text: str) -> Optional[int]:
         ) from exc
 
 
+# IP caveat checking.
+
+# Looks up this system's public IP address(es) and compares them
+# against a macaroon's IP caveat, using the standard library's
+# ipaddress module for subnet matching (no external ipcalc dependency).
+
+
+# Hostnames that resolve/respond IPv4-only or IPv6-only, so we don't
+# need to force a specific address family at the socket level.
+_IP_LOOKUP_URLS = {
+    4: ("https://api.ipify.org", "https://ipv4.icanhazip.com", "https://checkip.amazonaws.com"),
+    6: ("https://api6.ipify.org", "https://ipv6.icanhazip.com"),
+}
+
+
+def get_public_ip(version: int) -> Optional[str]:
+    """Look up this system's public IPv4 or IPv6 address.
+
+    Tries a few well-known lookup services in order, falling through
+    to the next if one is unreachable.
+
+    Returns:
+        The address as a string, or None if it could not be
+        determined (e.g. this system has no address of that family).
+    """
+    for url in _IP_LOOKUP_URLS[version]:
+        try:
+            response = httpx.get(url, timeout=5.0)
+            response.raise_for_status()
+            candidate = response.text.strip()
+            if ipaddress.ip_address(candidate).version == version:
+                return candidate
+        except (httpx.HTTPError, ValueError):
+            continue
+    return None
+
+
+def check_ip_caveat(ip_caveat: str) -> str:
+    """Check this system's public IP address(es) against a macaroon's IP caveat.
+
+    Args:
+        ip_caveat: Comma-separated list of IPs/subnets, as found in a
+            macaroon's ``ip:`` caveat.
+
+    Returns:
+        A human-readable status message. Never raises — this is purely
+        informational.
+    """
+    if not ip_caveat.strip():
+        return "no IP caveat present (recommended, to reduce the impact of a stolen token)."
+
+    try:
+        networks = [
+            ipaddress.ip_network(item.strip(), strict=False)
+            for item in ip_caveat.split(",")
+            if item.strip()
+        ]
+    except ValueError as exc:
+        return f"could not parse IP caveat '{ip_caveat}': {exc}"
+    if not networks:
+        return f"could not parse IP caveat '{ip_caveat}'."
+
+    results = []
+    for version, label in ((4, "IPv4"), (6, "IPv6")):
+        my_ip = get_public_ip(version)
+        if my_ip is None:
+            continue
+        addr = ipaddress.ip_address(my_ip)
+        matched = any(addr in net for net in networks if net.version == version)
+        results.append(f"{label} ({my_ip}) {'matches' if matched else 'does not match'}")
+
+    if not results:
+        return "could not determine this system's public IP address(es); unable to check."
+
+    return "; ".join(results) + "."
+
+
 # Token validation logic.
 
 # Validates JWT and Macaroon tokens for expiry and required permissions,
@@ -461,6 +580,34 @@ def extract_macaroon_expiry(decoded_text: str) -> Optional[int]:
 
 
 MIN_VALID_TIME = 60  # seconds — token must be valid for at least this long
+
+
+def format_duration(seconds: int) -> str:
+    """Format a duration in seconds as a human-readable string, e.g. '2d 3h 15m'."""
+    seconds = int(seconds)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+    parts = [f"{n}{unit}" for n, unit in ((days, "d"), (hours, "h"), (minutes, "m")) if n]
+    parts.append(f"{seconds}s")
+    return " ".join(parts)
+
+
+def describe_expiry(exp_unix: Optional[int]) -> str:
+    """Describe a token's expiry status, informationally — never raises.
+
+    Unlike ``_check_expiry()``, this doesn't gate whether the token may
+    be used; it's for 'viewtoken'-style commands where the goal is to
+    inspect the token, not to use it, so an expired token is not an
+    error — just a fact worth showing.
+    """
+    if exp_unix is None or not isinstance(exp_unix, (int, float)):
+        return "unknown (no expiration field found)"
+
+    now = int(time.time())
+    if now >= exp_unix:
+        return f"expired {format_duration(now - exp_unix)} ago"
+    return f"valid, expires in {format_duration(exp_unix - now)}"
 
 
 def validate_token(
