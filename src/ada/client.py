@@ -77,6 +77,7 @@ class AdaClient:
             proxy=proxy,
             config=self.config,
         )
+        self.auth.validate()
 
         # Create HTTP client
         self._api = DcacheAPI(
@@ -199,8 +200,7 @@ class AdaClient:
         from_file: Optional[str] = None,
     ) -> BulkRequest:
         """Stage files from tape to disk."""
-        # self.auth.validate(command="stage")
-        # this gives ada.exceptions.AdaAuthError
+        self.auth.validate(command="stage")
         return self.staging.stage(
             paths=paths, recursive=recursive, lifetime=lifetime, from_file=from_file
         )

@@ -28,6 +28,13 @@ import ssl
 import httpx
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.utils import check_file_permissions
+from ada.x509util import (
+    VOMS_EXTENSION_OID,
+    find_extension,
+    pem_certs,
+    voms_ac_validity,
+    x509_validity,
+)
 
 
 if TYPE_CHECKING:
@@ -197,6 +204,49 @@ class ProxyAuth(AuthProvider):
 
     def method_name(self) -> str:
         return "proxy"
+
+    def validate(self, command: Optional[str] = None) -> None:
+        """Validate the proxy certificate's expiry.
+
+        A VOMS proxy has two, potentially different, validity windows:
+        the X.509 certificate's own ``notAfter``, and (if present) the
+        embedded VOMS attribute certificate's ``attrCertValidityPeriod``,
+        which the VOMS server controls independently of the certificate
+        lifetime requested at ``voms-proxy-init`` time. Both are checked;
+        whichever expires first determines the effective expiry.
+        """
+        pem_text = Path(self.proxyfile).read_text(encoding="utf-8")
+        der_certs = pem_certs(pem_text)
+        if not der_certs:
+            raise AdaAuthError(f"No certificates found in proxy file: {self.proxyfile}")
+
+        x509_expiry: Optional[int] = None
+        voms_expiry: Optional[int] = None
+        for der_cert in der_certs:
+            _, not_after = x509_validity(der_cert)
+            exp = int(not_after.timestamp())
+            if x509_expiry is None or exp < x509_expiry:
+                x509_expiry = exp
+
+            extension = find_extension(der_cert, VOMS_EXTENSION_OID)
+            if extension is None:
+                continue
+            validity = voms_ac_validity(extension)
+            if validity is None:
+                logger.debug(
+                    "Could not parse VOMS attribute validity in proxy: %s",
+                    self.proxyfile,
+                )
+                continue
+            _, voms_not_after = validity
+            exp = int(voms_not_after.timestamp())
+            if voms_expiry is None or exp < voms_expiry:
+                voms_expiry = exp
+
+        if voms_expiry is not None and voms_expiry < x509_expiry:
+            _check_expiry(voms_expiry, f"VOMS attributes in proxy: {self.proxyfile}")
+        else:
+            _check_expiry(x509_expiry, f"certificate in proxy: {self.proxyfile}")
 
     def get_ssl_context(self) -> Any:
         """Return an SSL context configured with the proxy certificate."""
@@ -377,8 +427,19 @@ def decode_macaroon_raw(token: str) -> str:
     Raises:
         AdaAuthError: If the token cannot be decoded.
     """
+    token = token.strip()
+    # Add padding if needed (macaroon tokens are commonly unpadded base64,
+    # which `base64 -d` accepts leniently but Python's strict decoder does not).
+    padding = 4 - len(token) % 4
+    if padding != 4:
+        token += "=" * padding
+
     try:
-        decoded_bytes = base64.b64decode(token.strip())
+        # dCache macaroons use URL-safe base64 (- and _ instead of + and /),
+        # not standard base64. base64.b64decode() silently discards those
+        # characters as invalid instead of raising, which throws off the
+        # length check and produces a misleading padding error.
+        decoded_bytes = base64.urlsafe_b64decode(token)
     except Exception as exc:
         raise AdaAuthError(f"Invalid macaroon: cannot base64 decode: {exc}") from exc
 
@@ -412,6 +473,11 @@ def decode_macaroon(token: str) -> dict[str, str]:
     # Extract common Macaroon caveats
     for line in raw.splitlines():
         line = line.strip()
+        # Caveat lines carry a 4-hex-digit length header and a "cid "
+        # marker before the actual key:value pair, e.g.
+        # "002ecid before:2026-01-01T00:00:00Z" — strip that prefix so
+        # the key comparison below sees "before", not "002ecid before".
+        line = re.sub(r"^[0-9a-fA-F]{4}cid\s+", "", line)
         if ":" in line:
             key, _, value = line.partition(":")
             key = key.strip().lower()
