@@ -26,16 +26,28 @@ class TestList:
 
 
 class TestStat:
-    def test_stat_file(self, mock_api, sample_file_response):
+    def test_stat_returns_raw_api_response(self, mock_api, sample_file_response):
         mock_api.get.return_value = sample_file_response
         svc = NamespaceService(mock_api)
-        info = svc.stat("/data/testfile.dat")
-        assert info.file_type == FileType.REGULAR
-        assert info.size == 4096
-        assert info.pnfs_id == "0000FFFF"
-        assert "important" in info.labels
-        assert info.extended_attributes["project"] == "spider"
-        assert len(info.checksums) == 2
+        result = svc.stat("/data/testfile.dat")
+        assert result == sample_file_response
+
+    def test_stat_requests_expected_query_params(self, mock_api, sample_file_response):
+        mock_api.get.return_value = sample_file_response
+        svc = NamespaceService(mock_api)
+        svc.stat("/data/testfile.dat")
+        mock_api.get.assert_called_once_with(
+            "namespace/%2Fdata%2Ftestfile.dat",
+            params={
+                "locality": "true",
+                "locations": "true",
+                "qos": "true",
+                "xattr": "true",
+                "labels": "true",
+                "checksum": "true",
+                "optional": "true",
+            },
+        )
 
 
 class TestMkdir:
