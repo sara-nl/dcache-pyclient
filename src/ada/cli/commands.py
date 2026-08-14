@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ada.auth import check_ip_caveat
 from ada.client import AdaClient
-from ada.exceptions import AdaNotFoundError, AdaValidationError
+from ada.exceptions import AdaAPIError, AdaNotFoundError, AdaValidationError
 from ada.cli.formatters import (
     format_longlist,
     format_quota,
@@ -25,9 +25,13 @@ def whoami(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         info = client.whoami()
         print(f"API:      {client.config.api}")
-        versions = client.dcache_versions()
-        if versions:
-            print(f"Version:  {', '.join(versions)}")
+        try:
+            versions = client.dcache_versions()
+        except AdaAPIError as exc:
+            print(f"Version:  unable to query (HTTP {exc.status_code or '?'})")
+        else:
+            if versions:
+                print(f"Version:  {', '.join(versions)}")
         print(f"Auth:     {client.auth.describe()}")
         print(f"Status:   {info.status}")
         if info.username:
