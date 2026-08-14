@@ -14,6 +14,8 @@ from ada.cli.commands import (
     checksum,
     stage,
     unstage,
+    space,
+    quota,
 )
 
 
@@ -235,6 +237,28 @@ def parse_args() -> argparse.ArgumentParser:
         type=str,
         help='File containing list of files or directories to unstage.'
     )
+
+    # space
+    parser_space = subparsers.add_parser(
+        'space',
+        help="Show pool group names, or space usage for a pool group."
+    )
+    parser_space.set_defaults(func=space)
+    parser_space.add_argument(
+        'poolgroup',
+        nargs="?",
+        type=str,
+        help="Pool group to show space usage for, or a dCache path "
+             "(starting with '/') to look up the pool group(s) serving "
+             "that path. If omitted, lists all pool group names.",
+    )
+
+    # quota
+    parser_quota = subparsers.add_parser(
+        'quota',
+        help="Show storage quotas (tape/custodial and disk/replica), for user and group."
+    )
+    parser_quota.set_defaults(func=quota)
 
     return parser
 

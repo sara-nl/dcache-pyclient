@@ -238,6 +238,10 @@ class AdaClient:
         """Get storage space info."""
         return self.system.space(poolgroup)
 
+    def poolgroups_for_path(self, path: str) -> list[str]:
+        """Resolve which pool group(s) serve a namespace directory."""
+        return self.system.poolgroups_for_path(path)
+
     def quota(self) -> list[QuotaInfo]:
         """Get storage quota info."""
         return self.system.quota()
