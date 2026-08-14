@@ -16,7 +16,7 @@ from ada.utils import encode_path
 from ada.services.namespace import NamespaceService
 
 if TYPE_CHECKING:
-    from ada.core.api import DcacheAPI
+    from ada.api import DcacheAPI
 
 logger = logging.getLogger("ada.services.labels")
 
@@ -49,8 +49,7 @@ class LabelService:
         self._ensure_file(path)
         encoded = encode_path(path)
         self._api.post(
-            f"namespace/{encoded}/labels/{label}",
-            content_type="application/json",
+            f"namespace/{encoded}", json={"action": "set-label", "label": label}
         )
         return f"Label '{label}' set on '{path}'"
 
@@ -62,20 +61,16 @@ class LabelService:
             label: If specified, check if this specific label exists.
 
         Returns:
-            List of label strings.
+            List of label strings. If `label` is given, either `[label]`
+            (it's present) or `[]` (it's not).
         """
         self._ensure_file(path)
         encoded = encode_path(path)
+        data = self._api.get(f"namespace/{encoded}", params={"labels": "true"})
+        labels = data.get("labels", [])
         if label:
-            # Check specific label
-            data = self._api.get(f"namespace/{encoded}/labels/{label}")
-            if data:
-                return [label]
-            return []
-        data = self._api.get(
-            f"namespace/{encoded}", params={"labels": "true"}
-        )
-        return data.get("labels", [])
+            return [label] if label in labels else []
+        return labels
 
     def remove(self, path: str, label: str = "", all_labels: bool = False) -> str:
         """Remove a label from a file.
@@ -93,14 +88,20 @@ class LabelService:
 
         if all_labels:
             labels = self.list(path)
+            if not labels:
+                return "No labels to remove."
             for lbl in labels:
-                self._api.delete(f"namespace/{encoded}/labels/{lbl}")
-            return f"All labels removed from '{path}'"
+                self._api.post(
+                    f"namespace/{encoded}", json={"action": "rm-label", "label": lbl}
+                )
+            return f"All labels removed from '{path}': {', '.join(labels)}"
 
         if not label:
             raise AdaValidationError("Specify a label to remove, or use all_labels=True")
 
-        self._api.delete(f"namespace/{encoded}/labels/{label}")
+        self._api.post(
+            f"namespace/{encoded}", json={"action": "rm-label", "label": label}
+        )
         return f"Label '{label}' removed from '{path}'"
 
     def find(
