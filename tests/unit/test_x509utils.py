@@ -1,4 +1,4 @@
-"""Tests for ada.x509util (X.509 / VOMS proxy expiry parsing).
+"""Tests for ada.x509utils (X.509 / VOMS proxy expiry parsing).
 
 Uses hand-built minimal DER fixtures rather than real certificates, so
 no personal data (name/e-mail in a real cert's subject) ends up in the
@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from ada.exceptions import AdaAuthError
-from ada.x509util import (
+from ada.x509utils import (
     VOMS_EXTENSION_OID,
     find_extension,
     pem_certs,

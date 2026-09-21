@@ -27,7 +27,7 @@ import ssl
 import httpx
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.utils import check_file_permissions
-from ada.x509util import (
+from ada.x509utils import (
     VOMS_EXTENSION_OID,
     find_extension,
     pem_certs,

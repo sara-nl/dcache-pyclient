@@ -8,7 +8,7 @@ import pytest
 
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.auth import ProxyAuth, decode_jwt, decode_jwt_payload, is_jwt, validate_token
-from tests.unit.test_x509util import _build_cert, _pem, _seq, _time, TAG_GENERALIZEDTIME
+from tests.unit.test_x509utils import _build_cert, _pem, _seq, _time, TAG_GENERALIZEDTIME
 
 
 class TestIsJwt:
