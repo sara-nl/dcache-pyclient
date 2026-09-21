@@ -19,8 +19,30 @@ The configuration options are:
 
 Note that the order of precedence for authentication is (high-to-low):
 ```
-tokenfile ← netrcfile ← Grid proxy
+token ← tokenfile ← netrcfile ← Grid proxy
 ```
+
+The CLI `--token` flag does not take a value; it explicitly selects token
+authentication and reads the token from the `$BEARER_TOKEN` environment
+variable, raising an error if it is not set. It is mutually exclusive with
+`--tokenfile`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`. If none
+of these is given, `$BEARER_TOKEN` is still used automatically when set (see
+[Environment Variables](#environment-variables)).
+
+The CLI `--netrc` flag does not take a value; it explicitly selects netrc-based
+password authentication from `~/.netrc`. Use `--netrcfile PATH` instead to use a
+different file. Either way, the file must exist and must not be world-readable
+or world-writable, or an error is raised.
+
+The CLI `--proxy` flag does not take a value; it explicitly selects X.509
+proxy authentication, reading the proxy certificate from `$X509_USER_PROXY`
+(or `/tmp/x509up_u<uid>` if unset). Use `--proxyfile PATH` instead to use a
+different file. By default the proxy is verified against IGTF Grid CA
+certificates; pass `--no-igtf` to disable this (overriding the `igtf` config
+value for this run).
+
+All of `--token`, `--tokenfile`, `--netrc`, `--netrcfile`, `--proxy`, and
+`--proxyfile` are mutually exclusive with each other.
 
 ## Config File
 
@@ -61,6 +83,19 @@ Environment variables override config file values. They are checked after loadin
 | `X509_USER_PROXY` | — | X.509 proxy file path |
 | `X509_CERT_DIR` | — | Grid certificate directory |
 
+Environment variables must be **exported** to be visible to `ada-cli`, since
+it runs as a separate process. Setting `ada_netrcfile=~/.netrc` on its own
+line only creates a shell-local variable that the next command never sees;
+use `export ada_netrcfile=~/.netrc`, or set it inline for a single command:
+```bash
+ada_netrcfile=~/.netrc ada-cli whoami
+```
+This applies to any shell-based tool, not just ADA.
+
+File-path values (`tokenfile`, `netrcfile`, proxy file/cert dir) may use a
+leading `~` for your home directory. In CLI arguments and exported
+environment variables, the shell expands `~` before ADA ever sees it. In
+`ada.conf`, `~` is read as plain text and expanded by ADA itself.
 
 ## Example Setup
 
