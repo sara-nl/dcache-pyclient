@@ -129,9 +129,27 @@
 </tbody>
 </table>
 <p>Note that the order of precedence for authentication is (high-to-low):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>tokenfile ← netrcfile ← Grid proxy
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>token ← tokenfile ← netrcfile ← Grid proxy
 </pre></div>
 </div>
+<p>The CLI <code class="docutils literal notranslate"><span class="pre">--token</span></code> flag does not take a value; it explicitly selects token
+authentication and reads the token from the <code class="docutils literal notranslate"><span class="pre">$BEARER_TOKEN</span></code> environment
+variable, raising an error if it is not set. It is mutually exclusive with
+<code class="docutils literal notranslate"><span class="pre">--tokenfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrcfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrc</span></code>, <code class="docutils literal notranslate"><span class="pre">--proxyfile</span></code>, and <code class="docutils literal notranslate"><span class="pre">--proxy</span></code>. If none
+of these is given, <code class="docutils literal notranslate"><span class="pre">$BEARER_TOKEN</span></code> is still used automatically when set (see
+<a class="reference internal" href="#environment-variables"><span class="xref myst">Environment Variables</span></a>).</p>
+<p>The CLI <code class="docutils literal notranslate"><span class="pre">--netrc</span></code> flag does not take a value; it explicitly selects netrc-based
+password authentication from <code class="docutils literal notranslate"><span class="pre">~/.netrc</span></code>. Use <code class="docutils literal notranslate"><span class="pre">--netrcfile</span> <span class="pre">PATH</span></code> instead to use a
+different file. Either way, the file must exist and must not be world-readable
+or world-writable, or an error is raised.</p>
+<p>The CLI <code class="docutils literal notranslate"><span class="pre">--proxy</span></code> flag does not take a value; it explicitly selects X.509
+proxy authentication, reading the proxy certificate from <code class="docutils literal notranslate"><span class="pre">$X509_USER_PROXY</span></code>
+(or <code class="docutils literal notranslate"><span class="pre">/tmp/x509up_u&lt;uid&gt;</span></code> if unset). Use <code class="docutils literal notranslate"><span class="pre">--proxyfile</span> <span class="pre">PATH</span></code> instead to use a
+different file. By default the proxy is verified against IGTF Grid CA
+certificates; pass <code class="docutils literal notranslate"><span class="pre">--no-igtf</span></code> to disable this (overriding the <code class="docutils literal notranslate"><span class="pre">igtf</span></code> config
+value for this run).</p>
+<p>All of <code class="docutils literal notranslate"><span class="pre">--token</span></code>, <code class="docutils literal notranslate"><span class="pre">--tokenfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrc</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrcfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--proxy</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">--proxyfile</span></code> are mutually exclusive with each other.</p>
 <section id="config-file">
 <h2>Config File<a class="headerlink" href="#config-file" title="Link to this heading"></a></h2>
 <p>ADA uses a simple <code class="docutils literal notranslate"><span class="pre">key=value</span></code> format, with lines starting with <code class="docutils literal notranslate"><span class="pre">#</span></code> as comments. This is compatible with the original Bash version. An example can be found in <a class="reference external" href="https://github.com/sara-nl/dcache-pyclient/blob/main/src/ada/etc/ada.conf">ada.conf</a>.</p>
@@ -217,6 +235,18 @@
 </tr>
 </tbody>
 </table>
+<p>Environment variables must be <strong>exported</strong> to be visible to <code class="docutils literal notranslate"><span class="pre">ada-cli</span></code>, since
+it runs as a separate process. Setting <code class="docutils literal notranslate"><span class="pre">ada_netrcfile=~/.netrc</span></code> on its own
+line only creates a shell-local variable that the next command never sees;
+use <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">ada_netrcfile=~/.netrc</span></code>, or set it inline for a single command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">ada_netrcfile</span><span class="o">=</span>~/.netrc<span class="w"> </span>ada-cli<span class="w"> </span>whoami
+</pre></div>
+</div>
+<p>This applies to any shell-based tool, not just ADA.</p>
+<p>File-path values (<code class="docutils literal notranslate"><span class="pre">tokenfile</span></code>, <code class="docutils literal notranslate"><span class="pre">netrcfile</span></code>, proxy file/cert dir) may use a
+leading <code class="docutils literal notranslate"><span class="pre">~</span></code> for your home directory. In CLI arguments and exported
+environment variables, the shell expands <code class="docutils literal notranslate"><span class="pre">~</span></code> before ADA ever sees it. In
+<code class="docutils literal notranslate"><span class="pre">ada.conf</span></code>, <code class="docutils literal notranslate"><span class="pre">~</span></code> is read as plain text and expanded by ADA itself.</p>
 </section>
 <section id="example-setup">
 <h2>Example Setup<a class="headerlink" href="#example-setup" title="Link to this heading"></a></h2>
