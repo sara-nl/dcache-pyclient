@@ -279,6 +279,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.check_file_permissions"><code class="docutils literal notranslate"><span class="pre">check_file_permissions()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.confirm_deletion"><code class="docutils literal notranslate"><span class="pre">confirm_deletion()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.encode_path"><code class="docutils literal notranslate"><span class="pre">encode_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.utils.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.normalize_path"><code class="docutils literal notranslate"><span class="pre">normalize_path()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.parse_lifetime"><code class="docutils literal notranslate"><span class="pre">parse_lifetime()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.read_file_list"><code class="docutils literal notranslate"><span class="pre">read_file_list()</span></code></a></li>
@@ -1601,6 +1602,23 @@ FileNotFoundError: If the file does not exist.</p>
 <p>Equivalent to the Bash <code class="docutils literal notranslate"><span class="pre">urlencode</span></code> function (<code class="docutils literal notranslate"><span class="pre">jq</span> <span class="pre">-sRr</span> <span class="pre">&#64;uri</span></code>).
 Encodes all characters including <code class="docutils literal notranslate"><span class="pre">/</span></code> so the entire path becomes
 a single URL path segment (e.g., <code class="docutils literal notranslate"><span class="pre">/pnfs/data</span></code> → <code class="docutils literal notranslate"><span class="pre">%2Fpnfs%2Fdata</span></code>).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.utils.get_version">
+<span class="sig-prename descclassname"><span class="pre">ada.utils.</span></span><span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.utils.get_version" title="Link to this definition"></a></dt>
+<dd><p>Return ADA’s version string.</p>
+<p>The installed package’s version (from pyproject.toml via package
+metadata) is always shown when available. Since Poetry’s editable
+dev install has valid metadata regardless of which branch/commit
+is checked out, the package version alone doesn’t tell you that
+you’re on unreleased code — so when running from a git checkout,
+the branch and commit are appended too, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.2.1</span> <span class="p">(</span><span class="n">branch</span><span class="p">:</span> <span class="mi">26</span><span class="o">-</span><span class="n">add</span><span class="o">-</span><span class="n">ada</span><span class="o">-</span><span class="n">cli</span><span class="o">---</span><span class="n">version</span><span class="p">,</span> <span class="n">commit</span><span class="p">:</span> <span class="mi">5977</span><span class="n">a71</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If neither is available (not installed, and not a git checkout),
+returns “unknown”.</p>
 </dd></dl>
 
 <dl class="py function">
