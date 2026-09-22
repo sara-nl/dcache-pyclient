@@ -44,6 +44,7 @@ Config file location, in order of precedence from high to low, is expected to be
 | 2 | `/etc/ada.conf` | System-wide config |
 | 3 (lowest) | `<package>/etc/ada.conf` | Bundled defaults |
 
+Note that all config files found are loaded and cascaded (lowest precedence first), so a higher-precedence file only needs to set the values it wants to override; anything it leaves unset falls through to the next file.
 
 ## Environment Variables
 
