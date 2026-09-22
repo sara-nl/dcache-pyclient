@@ -530,11 +530,43 @@ returns the sorted set of unique versions found across all cells.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ada.services.system.SystemService.poolgroups_for_path">
+<span class="sig-name descname"><span class="pre">poolgroups_for_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.system.SystemService.poolgroups_for_path" title="Link to this definition"></a></dt>
+<dd><p>Resolve which pool group(s) serve a namespace directory.</p>
+<p>Follows the same chain dCache itself uses to pick a pool group
+for a path: storage class + HSM identify a storage unit, which
+belongs to a unit group, which is attached to link(s), which
+are attached to pool group(s).</p>
+<p>Only directories are accepted. When a file is moved, its storage
+class/HSM is updated to match the new directory, but its data
+stays put in the pool group it was originally written to. So a
+moved file’s storage class/HSM may point to a different pool
+group than the one its data actually lives in, making pool
+group resolution for a file unreliable.</p>
+<dl>
+<dt>Raises:</dt><dd><p>AdaValidationError: If path is a file, not a directory.
+AdaNotFoundError: If the path has no storage class/HSM, or</p>
+<blockquote>
+<div><p>no unit group/link/pool group could be found for it.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ada.services.system.SystemService.quota">
 <span class="sig-name descname"><span class="pre">quota</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="ada.html#ada.models.QuotaInfo" title="ada.models.QuotaInfo"><span class="pre">QuotaInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.services.system.SystemService.quota" title="Link to this definition"></a></dt>
-<dd><p>Get storage quota information for the current user.</p>
-<p>Returns a list of quota entries (user and group quotas,
-for both disk and tape storage).</p>
+<dd><p>Get storage quota information for the current user and their
+primary group.</p>
+<p>Queries user and group quota separately, since dCache returns
+a 404 for a quota type that simply isn’t set (not an error) –
+matching the Bash version.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>A list of quota entries (user and/or group, for both
+custodial/tape and replica/disk storage). Empty if neither
+the user nor the group has any quota set.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
