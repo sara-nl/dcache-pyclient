@@ -90,6 +90,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.ProxyAuth.get_ssl_context"><code class="docutils literal notranslate"><span class="pre">ProxyAuth.get_ssl_context()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.ProxyAuth.headers"><code class="docutils literal notranslate"><span class="pre">ProxyAuth.headers()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.ProxyAuth.method_name"><code class="docutils literal notranslate"><span class="pre">ProxyAuth.method_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.auth.ProxyAuth.validate"><code class="docutils literal notranslate"><span class="pre">ProxyAuth.validate()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.auth.TokenAuth"><code class="docutils literal notranslate"><span class="pre">TokenAuth</span></code></a><ul>
@@ -285,6 +286,21 @@
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.read_file_list"><code class="docutils literal notranslate"><span class="pre">read_file_list()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.resolve_paths"><code class="docutils literal notranslate"><span class="pre">resolve_paths()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.to_json"><code class="docutils literal notranslate"><span class="pre">to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ada.x509utils">ada.x509utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ada.x509utils.DerNode"><code class="docutils literal notranslate"><span class="pre">DerNode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ada.x509utils.DerNode.children"><code class="docutils literal notranslate"><span class="pre">DerNode.children</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.x509utils.DerNode.is_constructed"><code class="docutils literal notranslate"><span class="pre">DerNode.is_constructed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.x509utils.DerNode.tag"><code class="docutils literal notranslate"><span class="pre">DerNode.tag</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.x509utils.DerNode.value"><code class="docutils literal notranslate"><span class="pre">DerNode.value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.x509utils.find_extension"><code class="docutils literal notranslate"><span class="pre">find_extension()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.x509utils.parse_der"><code class="docutils literal notranslate"><span class="pre">parse_der()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.x509utils.pem_certs"><code class="docutils literal notranslate"><span class="pre">pem_certs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.x509utils.voms_ac_validity"><code class="docutils literal notranslate"><span class="pre">voms_ac_validity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.x509utils.x509_validity"><code class="docutils literal notranslate"><span class="pre">x509_validity()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ada">Module contents</a><ul>
@@ -649,6 +665,18 @@ otherwise invisible choice visible.</p>
 <dt class="sig sig-object py" id="ada.auth.ProxyAuth.method_name">
 <span class="sig-name descname"><span class="pre">method_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.auth.ProxyAuth.method_name" title="Link to this definition"></a></dt>
 <dd><p>Human-readable name like ‘token’, ‘netrc’, ‘proxy’.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.auth.ProxyAuth.validate">
+<span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.auth.ProxyAuth.validate" title="Link to this definition"></a></dt>
+<dd><p>Validate the proxy certificate’s expiry.</p>
+<p>A VOMS proxy has two, potentially different, validity windows:
+the X.509 certificate’s own <code class="docutils literal notranslate"><span class="pre">notAfter</span></code>, and (if present) the
+embedded VOMS attribute certificate’s <code class="docutils literal notranslate"><span class="pre">attrCertValidityPeriod</span></code>,
+which the VOMS server controls independently of the certificate
+lifetime requested at <code class="docutils literal notranslate"><span class="pre">voms-proxy-init</span></code> time. Both are checked;
+whichever expires first determines the effective expiry.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1661,6 +1689,94 @@ returns “unknown”.</p>
 - key=value pairs (one per line, or comma-separated)
 - Tab-separated key/value pairs</p>
 <p>Replicates the Bash <code class="docutils literal notranslate"><span class="pre">to_json</span></code> function.</p>
+</dd></dl>
+
+</section>
+<section id="module-ada.x509utils">
+<span id="ada-x509utils-module"></span><h2>ada.x509utils module<a class="headerlink" href="#module-ada.x509utils" title="Link to this heading"></a></h2>
+<p>Minimal DER/ASN.1 helpers for X.509 proxy certificate validation.</p>
+<p>Implements just enough of DER to answer two questions about a grid
+proxy certificate, without depending on an external crypto library or
+shelling out to <code class="docutils literal notranslate"><span class="pre">voms-proxy-info</span></code>:</p>
+<ol class="arabic simple">
+<li><p>When does the X.509 certificate itself expire (<code class="docutils literal notranslate"><span class="pre">tbsCertificate.validity</span></code>)?</p></li>
+<li><p>If it carries a VOMS attribute certificate (the non-critical extension
+with OID <code class="docutils literal notranslate"><span class="pre">1.3.6.1.4.1.8005.100.100.5</span></code>), when do the VOMS attributes
+(FQANs/roles) expire? That is a <em>separate</em> validity window
+(<code class="docutils literal notranslate"><span class="pre">AttCertValidityPeriod</span></code> per RFC 3281), often different from the
+certificate’s own validity.</p></li>
+</ol>
+<p>This is not a general-purpose ASN.1 library: it only decodes tag/length/
+value structure generically, and locates the fields we need by shape
+(e.g. “the SEQUENCE holding exactly two GeneralizedTime values”) rather
+than by fully modelling the X.509 or RFC 3281 schemas. VOMS attribute
+certificates in particular use several CHOICE types (holder, issuer)
+that are awkward to model fully but irrelevant to finding the validity
+period.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.x509utils.DerNode">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.x509utils.</span></span><span class="sig-name descname"><span class="pre">DerNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_constructed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ada.x509utils.DerNode" title="ada.x509utils.DerNode"><span class="pre">DerNode</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.x509utils.DerNode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A single decoded DER TLV element.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.x509utils.DerNode.children">
+<span class="sig-name descname"><span class="pre">children</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ada.x509utils.DerNode" title="ada.x509utils.DerNode"><span class="pre">DerNode</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#ada.x509utils.DerNode.children" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.x509utils.DerNode.is_constructed">
+<span class="sig-name descname"><span class="pre">is_constructed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#ada.x509utils.DerNode.is_constructed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.x509utils.DerNode.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#ada.x509utils.DerNode.tag" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.x509utils.DerNode.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span></span><a class="headerlink" href="#ada.x509utils.DerNode.value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.x509utils.find_extension">
+<span class="sig-prename descclassname"><span class="pre">ada.x509utils.</span></span><span class="sig-name descname"><span class="pre">find_extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">der_cert</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#ada.x509utils.find_extension" title="Link to this definition"></a></dt>
+<dd><p>Return the raw OCTET STRING content of the extension with the given OID.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.x509utils.parse_der">
+<span class="sig-prename descclassname"><span class="pre">ada.x509utils.</span></span><span class="sig-name descname"><span class="pre">parse_der</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#ada.x509utils.DerNode" title="ada.x509utils.DerNode"><span class="pre">DerNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.x509utils.parse_der" title="Link to this definition"></a></dt>
+<dd><p>Decode a sequence of DER TLV elements at the top level of <code class="docutils literal notranslate"><span class="pre">data</span></code>.</p>
+<p>Constructed elements (SEQUENCE, SET, and context-specific constructed
+tags) are recursed into automatically; primitive elements keep their
+raw value bytes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.x509utils.pem_certs">
+<span class="sig-prename descclassname"><span class="pre">ada.x509utils.</span></span><span class="sig-name descname"><span class="pre">pem_certs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pem_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.x509utils.pem_certs" title="Link to this definition"></a></dt>
+<dd><p>Extract DER-encoded certificates from PEM text.</p>
+<p>A proxy file typically contains one or more certificates followed by
+a private key (and possibly CA chain certificates); only the
+<code class="docutils literal notranslate"><span class="pre">CERTIFICATE</span></code> blocks are relevant here.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.x509utils.voms_ac_validity">
+<span class="sig-prename descclassname"><span class="pre">ada.x509utils.</span></span><span class="sig-name descname"><span class="pre">voms_ac_validity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ac_der</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">datetime</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#ada.x509utils.voms_ac_validity" title="Link to this definition"></a></dt>
+<dd><p>Return (notBeforeTime, notAfterTime) for a VOMS attribute certificate.</p>
+<p>Returns None if the structure doesn’t contain a recognizable
+validity period (e.g. an unexpected/future VOMS encoding) rather
+than raising, so callers can fall back to X.509-only validation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.x509utils.x509_validity">
+<span class="sig-prename descclassname"><span class="pre">ada.x509utils.</span></span><span class="sig-name descname"><span class="pre">x509_validity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">der_cert</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">datetime</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.x509utils.x509_validity" title="Link to this definition"></a></dt>
+<dd><p>Return (notBefore, notAfter) for an X.509 certificate’s own validity.</p>
 </dd></dl>
 
 </section>

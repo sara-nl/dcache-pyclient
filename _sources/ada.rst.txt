@@ -68,6 +68,14 @@ ada.utils module
    :show-inheritance:
    :undoc-members:
 
+ada.x509utils module
+--------------------
+
+.. automodule:: ada.x509utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 
