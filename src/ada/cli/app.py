@@ -4,6 +4,7 @@ ADA Command Line Interface application
 import argparse
 
 from ada.exceptions import AdaValidationError
+from ada.utils import get_version
 from ada.cli.commands import (
     whoami,
     list_cmd,
@@ -15,6 +16,8 @@ from ada.cli.commands import (
     stage,
     unstage,
     viewtoken,
+    space,
+    quota,
 )
 
 
@@ -30,11 +33,44 @@ def parse_args() -> argparse.ArgumentParser:
         )
     )
 
-    parser.add_argument(
+    auth_group = parser.add_mutually_exclusive_group()
+    auth_group.add_argument(
         "--tokenfile",
         type=str,
         help="Path to tokenfile."
     )
+    auth_group.add_argument(
+        "--token",
+        action="store_true",
+        help="Use token authentication, reading the token from $BEARER_TOKEN."
+    )
+    auth_group.add_argument(
+        "--netrcfile",
+        type=str,
+        help="Path to netrc file."
+    )
+    auth_group.add_argument(
+        "--netrc",
+        action="store_true",
+        help="Use netrc-based password authentication, reading from ~/.netrc."
+    )
+    auth_group.add_argument(
+        "--proxyfile",
+        type=str,
+        help="Path to X.509 proxy file."
+    )
+    auth_group.add_argument(
+        "--proxy",
+        action="store_true",
+        help="Use X.509 proxy authentication, reading from $X509_USER_PROXY "
+             "or /tmp/x509up_u<uid>."
+    )
+
+    parser.add_argument(
+        "--no-igtf",
+        help="Disable IGTF Grid CA certificate verification "
+             "(only relevant for --proxy/--proxyfile authentication).",
+        action="store_true")
 
     parser.add_argument(
         "--api",
@@ -51,6 +87,11 @@ def parse_args() -> argparse.ArgumentParser:
         "--debug",
         help="Run in debug mode (not yet implemented).",
         action="store_true")
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {get_version()}")
 
     subparsers = parser.add_subparsers(
         help='ADA supports these commands (put commands and their arguments at the end, after the options):')
@@ -248,6 +289,27 @@ def parse_args() -> argparse.ArgumentParser:
         help="Show only minimal information: skip the token source, "
              "and the macaroon IP caveat check.",
         action="store_true")
+    # space
+    parser_space = subparsers.add_parser(
+        'space',
+        help="Show pool group names, or space usage for a pool group."
+    )
+    parser_space.set_defaults(func=space)
+    parser_space.add_argument(
+        'poolgroup',
+        nargs="?",
+        type=str,
+        help="Pool group to show space usage for, or a dCache path "
+             "(starting with '/') to look up the pool group(s) serving "
+             "that path. If omitted, lists all pool group names.",
+    )
+
+    # quota
+    parser_quota = subparsers.add_parser(
+        'quota',
+        help="Show storage quotas (tape/custodial and disk/replica), for user and group."
+    )
+    parser_quota.set_defaults(func=quota)
 
     return parser
 

@@ -3,3 +3,4 @@ __pycache__
 dist
 tests/env_*.json
 tokenfile_*.conf
+.devcontainer

@@ -23,12 +23,18 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 from urllib.parse import urlparse
-import netrc as netrc_module
 import ssl
 
 import httpx
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.utils import check_file_permissions
+from ada.x509utils import (
+    VOMS_EXTENSION_OID,
+    find_extension,
+    pem_certs,
+    voms_ac_validity,
+    x509_validity,
+)
 
 
 if TYPE_CHECKING:
@@ -47,6 +53,15 @@ class AuthProvider(ABC):
     @abstractmethod
     def method_name(self) -> str:
         """Human-readable name like 'token', 'netrc', 'proxy'."""
+
+    def describe(self) -> str:
+        """Human-readable description of the method and where it was resolved from.
+
+        Auth methods can come from explicit CLI arguments, environment
+        variables, or ada.conf, so this is shown in ``whoami`` to make an
+        otherwise invisible choice visible.
+        """
+        return self.method_name()
 
     def view_token(self) -> dict[str, Any]:
         """Decode and return token properties for display."""
@@ -90,6 +105,9 @@ class TokenAuth(AuthProvider):
     def method_name(self) -> str:
         return "token"
 
+    def describe(self) -> str:
+        return f"token ({self.source})"
+
     def validate(self, command: Optional[str] = None) -> None:
         validate_token(self.token, source=self.source, command=command)
 
@@ -110,6 +128,7 @@ class TokenFileAuth(TokenAuth):
     """Reads token from a file (rclone config format or plain bearer token)."""
 
     def __init__(self, tokenfile: str) -> None:
+        tokenfile = str(Path(tokenfile).expanduser())
         check_file_permissions(tokenfile)
         token = self._read_token(tokenfile)
         super().__init__(token, source=f"tokenfile: {tokenfile}")
@@ -125,7 +144,11 @@ class TokenFileAuth(TokenAuth):
         """
         content = Path(path).read_text(encoding="utf-8")
 
-        # Try rclone config format first
+        # Try rclone config format first. A bearer_token key found with an
+        # empty value means this is an rclone-format file with no token
+        # configured — fail clearly rather than falling through to the
+        # plain-token fallback below, which would otherwise misread an
+        # unrelated line (e.g. the "[section]" header) as the token.
         for line in content.splitlines():
             stripped = line.strip()
             if stripped.startswith("bearer_token"):
@@ -134,8 +157,10 @@ class TokenFileAuth(TokenAuth):
                     token = parts[1].strip()
                     if token:
                         return token
+                    raise AdaAuthError(f"bearer_token is empty in tokenfile: {path}")
 
-        # Fall back to plain token (first non-empty line)
+        # Fall back to plain token (first non-empty line), only reached
+        # when the file has no bearer_token key at all.
         for line in content.splitlines():
             stripped = line.strip()
             if stripped:
@@ -144,11 +169,55 @@ class TokenFileAuth(TokenAuth):
         raise AdaAuthError(f"Could not read token from file: {path}")
 
 
+def _parse_netrc(path: str, hostname: str) -> tuple[str, str]:
+    """Parse a netrc file for the login/password of the given host.
+
+    Reimplemented instead of using the stdlib ``netrc`` module, which
+    silently strips backslashes from values — a long-standing, deliberately
+    unfixed bug (https://github.com/python/cpython/issues/99080) that
+    corrupts any password containing one. ``curl --netrc`` does not have
+    this bug, so this parser matches curl's plain whitespace-tokenized
+    behavior instead.
+    """
+    text = Path(path).read_text(encoding="utf-8")
+    entries: dict[str, dict[str, str]] = {}
+    default: dict[str, str] = {}
+    current: Optional[dict[str, str]] = None
+    in_macdef = False
+    for line in text.splitlines():
+        if in_macdef:
+            if not line.strip():
+                in_macdef = False
+            continue
+        tokens = line.split()
+        i = 0
+        while i < len(tokens):
+            keyword = tokens[i]
+            if keyword == "machine" and i + 1 < len(tokens):
+                current = entries.setdefault(tokens[i + 1], {})
+                i += 2
+            elif keyword == "default":
+                current = default
+                i += 1
+            elif keyword in ("login", "password", "account") and current is not None and i + 1 < len(tokens):
+                current[keyword] = tokens[i + 1]
+                i += 2
+            elif keyword == "macdef":
+                # Macro bodies run until a blank line; not used by ADA, so skip them.
+                in_macdef = True
+                break
+            else:
+                i += 1
+
+    entry = entries.get(hostname, default)
+    return entry.get("login", ""), entry.get("password", "")
+
+
 class NetrcAuth(AuthProvider):
     """Netrc-based username/password (Basic) authentication."""
 
     def __init__(self, netrcfile: Optional[str] = None, hostname: Optional[str] = None) -> None:
-        self.netrcfile = netrcfile or str(Path.home() / ".netrc")
+        self.netrcfile = str(Path(netrcfile).expanduser()) if netrcfile else str(Path.home() / ".netrc")
         self.hostname = hostname
         check_file_permissions(self.netrcfile)
 
@@ -159,28 +228,24 @@ class NetrcAuth(AuthProvider):
     def method_name(self) -> str:
         return "netrc"
 
+    def describe(self) -> str:
+        return f"netrc ({self.netrcfile})"
+
     def get_httpx_auth(self) -> Any:
         """Parse netrc and return httpx BasicAuth for the API host."""
-        try:
-            nrc = netrc_module.netrc(self.netrcfile)
-        except Exception as exc:
-            raise AdaAuthError(f"Cannot parse netrc file '{self.netrcfile}': {exc}") from exc
-
         if not self.hostname:
             raise AdaAuthError(
                 "Cannot use netrc authentication without knowing the API hostname."
             )
 
-        auth_tuple = nrc.authenticators(self.hostname)
-        if auth_tuple is None:
-            raise AdaAuthError(
-                f"No credentials found for host '{self.hostname}' in '{self.netrcfile}'."
-            )
+        try:
+            login, password = _parse_netrc(self.netrcfile, self.hostname)
+        except OSError as exc:
+            raise AdaAuthError(f"Cannot read netrc file '{self.netrcfile}': {exc}") from exc
 
-        login, _, password = auth_tuple
         if not login or not password:
             raise AdaAuthError(
-                f"Incomplete credentials for host '{self.hostname}' in '{self.netrcfile}'."
+                f"No credentials found for host '{self.hostname}' in '{self.netrcfile}'."
             )
 
         return httpx.BasicAuth(username=login, password=password)
@@ -195,12 +260,14 @@ class ProxyAuth(AuthProvider):
         certdir: Optional[str] = None,
         igtf: bool = True,
     ) -> None:
-        self.proxyfile = proxyfile or os.environ.get(
+        proxyfile = proxyfile or os.environ.get(
             "X509_USER_PROXY", f"/tmp/x509up_u{os.getuid()}"
         )
-        self.certdir = certdir or os.environ.get(
+        certdir = certdir or os.environ.get(
             "X509_CERT_DIR", "/etc/grid-security/certificates"
         )
+        self.proxyfile = str(Path(proxyfile).expanduser())
+        self.certdir = str(Path(certdir).expanduser())
         self.igtf = igtf
 
         if not Path(self.proxyfile).exists():
@@ -216,6 +283,51 @@ class ProxyAuth(AuthProvider):
 
     def method_name(self) -> str:
         return "proxy"
+
+    def validate(self, command: Optional[str] = None) -> None:
+        """Validate the proxy certificate's expiry.
+
+        A VOMS proxy has two, potentially different, validity windows:
+        the X.509 certificate's own ``notAfter``, and (if present) the
+        embedded VOMS attribute certificate's ``attrCertValidityPeriod``,
+        which the VOMS server controls independently of the certificate
+        lifetime requested at ``voms-proxy-init`` time. Both are checked;
+        whichever expires first determines the effective expiry.
+        """
+        pem_text = Path(self.proxyfile).read_text(encoding="utf-8")
+        der_certs = pem_certs(pem_text)
+        if not der_certs:
+            raise AdaAuthError(f"No certificates found in proxy file: {self.proxyfile}")
+
+        x509_expiry: Optional[int] = None
+        voms_expiry: Optional[int] = None
+        for der_cert in der_certs:
+            _, not_after = x509_validity(der_cert)
+            exp = int(not_after.timestamp())
+            if x509_expiry is None or exp < x509_expiry:
+                x509_expiry = exp
+
+            extension = find_extension(der_cert, VOMS_EXTENSION_OID)
+            if extension is None:
+                continue
+            validity = voms_ac_validity(extension)
+            if validity is None:
+                logger.debug(
+                    "Could not parse VOMS attribute validity in proxy: %s",
+                    self.proxyfile,
+                )
+                continue
+            _, voms_not_after = validity
+            exp = int(voms_not_after.timestamp())
+            if voms_expiry is None or exp < voms_expiry:
+                voms_expiry = exp
+
+        if voms_expiry is not None and voms_expiry < x509_expiry:
+            _check_expiry(voms_expiry, f"VOMS attributes in proxy: {self.proxyfile}")
+        else:
+            _check_expiry(x509_expiry, f"certificate in proxy: {self.proxyfile}")
+    def describe(self) -> str:
+        return f"proxy ({self.proxyfile})"
 
     def get_ssl_context(self) -> Any:
         """Return an SSL context configured with the proxy certificate."""
@@ -282,8 +394,10 @@ def resolve_auth(
             return NetrcAuth(config.netrcfile, hostname=hostname)
 
     raise AdaAuthError(
-        "No authentication method specified. "
-        "Use --tokenfile, --netrc, or --proxy."
+        "No authentication method configured. Use --token, --tokenfile, "
+        "--netrc, --netrcfile, --proxy, or --proxyfile; set $BEARER_TOKEN, "
+        "$ada_tokenfile, or $ada_netrcfile; or set tokenfile/netrcfile in "
+        "ada.conf."
     )
 
 

@@ -3,10 +3,12 @@ ADA CLI commands
 """
 from __future__ import annotations
 
+import os
+
 from ada.auth import check_ip_caveat
 from ada.client import AdaClient
-from ada.exceptions import AdaValidationError
-from ada.cli.formatters import format_longlist
+from ada.exceptions import AdaAPIError, AdaValidationError
+from ada.cli.formatters import format_longlist, format_quota, format_space, format_space_groups
 
 
 def whoami(parsed_args) -> None:
@@ -15,6 +17,14 @@ def whoami(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         info = client.whoami()
         print(f"API:      {client.config.api}")
+        try:
+            versions = client.dcache_versions()
+        except AdaAPIError as exc:
+            print(f"Version:  unable to query (HTTP {exc.status_code or '?'})")
+        else:
+            if versions:
+                print(f"Version:  {', '.join(versions)}")
+        print(f"Auth:     {client.auth.describe()}")
         print(f"Status:   {info.status}")
         if info.username:
             print(f"Username: {info.username}")
@@ -26,10 +36,6 @@ def whoami(parsed_args) -> None:
             print(f"Home:     {info.home}")
         if info.root:
             print(f"Root:     {info.root}")
-        # Show dCache version if available
-        raw = info.raw
-        if "version" in raw:
-            print(f"dCache:   {raw['version']}")
 
 
 def list_cmd(parsed_args) -> None:
@@ -156,12 +162,71 @@ def _print_token_properties(properties: dict) -> None:
         print(f"  {key}: {value}")
 
 
+def space(parsed_args) -> None:
+    """Show pool group names, space usage for a pool group, or (given a
+    path) space usage for the pool group(s) that serve that path."""
+
+    target = parsed_args.poolgroup
+
+    with __get_client__(parsed_args) as client:
+        if target and target.startswith("/"):
+            poolgroups = client.poolgroups_for_path(target)
+            groups = [(name, client.space(name)) for name in poolgroups]
+            for line in format_space_groups(groups):
+                print(line)
+            return
+
+        if target:
+            for line in format_space(client.space(target)):
+                print(line)
+        else:
+            for name in client.space():
+                print(name)
+
+
+def quota(parsed_args) -> None:
+    """Show storage quotas (tape/custodial and disk/replica), for user and group."""
+
+    with __get_client__(parsed_args) as client:
+        quotas = client.quota()
+        if not quotas:
+            print("You do not have any quota set on your user ID or primary group ID.")
+            print("Tip: use 'ada-cli space <path>' to check available space in the "
+                  "pool group(s) serving your data.")
+            return
+        for line in format_quota(quotas):
+            print(line)
+
+
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 
+    token = None
+    if parsed_args.token:
+        token = os.environ.get("BEARER_TOKEN")
+        if not token:
+            raise AdaValidationError(
+                "--token was specified, but the $BEARER_TOKEN environment "
+                "variable is not set."
+            )
+
+    netrc = parsed_args.netrcfile
+    if parsed_args.netrc:
+        netrc = ""
+
+    proxy = parsed_args.proxyfile
+    if parsed_args.proxy:
+        proxy = ""
+
+    igtf = False if parsed_args.no_igtf else None
+
     return AdaClient(
         api=parsed_args.api,
+        token=token,
         tokenfile=parsed_args.tokenfile,
+        netrc=netrc,
+        proxy=proxy,
+        igtf=igtf,
         verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work
     )
