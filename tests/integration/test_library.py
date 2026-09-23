@@ -11,16 +11,6 @@ import pytest
 from ada.exceptions import AdaValidationError
 from ada.client import AdaClient
 
-class TestClassSystem:
-    """Test system information commands"""
-
-    def test_whoami(self, ada_client, target_env):
-        """Authenticate and get userinfo"""
-        userinfo = ada_client.whoami()
-        assert 'AUTHENTICATED' == userinfo.status
-        assert target_env['user'] == userinfo.username
-        assert target_env['homedir'] == userinfo.home
-
 
 class TestClassAuth:
     """Test system information commands"""
@@ -30,6 +20,16 @@ class TestClassAuth:
         userinfo = ada_client.view_token()
         assert target_env['homedir'] == userinfo['home']
         assert "DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE"  == userinfo['activity']
+
+class TestClassSystem:
+    """Test system information commands"""
+
+    def test_whoami(self, ada_client, target_env):
+        """Authenticate and get userinfo"""
+        userinfo = ada_client.whoami()
+        assert 'AUTHENTICATED' == userinfo.status
+        assert target_env['user'] == userinfo.username
+        assert target_env['homedir'] == userinfo.home
 
 
 class TestClassNamespace:

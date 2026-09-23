@@ -151,7 +151,7 @@ def viewtoken(parsed_args) -> None:
         _print_token_properties(decoded)
 
         if not parsed_args.minimal:
-            print(f"Status: {client.token_expiry_status()}")
+            print(f"Status: {client.auth.expiry_status()}")
 
         if not parsed_args.minimal and "ip" in decoded:
             print(f"IP caveat: {check_ip_caveat(decoded['ip'])}")
