@@ -11,6 +11,16 @@ import pytest
 from ada.exceptions import AdaValidationError
 from ada.client import AdaClient
 
+
+class TestClassAuth:
+    """Test system information commands"""
+
+    def test_view_token(self, ada_client, target_env):
+        """View token"""
+        userinfo = ada_client.view_token()
+        assert target_env['homedir'] == userinfo['home']
+        assert "DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE"  == userinfo['activity']
+
 class TestClassSystem:
     """Test system information commands"""
 

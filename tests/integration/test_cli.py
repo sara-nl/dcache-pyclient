@@ -20,6 +20,13 @@ class TestClassSystem:
         out = subprocess.check_output(["ada-cli", "--help"], text=True)
         assert "usage: ada-cli" in out
 
+    def test_viewtoken(self, target_env):
+        """View token"""
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"viewtoken"], text=True)
+        assert "valid" in out
+        assert target_env["user"] in out
+        assert target_env["homedir"] in out
+
     def test_whoami(self, target_env):
         """Authenticate and get userinfo"""
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"whoami"], text=True)

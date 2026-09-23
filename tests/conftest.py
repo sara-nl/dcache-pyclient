@@ -101,6 +101,29 @@ def make_jwt_token():
 
     return _make
 
+
+@pytest.fixture
+def make_macaroon_token():
+    """Factory fixture to create fake Macaroon tokens for testing.
+
+    Close enough to the real binary format for decode_macaroon_raw():
+    4 junk header bytes, followed by newline-separated caveat lines.
+    """
+
+    def _make(before: str = "", activity: str = "", ip: str = "") -> str:
+        lines = []
+        if before:
+            lines.append(f"before:{before}")
+        if activity:
+            lines.append(f"activity:{activity}")
+        if ip:
+            lines.append(f"ip:{ip}")
+        lines.append("signature abcdef1234567890")
+        text = "\n".join(lines)
+        return base64.b64encode(b"\x00\x00\x00\x00" + text.encode()).decode()
+
+    return _make
+
 ##################################
 # Fixtures for integration tests #
 ##################################
