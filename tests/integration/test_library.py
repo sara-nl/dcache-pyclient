@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import pytest
 
-from ada.exceptions import AdaValidationError
+from ada.exceptions import AdaValidationError, AdaAPIError
 from ada.client import AdaClient
 
 class TestClassSystem:
@@ -113,6 +113,37 @@ class TestClassNamespace:
         # Catch error when neither path nor from_file are given
         with pytest.raises(AdaValidationError):
             ada_client.checksum()
+
+
+    def test_label(self, ada_client, setup_data):
+        """Set label on a file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set label
+        out = ada_client.set_label(dcache_file, "testlabel")
+        assert "testlabel" in out
+
+        # find label
+        out = ada_client.find_label(os.path.dirname(dcache_file), "test")
+        assert dcache_file in out[0]
+
+        # list label
+        out = ada_client.list_labels(dcache_file)
+        assert "testlabel" in out[0]
+
+        # remove label
+        out = ada_client.remove_label(dcache_file, all_labels=True)
+        assert "All labels removed from" in out
+
+        # remove non-existing label
+        with pytest.raises(AdaAPIError):
+            ada_client.remove_label(dcache_file, "testlabel")
+
+        # check if label is removed
+        out = ada_client.list_labels(dcache_file)
+        assert not out
 
 
 class TestStaging:
