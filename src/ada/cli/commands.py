@@ -259,6 +259,42 @@ def findlabel(parsed_args) -> None:
         for path, labels in results:
             print(f"{path}\t{','.join(labels)}")
 
+
+def space(parsed_args) -> None:
+    """Show pool group names, space usage for a pool group, or (given a
+    path) space usage for the pool group(s) that serve that path."""
+
+    target = parsed_args.poolgroup
+
+    with __get_client__(parsed_args) as client:
+        if target and target.startswith("/"):
+            poolgroups = client.poolgroups_for_path(target)
+            groups = [(name, client.space(name)) for name in poolgroups]
+            for line in format_space_groups(groups):
+                print(line)
+            return
+
+        if target:
+            for line in format_space(client.space(target)):
+                print(line)
+        else:
+            for name in client.space():
+                print(name)
+
+
+def quota(parsed_args) -> None:
+    """Show storage quotas (tape/custodial and disk/replica), for user and group."""
+
+    with __get_client__(parsed_args) as client:
+        quotas = client.quota()
+        if not quotas:
+            print("You do not have any quota set on your user ID or primary group ID.")
+            print("Tip: use 'ada-cli space <path>' to check available space in the "
+                  "pool group(s) serving your data.")
+            return
+        for line in format_quota(quotas):
+            print(line)
+
             
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
