@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import os
 import subprocess
-import logging
 
 import pytest
 
@@ -132,6 +131,37 @@ class TestClassNamespace:
         # catch errors when both path and from_file are given
         with pytest.raises(subprocess.CalledProcessError):
             subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"checksum", dcache_file, "--from-file", filelist], text=True)
+
+
+    def test_label(self, target_env, setup_data):
+        """Get checksum of file(s) on dCache"""
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"setlabel", dcache_file, "testlabel"], text=True)
+        assert dcache_file in out
+
+
+        # find label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"findlabel", os.path.dirname(dcache_file), "test*"], text=True)
+        assert dcache_file in out
+
+        # list label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"lslabel", dcache_file], text=True)        
+        assert "testlabel" in out
+
+        # remove label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"rmlabel", dcache_file, "--all"], text=True)
+        assert "All labels removed from" in out
+
+        # remove non-existing label
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"rmlabel", dcache_file, "testlabel"], text=True)
+
+        # check if label is removed
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"lslabel", dcache_file], text=True)
+        assert not out
 
 
 class TestStaging:
