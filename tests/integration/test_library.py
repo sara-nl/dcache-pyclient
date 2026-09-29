@@ -146,6 +146,38 @@ class TestClassNamespace:
         assert not out
 
 
+    def test_xattr(self, ada_client, setup_data, tmp_path):
+        """Set lextended attribute on a file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set extended attribute
+        attributes = {"test": "attribute"}
+        out = ada_client.set_xattr(dcache_file, attributes)
+        assert "Extended attributes set" in out
+
+        # find extended attribute
+        out = ada_client.find_xattr(os.path.dirname(dcache_file), key="test", regex="attr")
+        assert attributes in out[0]
+
+        # list extended attribute
+        out = ada_client.list_xattr(dcache_file)
+        assert attributes.items() <= out.items()
+
+        # remove extended attribute
+        out = ada_client.remove_xattr(dcache_file, all_keys=True)
+        assert "All extended attributes removed from" in out
+
+        # remove non-existing extended attribute
+        with pytest.raises(AdaAPIError):
+            ada_client.remove_xattr(dcache_file, [(dcache_file, attributes)])
+
+        # check if extended attribute is removed
+        out = ada_client.list_xattr(dcache_file)
+        assert not out
+
+
 class TestStaging:
 
     def test_stage_unstage(self, ada_client, setup_data):

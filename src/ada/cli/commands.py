@@ -3,13 +3,13 @@ ADA CLI commands
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 from ada.client import AdaClient
 from ada.exceptions import AdaAPIError, AdaNotFoundError, AdaValidationError
 from ada.cli.formatters import format_longlist, format_quota, format_space, format_space_groups
-import os
 
 
 def whoami(parsed_args) -> None:
@@ -232,7 +232,7 @@ def rmlabel(parsed_args) -> None:
         )
         print(result)
 
-        
+
 def lslabel(parsed_args) -> None:
     """List labels of a file, or check whether it has a specific label."""
 
@@ -248,7 +248,7 @@ def lslabel(parsed_args) -> None:
             for label in sorted(client.list_labels(parsed_args.path)):
                 print(label)
 
-                
+
 def findlabel(parsed_args) -> None:
     """Find files in a directory whose labels match a regex pattern."""
 
@@ -295,7 +295,7 @@ def quota(parsed_args) -> None:
         for line in format_quota(quotas):
             print(line)
 
-            
+
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 

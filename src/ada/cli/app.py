@@ -460,7 +460,7 @@ def parse_args() -> argparse.ArgumentParser:
         help="Also search subdirectories.",
         action="store_true")
 
-# space
+    # space
     parser_space = subparsers.add_parser(
         'space',
         help="Show pool group names, or space usage for a pool group."
