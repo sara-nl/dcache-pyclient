@@ -4,6 +4,7 @@ ADA Command Line Interface application
 import argparse
 
 from ada.exceptions import AdaValidationError
+from ada.utils import get_version
 from ada.cli.commands import (
     whoami,
     list_cmd,
@@ -18,6 +19,12 @@ from ada.cli.commands import (
     rmxattr,
     lsxattr,
     findxattr,
+    setlabel,
+    rmlabel,
+    lslabel,
+    findlabel,
+    space,
+    quota,
 )
 
 
@@ -33,11 +40,44 @@ def parse_args() -> argparse.ArgumentParser:
         )
     )
 
-    parser.add_argument(
+    auth_group = parser.add_mutually_exclusive_group()
+    auth_group.add_argument(
         "--tokenfile",
         type=str,
         help="Path to tokenfile."
     )
+    auth_group.add_argument(
+        "--token",
+        action="store_true",
+        help="Use token authentication, reading the token from $BEARER_TOKEN."
+    )
+    auth_group.add_argument(
+        "--netrcfile",
+        type=str,
+        help="Path to netrc file."
+    )
+    auth_group.add_argument(
+        "--netrc",
+        action="store_true",
+        help="Use netrc-based password authentication, reading from ~/.netrc."
+    )
+    auth_group.add_argument(
+        "--proxyfile",
+        type=str,
+        help="Path to X.509 proxy file."
+    )
+    auth_group.add_argument(
+        "--proxy",
+        action="store_true",
+        help="Use X.509 proxy authentication, reading from $X509_USER_PROXY "
+             "or /tmp/x509up_u<uid>."
+    )
+
+    parser.add_argument(
+        "--no-igtf",
+        help="Disable IGTF Grid CA certificate verification "
+             "(only relevant for --proxy/--proxyfile authentication).",
+        action="store_true")
 
     parser.add_argument(
         "--api",
@@ -54,6 +94,11 @@ def parse_args() -> argparse.ArgumentParser:
         "--debug",
         help="Run in debug mode (not yet implemented).",
         action="store_true")
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {get_version()}")
 
     subparsers = parser.add_subparsers(
         help='ADA supports these commands (put commands and their arguments at the end, after the options):')
@@ -331,6 +376,86 @@ def parse_args() -> argparse.ArgumentParser:
         help="Regular expression to match against attribute value(s).",
     )
     parser_findxattr.add_argument(
+        "--recursive",
+        help="Also search subdirectories.",
+        action="store_true")
+
+    # setlabel
+    parser_setlabel = subparsers.add_parser(
+        'setlabel',
+        help="Attach a label to a file."
+    )
+    parser_setlabel.set_defaults(func=setlabel)
+    parser_setlabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_setlabel.add_argument(
+        'label',
+        type=str,
+        help="Label to attach.",
+    )
+
+    # rmlabel
+    parser_rmlabel = subparsers.add_parser(
+        'rmlabel',
+        help="Remove one label, or all labels, from a file."
+    )
+    parser_rmlabel.set_defaults(func=rmlabel)
+    parser_rmlabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    # group mutual exclusive
+    group = parser_rmlabel.add_mutually_exclusive_group()
+    group.add_argument(
+        'label',
+        nargs="?",
+        type=str,
+        help="Label to remove. Either label or --all must be given.",
+    )
+    group.add_argument(
+        '--all',
+        help="Remove all labels from the file.",
+        action="store_true")
+
+    # lslabel
+    parser_lslabel = subparsers.add_parser(
+        'lslabel',
+        help="List labels of a file, or check whether it has a specific label."
+    )
+    parser_lslabel.set_defaults(func=lslabel)
+    parser_lslabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_lslabel.add_argument(
+        'label',
+        nargs="?",
+        type=str,
+        help="If given, only check for this specific label.",
+    )
+
+    # findlabel
+    parser_findlabel = subparsers.add_parser(
+        'findlabel',
+        help="Find files in a directory whose labels match a regex pattern."
+    )
+    parser_findlabel.set_defaults(func=findlabel)
+    parser_findlabel.add_argument(
+        'path',
+        type=str,
+        help="Directory to search.",
+    )
+    parser_findlabel.add_argument(
+        'regex',
+        type=str,
+        help="Regular expression to match against labels.",
+    )
+    parser_findlabel.add_argument(
         "--recursive",
         help="Also search subdirectories.",
         action="store_true")

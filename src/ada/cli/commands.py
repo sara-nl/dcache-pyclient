@@ -7,8 +7,9 @@ import sys
 from pathlib import Path
 
 from ada.client import AdaClient
-from ada.exceptions import AdaNotFoundError, AdaValidationError
-from ada.cli.formatters import format_longlist
+from ada.exceptions import AdaAPIError, AdaNotFoundError, AdaValidationError
+from ada.cli.formatters import format_longlist, format_quota, format_space, format_space_groups
+import os
 
 
 def whoami(parsed_args) -> None:
@@ -17,6 +18,14 @@ def whoami(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         info = client.whoami()
         print(f"API:      {client.config.api}")
+        try:
+            versions = client.dcache_versions()
+        except AdaAPIError as exc:
+            print(f"Version:  unable to query (HTTP {exc.status_code or '?'})")
+        else:
+            if versions:
+                print(f"Version:  {', '.join(versions)}")
+        print(f"Auth:     {client.auth.describe()}")
         print(f"Status:   {info.status}")
         if info.username:
             print(f"Username: {info.username}")
@@ -28,10 +37,6 @@ def whoami(parsed_args) -> None:
             print(f"Home:     {info.home}")
         if info.root:
             print(f"Root:     {info.root}")
-        # Show dCache version if available
-        raw = info.raw
-        if "version" in raw:
-            print(f"dCache:   {raw['version']}")
 
 
 def list_cmd(parsed_args) -> None:
@@ -204,13 +209,86 @@ def findxattr(parsed_args) -> None:
             attr_str = ", ".join(f"{k}={v}" for k, v in attrs.items())
             print(f"{path}\t{attr_str}")
 
+            
+def setlabel(parsed_args) -> None:
+    """Attach a label to a file."""
 
+    with __get_client__(parsed_args) as client:
+        result = client.set_label(parsed_args.path, parsed_args.label)
+        print(result)
+
+
+def rmlabel(parsed_args) -> None:
+    """Remove one label, or all labels, from a file."""
+
+    if not parsed_args.label and not parsed_args.all:
+        raise AdaValidationError("Provide a LABEL or --all.")
+
+    with __get_client__(parsed_args) as client:
+        result = client.remove_label(
+            parsed_args.path,
+            label=parsed_args.label or "",
+            all_labels=parsed_args.all,
+        )
+        print(result)
+
+        
+def lslabel(parsed_args) -> None:
+    """List labels of a file, or check whether it has a specific label."""
+
+    with __get_client__(parsed_args) as client:
+        if parsed_args.label:
+            result = client.list_labels(parsed_args.path, label=parsed_args.label)
+            if not result:
+                raise AdaNotFoundError(
+                    f"File '{parsed_args.path}' does not have label '{parsed_args.label}'."
+                )
+            print(result[0])
+        else:
+            for label in sorted(client.list_labels(parsed_args.path)):
+                print(label)
+
+                
+def findlabel(parsed_args) -> None:
+    """Find files in a directory whose labels match a regex pattern."""
+
+    with __get_client__(parsed_args) as client:
+        results = client.find_label(
+            parsed_args.path, parsed_args.regex, recursive=parsed_args.recursive
+        )
+        for path, labels in results:
+            print(f"{path}\t{','.join(labels)}")
+
+            
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 
+    token = None
+    if parsed_args.token:
+        token = os.environ.get("BEARER_TOKEN")
+        if not token:
+            raise AdaValidationError(
+                "--token was specified, but the $BEARER_TOKEN environment "
+                "variable is not set."
+            )
+
+    netrc = parsed_args.netrcfile
+    if parsed_args.netrc:
+        netrc = ""
+
+    proxy = parsed_args.proxyfile
+    if parsed_args.proxy:
+        proxy = ""
+
+    igtf = False if parsed_args.no_igtf else None
+
     return AdaClient(
         api=parsed_args.api,
+        token=token,
         tokenfile=parsed_args.tokenfile,
+        netrc=netrc,
+        proxy=proxy,
+        igtf=igtf,
         verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work
     )
