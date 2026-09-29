@@ -9,7 +9,7 @@ import os
 import pytest
 
 from ada.exceptions import AdaValidationError
-
+from ada.client import AdaClient
 
 class TestClassSystem:
     """Test system information commands"""
@@ -182,3 +182,39 @@ class TestStaging:
         with pytest.raises(AdaValidationError):
             out = ada_client.unstage()            
 
+
+class TestConfigPrecedence:
+    def test_constructor_api_overrides_env_and_file(self, target_env, tmp_path, monkeypatch):
+        conf = tmp_path / "ada.conf"
+        conf.write_text("api=https://file.example.org/api/v1\n")
+        os.chmod(conf, 0o600)
+        monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
+        tokenfile = target_env['tokenfile']
+
+        with AdaClient(
+            api="https://constructor.example.org/api/v1",
+            tokenfile=str(tokenfile),
+            config_paths=[str(conf)],
+        ) as client:
+            assert client.config.api == "https://constructor.example.org/api/v1"
+
+
+    def test_env_var_used_when_no_constructor_api_given(self, target_env, tmp_path, monkeypatch):
+        conf = tmp_path / "ada.conf"
+        conf.write_text("api=https://file.example.org/api/v1\n")
+        os.chmod(conf, 0o600)
+        monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
+        tokenfile = target_env['tokenfile']
+
+        with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
+            assert client.config.api == "https://env.example.org/api/v1"
+
+
+    def test_file_used_when_no_constructor_or_env_api_given(self, target_env, tmp_path):
+        conf = tmp_path / "ada.conf"
+        conf.write_text("api=https://file.example.org/api/v1\n")
+        os.chmod(conf, 0o600)
+        tokenfile = target_env['tokenfile']
+
+        with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
+            assert client.config.api == "https://file.example.org/api/v1"
