@@ -300,9 +300,9 @@ def parse_args() -> argparse.ArgumentParser:
         'attributes_file',
         nargs="?",
         type=str,
-        help="File containing the attributes, or '-' (or omit) to read "
-             "from stdin. Attributes are key=value pairs (one per line, "
-             "comma-, or tab-separated), or a JSON object.",
+        help="File containing the attributes (or omit to read "
+             "from stdin). Attributes are key=value pairs (one per line), "
+             "or a JSON object.",
     )
 
     # rmxattr
