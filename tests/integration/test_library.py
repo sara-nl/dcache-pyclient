@@ -146,8 +146,8 @@ class TestClassNamespace:
         assert not out
 
 
-    def test_xattr(self, ada_client, setup_data, tmp_path):
-        """Set lextended attribute on a file on dCache"""
+    def test_xattr(self, ada_client, setup_data):
+        """Set extended attribute on a file on dCache"""
 
         # create testfile on dCache
         dcache_file = setup_data
