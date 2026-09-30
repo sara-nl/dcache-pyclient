@@ -144,8 +144,6 @@ def setxattr(parsed_args) -> None:
             file=sys.stderr,
         )
         content = sys.stdin.read()
-    elif parsed_args.attributes_file == "-":
-        content = sys.stdin.read()
     else:
         attr_path = Path(parsed_args.attributes_file)
         if not attr_path.is_file():
