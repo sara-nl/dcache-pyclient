@@ -25,5 +25,13 @@ Check the installation of the CLI application:
 ada-cli --help
 ```
 
+If that command returns "-bash: ada-cli: command not found", add the directory `$HOME/.local/bin` to your PATH, like this:
+```
+# grep PATH= .bash_profile
+PATH=$PATH:$HOME/bin:$HOME/.local/bin
+```
+
+And then try again.
+
 ## For developers
 If you want to modify `dcache-pyclient` or run integration tests on your dCache instance, find the source code and instructions on the [Github repo](https://github.com/sara-nl/dcache-pyclient).
