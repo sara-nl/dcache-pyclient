@@ -4,6 +4,7 @@ ADA Command Line Interface application
 import argparse
 
 from ada.exceptions import AdaValidationError
+from ada.utils import get_version
 from ada.cli.commands import (
     whoami,
     list_cmd,
@@ -15,6 +16,16 @@ from ada.cli.commands import (
     checksum,
     stage,
     unstage,
+    setxattr,
+    rmxattr,
+    lsxattr,
+    findxattr,
+    setlabel,
+    rmlabel,
+    lslabel,
+    findlabel,
+    space,
+    quota,
 )
 
 
@@ -30,11 +41,44 @@ def parse_args() -> argparse.ArgumentParser:
         )
     )
 
-    parser.add_argument(
+    auth_group = parser.add_mutually_exclusive_group()
+    auth_group.add_argument(
         "--tokenfile",
         type=str,
         help="Path to tokenfile."
     )
+    auth_group.add_argument(
+        "--token",
+        action="store_true",
+        help="Use token authentication, reading the token from $BEARER_TOKEN."
+    )
+    auth_group.add_argument(
+        "--netrcfile",
+        type=str,
+        help="Path to netrc file."
+    )
+    auth_group.add_argument(
+        "--netrc",
+        action="store_true",
+        help="Use netrc-based password authentication, reading from ~/.netrc."
+    )
+    auth_group.add_argument(
+        "--proxyfile",
+        type=str,
+        help="Path to X.509 proxy file."
+    )
+    auth_group.add_argument(
+        "--proxy",
+        action="store_true",
+        help="Use X.509 proxy authentication, reading from $X509_USER_PROXY "
+             "or /tmp/x509up_u<uid>."
+    )
+
+    parser.add_argument(
+        "--no-igtf",
+        help="Disable IGTF Grid CA certificate verification "
+             "(only relevant for --proxy/--proxyfile authentication).",
+        action="store_true")
 
     parser.add_argument(
         "--api",
@@ -51,6 +95,11 @@ def parse_args() -> argparse.ArgumentParser:
         "--debug",
         help="Run in debug mode (not yet implemented).",
         action="store_true")
+
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {get_version()}")
 
     subparsers = parser.add_subparsers(
         help='ADA supports these commands (put commands and their arguments at the end, after the options):')
@@ -248,6 +297,203 @@ def parse_args() -> argparse.ArgumentParser:
         type=str,
         help='File containing list of files or directories to unstage.'
     )
+
+    # setxattr
+    parser_setxattr = subparsers.add_parser(
+        'setxattr',
+        help="Set extended attributes on a file."
+    )
+    parser_setxattr.set_defaults(func=setxattr)
+    parser_setxattr.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_setxattr.add_argument(
+        'attributes_file',
+        nargs="?",
+        type=str,
+        help="File containing the attributes (or omit to read "
+             "from stdin). Attributes are key=value pairs (one per line), "
+             "or a JSON object.",
+    )
+
+    # rmxattr
+    parser_rmxattr = subparsers.add_parser(
+        'rmxattr',
+        help="Remove one extended attribute, or all, from a file."
+    )
+    parser_rmxattr.set_defaults(func=rmxattr)
+    parser_rmxattr.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    # group mutual exclusive
+    group = parser_rmxattr.add_mutually_exclusive_group()
+    group.add_argument(
+        'key',
+        nargs="?",
+        type=str,
+        help="Attribute key to remove. Either key or --all must be given.",
+    )
+    group.add_argument(
+        '--all',
+        help="Remove all extended attributes from the file.",
+        action="store_true")
+
+    # lsxattr
+    parser_lsxattr = subparsers.add_parser(
+        'lsxattr',
+        help="List extended attributes of a file, or check a specific key."
+    )
+    parser_lsxattr.set_defaults(func=lsxattr)
+    parser_lsxattr.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_lsxattr.add_argument(
+        'key',
+        nargs="?",
+        type=str,
+        help="If given, only check for this specific attribute key.",
+    )
+
+    # findxattr
+    parser_findxattr = subparsers.add_parser(
+        'findxattr',
+        help="Find files in a directory whose extended attributes match a regex."
+    )
+    parser_findxattr.set_defaults(func=findxattr)
+    parser_findxattr.add_argument(
+        'path',
+        type=str,
+        help="Directory to search.",
+    )
+    # group mutual exclusive
+    group = parser_findxattr.add_mutually_exclusive_group()
+    group.add_argument(
+        'key',
+        nargs="?",
+        type=str,
+        help="Attribute key to match. Either key or --all must be given.",
+    )
+    group.add_argument(
+        '--all',
+        help="Search all attribute keys.",
+        action="store_true")
+    parser_findxattr.add_argument(
+        'regex',
+        type=str,
+        help="Regular expression to match against attribute value(s).",
+    )
+    parser_findxattr.add_argument(
+        "--recursive",
+        help="Also search subdirectories.",
+        action="store_true")
+
+    # setlabel
+    parser_setlabel = subparsers.add_parser(
+        'setlabel',
+        help="Attach a label to a file."
+    )
+    parser_setlabel.set_defaults(func=setlabel)
+    parser_setlabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_setlabel.add_argument(
+        'label',
+        type=str,
+        help="Label to attach.",
+    )
+
+    # rmlabel
+    parser_rmlabel = subparsers.add_parser(
+        'rmlabel',
+        help="Remove one label, or all labels, from a file."
+    )
+    parser_rmlabel.set_defaults(func=rmlabel)
+    parser_rmlabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    # group mutual exclusive
+    group = parser_rmlabel.add_mutually_exclusive_group()
+    group.add_argument(
+        'label',
+        nargs="?",
+        type=str,
+        help="Label to remove. Either label or --all must be given.",
+    )
+    group.add_argument(
+        '--all',
+        help="Remove all labels from the file.",
+        action="store_true")
+
+    # lslabel
+    parser_lslabel = subparsers.add_parser(
+        'lslabel',
+        help="List labels of a file, or check whether it has a specific label."
+    )
+    parser_lslabel.set_defaults(func=lslabel)
+    parser_lslabel.add_argument(
+        'path',
+        type=str,
+        help="Path to the file.",
+    )
+    parser_lslabel.add_argument(
+        'label',
+        nargs="?",
+        type=str,
+        help="If given, only check for this specific label.",
+    )
+
+    # findlabel
+    parser_findlabel = subparsers.add_parser(
+        'findlabel',
+        help="Find files in a directory whose labels match a regex pattern."
+    )
+    parser_findlabel.set_defaults(func=findlabel)
+    parser_findlabel.add_argument(
+        'path',
+        type=str,
+        help="Directory to search.",
+    )
+    parser_findlabel.add_argument(
+        'regex',
+        type=str,
+        help="Regular expression to match against labels.",
+    )
+    parser_findlabel.add_argument(
+        "--recursive",
+        help="Also search subdirectories.",
+        action="store_true")
+
+    # space
+    parser_space = subparsers.add_parser(
+        'space',
+        help="Show pool group names, or space usage for a pool group."
+    )
+    parser_space.set_defaults(func=space)
+    parser_space.add_argument(
+        'poolgroup',
+        nargs="?",
+        type=str,
+        help="Pool group to show space usage for, or a dCache path "
+             "(starting with '/') to look up the pool group(s) serving "
+             "that path. If omitted, lists all pool group names.",
+    )
+
+    # quota
+    parser_quota = subparsers.add_parser(
+        'quota',
+        help="Show storage quotas (tape/custodial and disk/replica), for user and group."
+    )
+    parser_quota.set_defaults(func=quota)
 
     return parser
 

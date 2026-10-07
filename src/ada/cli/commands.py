@@ -3,9 +3,13 @@ ADA CLI commands
 """
 from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
+
 from ada.client import AdaClient
-from ada.exceptions import AdaValidationError
-from ada.cli.formatters import format_longlist, format_stat
+from ada.exceptions import AdaAPIError, AdaNotFoundError, AdaValidationError
+from ada.cli.formatters import format_longlist, format_quota, format_space, format_space_groups, format_stat
 
 
 def whoami(parsed_args) -> None:
@@ -14,6 +18,14 @@ def whoami(parsed_args) -> None:
     with __get_client__(parsed_args) as client:
         info = client.whoami()
         print(f"API:      {client.config.api}")
+        try:
+            versions = client.dcache_versions()
+        except AdaAPIError as exc:
+            print(f"Version:  unable to query (HTTP {exc.status_code or '?'})")
+        else:
+            if versions:
+                print(f"Version:  {', '.join(versions)}")
+        print(f"Auth:     {client.auth.describe()}")
         print(f"Status:   {info.status}")
         if info.username:
             print(f"Username: {info.username}")
@@ -25,10 +37,6 @@ def whoami(parsed_args) -> None:
             print(f"Home:     {info.home}")
         if info.root:
             print(f"Root:     {info.root}")
-        # Show dCache version if available
-        raw = info.raw
-        if "version" in raw:
-            print(f"dCache:   {raw['version']}")
 
 
 def list_cmd(parsed_args) -> None:
@@ -135,12 +143,195 @@ def unstage(parsed_args) -> None:
         print(f"Targets: {len(result.targets)} file(s)")
 
 
+def setxattr(parsed_args) -> None:
+    """Set extended attributes on a file, read from a file or stdin."""
+
+    if parsed_args.attributes_file is None:
+        print(
+            "No file containing attributes specified. Will read attributes "
+            "from stdin. Terminate with ctrl+d.",
+            file=sys.stderr,
+        )
+        content = sys.stdin.read()
+    else:
+        attr_path = Path(parsed_args.attributes_file)
+        if not attr_path.is_file():
+            raise AdaValidationError(
+                f"Can't read attributes from file '{parsed_args.attributes_file}'. "
+                "Does it exist?"
+            )
+        content = attr_path.read_text(encoding="utf-8")
+
+    with __get_client__(parsed_args) as client:
+        result = client.set_xattr(parsed_args.path, content)
+        print(result)
+
+
+def rmxattr(parsed_args) -> None:
+    """Remove one extended attribute, or all, from a file."""
+
+    if not parsed_args.key and not parsed_args.all:
+        raise AdaValidationError("Provide a KEY or --all.")
+
+    with __get_client__(parsed_args) as client:
+        result = client.remove_xattr(
+            parsed_args.path,
+            key=parsed_args.key or "",
+            all_keys=parsed_args.all,
+        )
+        print(result)
+
+
+def lsxattr(parsed_args) -> None:
+    """List extended attributes of a file, or check whether it has a specific key."""
+
+    with __get_client__(parsed_args) as client:
+        if parsed_args.key:
+            result = client.list_xattr(parsed_args.path, key=parsed_args.key)
+            if not result:
+                raise AdaNotFoundError(
+                    f"File '{parsed_args.path}' does not have attribute '{parsed_args.key}'."
+                )
+            print(f"{parsed_args.key}={result[parsed_args.key]}")
+        else:
+            for key, value in sorted(client.list_xattr(parsed_args.path).items()):
+                print(f"{key}={value}")
+
+
+def findxattr(parsed_args) -> None:
+    """Find files in a directory whose extended attributes match a regex."""
+
+    if not parsed_args.key and not parsed_args.all:
+        raise AdaValidationError("Provide a KEY or --all.")
+
+    with __get_client__(parsed_args) as client:
+        results = client.find_xattr(
+            parsed_args.path,
+            key=parsed_args.key or "",
+            regex=parsed_args.regex,
+            recursive=parsed_args.recursive,
+            all_keys=parsed_args.all,
+        )
+        for path, attrs in results:
+            attr_str = ", ".join(f"{k}={v}" for k, v in attrs.items())
+            print(f"{path}\t{attr_str}")
+
+            
+def setlabel(parsed_args) -> None:
+    """Attach a label to a file."""
+
+    with __get_client__(parsed_args) as client:
+        result = client.set_label(parsed_args.path, parsed_args.label)
+        print(result)
+
+
+def rmlabel(parsed_args) -> None:
+    """Remove one label, or all labels, from a file."""
+
+    if not parsed_args.label and not parsed_args.all:
+        raise AdaValidationError("Provide a LABEL or --all.")
+
+    with __get_client__(parsed_args) as client:
+        result = client.remove_label(
+            parsed_args.path,
+            label=parsed_args.label or "",
+            all_labels=parsed_args.all,
+        )
+        print(result)
+
+
+def lslabel(parsed_args) -> None:
+    """List labels of a file, or check whether it has a specific label."""
+
+    with __get_client__(parsed_args) as client:
+        if parsed_args.label:
+            result = client.list_labels(parsed_args.path, label=parsed_args.label)
+            if not result:
+                raise AdaNotFoundError(
+                    f"File '{parsed_args.path}' does not have label '{parsed_args.label}'."
+                )
+            print(result[0])
+        else:
+            for label in sorted(client.list_labels(parsed_args.path)):
+                print(label)
+
+
+def findlabel(parsed_args) -> None:
+    """Find files in a directory whose labels match a regex pattern."""
+
+    with __get_client__(parsed_args) as client:
+        results = client.find_label(
+            parsed_args.path, parsed_args.regex, recursive=parsed_args.recursive
+        )
+        for path, labels in results:
+            print(f"{path}\t{','.join(labels)}")
+
+
+def space(parsed_args) -> None:
+    """Show pool group names, space usage for a pool group, or (given a
+    path) space usage for the pool group(s) that serve that path."""
+
+    target = parsed_args.poolgroup
+
+    with __get_client__(parsed_args) as client:
+        if target and target.startswith("/"):
+            poolgroups = client.poolgroups_for_path(target)
+            groups = [(name, client.space(name)) for name in poolgroups]
+            for line in format_space_groups(groups):
+                print(line)
+            return
+
+        if target:
+            for line in format_space(client.space(target)):
+                print(line)
+        else:
+            for name in client.space():
+                print(name)
+
+
+def quota(parsed_args) -> None:
+    """Show storage quotas (tape/custodial and disk/replica), for user and group."""
+
+    with __get_client__(parsed_args) as client:
+        quotas = client.quota()
+        if not quotas:
+            print("You do not have any quota set on your user ID or primary group ID.")
+            print("Tip: use 'ada-cli space <path>' to check available space in the "
+                  "pool group(s) serving your data.")
+            return
+        for line in format_quota(quotas):
+            print(line)
+
+
 def __get_client__(parsed_args):
     """Create an AdaClient from the CLI context."""
 
+    token = None
+    if parsed_args.token:
+        token = os.environ.get("BEARER_TOKEN")
+        if not token:
+            raise AdaValidationError(
+                "--token was specified, but the $BEARER_TOKEN environment "
+                "variable is not set."
+            )
+
+    netrc = parsed_args.netrcfile
+    if parsed_args.netrc:
+        netrc = ""
+
+    proxy = parsed_args.proxyfile
+    if parsed_args.proxy:
+        proxy = ""
+
+    igtf = False if parsed_args.no_igtf else None
+
     return AdaClient(
         api=parsed_args.api,
+        token=token,
         tokenfile=parsed_args.tokenfile,
+        netrc=netrc,
+        proxy=proxy,
+        igtf=igtf,
         verify=(not parsed_args.no_verify),
         debug=parsed_args.debug,    # TODO: debug option does not work
     )

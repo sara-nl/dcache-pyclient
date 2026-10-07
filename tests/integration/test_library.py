@@ -8,8 +8,8 @@ from __future__ import annotations
 import os
 import pytest
 
-from ada.exceptions import AdaValidationError
-
+from ada.exceptions import AdaValidationError, AdaAPIError
+from ada.client import AdaClient
 
 class TestClassSystem:
     """Test system information commands"""
@@ -115,6 +115,69 @@ class TestClassNamespace:
             ada_client.checksum()
 
 
+    def test_label(self, ada_client, setup_data):
+        """Set label on a file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set label
+        out = ada_client.set_label(dcache_file, "testlabel")
+        assert "testlabel" in out
+
+        # find label
+        out = ada_client.find_label(os.path.dirname(dcache_file), "test")
+        assert dcache_file in out[0]
+
+        # list label
+        out = ada_client.list_labels(dcache_file)
+        assert "testlabel" in out[0]
+
+        # remove label
+        out = ada_client.remove_label(dcache_file, all_labels=True)
+        assert "All labels removed from" in out
+
+        # remove non-existing label
+        with pytest.raises(AdaAPIError):
+            ada_client.remove_label(dcache_file, "testlabel")
+
+        # check if label is removed
+        out = ada_client.list_labels(dcache_file)
+        assert not out
+
+
+    def test_xattr(self, ada_client, setup_data):
+        """Set extended attribute on a file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set extended attribute
+        attributes = {"test": "attribute"}
+        out = ada_client.set_xattr(dcache_file, attributes)
+        assert "Extended attributes set" in out
+
+        # find extended attribute
+        out = ada_client.find_xattr(os.path.dirname(dcache_file), key="test", regex="attr")
+        assert attributes in out[0]
+
+        # list extended attribute
+        out = ada_client.list_xattr(dcache_file)
+        assert attributes.items() <= out.items()
+
+        # remove extended attribute
+        out = ada_client.remove_xattr(dcache_file, all_keys=True)
+        assert "All extended attributes removed from" in out
+
+        # remove non-existing extended attribute
+        with pytest.raises(AdaAPIError):
+            ada_client.remove_xattr(dcache_file, [(dcache_file, attributes)])
+
+        # check if extended attribute is removed
+        out = ada_client.list_xattr(dcache_file)
+        assert not out
+
+
 class TestStaging:
 
     def test_stage_unstage(self, ada_client, setup_data):
@@ -182,3 +245,39 @@ class TestStaging:
         with pytest.raises(AdaValidationError):
             out = ada_client.unstage()            
 
+
+class TestConfigPrecedence:
+    def test_constructor_api_overrides_env_and_file(self, target_env, tmp_path, monkeypatch):
+        conf = tmp_path / "ada.conf"
+        conf.write_text("api=https://file.example.org/api/v1\n")
+        os.chmod(conf, 0o600)
+        monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
+        tokenfile = target_env['tokenfile']
+
+        with AdaClient(
+            api="https://constructor.example.org/api/v1",
+            tokenfile=str(tokenfile),
+            config_paths=[str(conf)],
+        ) as client:
+            assert client.config.api == "https://constructor.example.org/api/v1"
+
+
+    def test_env_var_used_when_no_constructor_api_given(self, target_env, tmp_path, monkeypatch):
+        conf = tmp_path / "ada.conf"
+        conf.write_text("api=https://file.example.org/api/v1\n")
+        os.chmod(conf, 0o600)
+        monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
+        tokenfile = target_env['tokenfile']
+
+        with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
+            assert client.config.api == "https://env.example.org/api/v1"
+
+
+    def test_file_used_when_no_constructor_or_env_api_given(self, target_env, tmp_path):
+        conf = tmp_path / "ada.conf"
+        conf.write_text("api=https://file.example.org/api/v1\n")
+        os.chmod(conf, 0o600)
+        tokenfile = target_env['tokenfile']
+
+        with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
+            assert client.config.api == "https://file.example.org/api/v1"
