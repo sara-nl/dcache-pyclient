@@ -39,6 +39,19 @@ class TestClassSystem:
 class TestClassNamespace:
     """Test namespace commands"""
 
+    def test_stat(self, target_env, setup_data):
+        """Move and delete file on dCache"""
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # stat file
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stat", dcache_file], text=True)
+        assert dcache_file in out
+
+        # stat directory
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stat", os.path.dirname(dcache_file)], text=True)
+        assert os.path.dirname(dcache_file) in out
+
     def test_mkdir_delete_dir(self, target_env, testnames):
         """Create and delete directory on dCache"""
 

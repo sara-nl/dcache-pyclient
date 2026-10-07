@@ -25,6 +25,21 @@ class TestClassSystem:
 class TestClassNamespace:
     """Test namespace commands"""
 
+    def test_stat(self, ada_client, setup_data):
+        """Move and delete file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # stat file
+        out = ada_client.stat(dcache_file)
+        assert out['storageInfo']['map']['path'] == dcache_file
+
+        # stat directory
+        out = ada_client.stat(os.path.dirname(dcache_file))
+        assert out['storageInfo']['map']['path'] == os.path.dirname(dcache_file)
+
+
     def test_mkdir_delete(self, ada_client, target_env, testnames):
         """Create and delete directory on dCache"""
 
