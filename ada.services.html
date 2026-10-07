@@ -426,9 +426,13 @@ AdaPathError: If parent does not exist and recursive is False.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ada.services.namespace.NamespaceService.stat">
-<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.FileInfo" title="ada.models.FileInfo"><span class="pre">FileInfo</span></a></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.stat" title="Link to this definition"></a></dt>
-<dd><p>Get complete metadata for a file or directory.</p>
-<p>Includes children, locality, locations, QoS, xattr, labels, checksums.</p>
+<span class="sig-name descname"><span class="pre">stat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#ada.services.namespace.NamespaceService.stat" title="Link to this definition"></a></dt>
+<dd><p>Get complete, raw metadata for a file or directory.</p>
+<p>Returns the full API response as-is (locality, locations, QoS,
+xattr, labels, checksums, storage class/HSM, access latency,
+retention policy, ownership/timestamps, etc.) rather than a
+curated subset, so fields a future dCache version adds show up
+automatically.</p>
 </dd></dl>
 
 <dl class="py method">
