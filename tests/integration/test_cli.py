@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 import subprocess
-import logging
+import json
 
 import pytest
 
@@ -45,6 +45,19 @@ class TestClassSystem:
 
 class TestClassNamespace:
     """Test namespace commands"""
+
+    def test_stat(self, target_env, setup_data):
+        """Move and delete file on dCache"""
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # stat file
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stat", dcache_file], text=True)
+        assert dcache_file in out
+
+        # stat directory
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"stat", os.path.dirname(dcache_file)], text=True)
+        assert os.path.dirname(dcache_file) in out
 
     def test_mkdir_delete_dir(self, target_env, testnames):
         """Create and delete directory on dCache"""
@@ -139,6 +152,84 @@ class TestClassNamespace:
         # catch errors when both path and from_file are given
         with pytest.raises(subprocess.CalledProcessError):
             subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"checksum", dcache_file, "--from-file", filelist], text=True)
+
+
+    def test_label(self, target_env, setup_data):
+        """Get checksum of file(s) on dCache"""
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"setlabel", dcache_file, "testlabel"], text=True)
+        assert dcache_file in out
+
+
+        # find label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"findlabel", os.path.dirname(dcache_file), "test*"], text=True)
+        assert dcache_file in out
+
+        # list label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"lslabel", dcache_file], text=True)        
+        assert "testlabel" in out
+
+        # remove label
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"rmlabel", dcache_file, "--all"], text=True)
+        assert "All labels removed from" in out
+
+        # remove non-existing label
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"rmlabel", dcache_file, "testlabel"], text=True)
+
+        # check if label is removed
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"lslabel", dcache_file], text=True)
+        assert not out
+
+
+    def test_xattr(self, target_env, setup_data, tmp_path):
+        """Set extended attribute on a file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set extended attribute
+
+        # write attributes to file in key=value format
+        attr_file = tmp_path / "attributes_file"
+        with open(attr_file, "w", encoding="utf-8") as f:
+            f.write("test1=attribute1\n")
+            f.write("test2=attribute2")            
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"setxattr", dcache_file, attr_file], text=True)
+        assert "Extended attributes set" in out
+
+        # write attributes to file in json format
+        attributes = {"test1": "attribute1", "test2": "attribute2"}
+        attr_file = tmp_path / "attributes_file"
+        with open(attr_file, "w", encoding="utf-8") as f:  
+            json.dump(attributes, f, ensure_ascii=False)        
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"setxattr", dcache_file, attr_file], text=True)
+        assert "Extended attributes set" in out
+
+        # find extended attribute
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"findxattr", os.path.dirname(dcache_file), "--al", "attr"], text=True)
+        assert "test1=attribute1" in out
+        assert "test2=attribute2" in out
+
+        # # list extended attribute
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"lsxattr", dcache_file], text=True)
+        assert "test1=attribute1" in out
+        assert "test2=attribute2" in out
+
+        # remove extended attribute
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"rmxattr", dcache_file, "--all"], text=True)
+        assert "All extended attributes removed from" in out
+
+        # remove non-existing extended attribute
+        with pytest.raises(subprocess.CalledProcessError):
+            out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"rmxattr", dcache_file, "test1"], text=True)
+
+        # check if extended attribute is removed
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"lsxattr", dcache_file], text=True)
+        assert not out
 
 
 class TestStaging:

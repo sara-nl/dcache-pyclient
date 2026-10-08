@@ -79,15 +79,18 @@ class NamespaceService:
                 results.append(self._parse_file_info(data, explicit_path=path))
         return results
 
-    def stat(self, path: str) -> FileInfo:
-        """Get complete metadata for a file or directory.
+    def stat(self, path: str) -> dict:
+        """Get complete, raw metadata for a file or directory.
 
-        Includes children, locality, locations, QoS, xattr, labels, checksums.
+        Returns the full API response as-is (locality, locations, QoS,
+        xattr, labels, checksums, storage class/HSM, access latency,
+        retention policy, ownership/timestamps, etc.) rather than a
+        curated subset, so fields a future dCache version adds show up
+        automatically.
         """
-        data = self._api.get(
+        return self._api.get(
             f"namespace/{self._enc(path)}",
             params={
-                "children": "true",
                 "locality": "true",
                 "locations": "true",
                 "qos": "true",
@@ -97,7 +100,6 @@ class NamespaceService:
                 "optional": "true",
             },
         )
-        return self._parse_file_info(data, explicit_path=path)
 
     def mkdir(self, path: str, recursive: bool = False, _depth: int = 0) -> str:
         """Create a directory.
@@ -325,37 +327,41 @@ class NamespaceService:
         else:
             path = data.get("fileName", data.get("path", ""))
 
-        mtime = None
-        if "mtime" in data:
-            try:
-                mtime = datetime.fromtimestamp(
-                    data["mtime"] / 1000, tz=timezone.utc
-                )
-            except (OSError, ValueError):
-                pass
-
-        locality = None
-        if "fileLocality" in data:
-            try:
-                locality = Locality(data["fileLocality"])
-            except ValueError:
-                pass
-
-        checksums = tuple(
-            Checksum(path=path, checksum_type=c.get("type", ""), value=c.get("value", ""))
-            for c in data.get("checksums", [])
-        )
-
         return FileInfo(
             path=path,
             file_type=FileType(data.get("fileType", "REGULAR")),
             size=data.get("size"),
-            mtime=mtime,
+            mtime=NamespaceService._parse_timestamp(data, "mtime"),
             pnfs_id=data.get("pnfsId"),
             current_qos=data.get("currentQos"),
             target_qos=data.get("targetQos"),
-            locality=locality,
+            locality=NamespaceService._parse_locality(data),
             labels=tuple(data.get("labels", [])),
             extended_attributes=data.get("extendedAttributes", {}),
-            checksums=checksums,
+            checksums=NamespaceService._parse_checksums(path, data),
+        )
+
+    @staticmethod
+    def _parse_timestamp(data: dict, key: str) -> Optional[datetime]:
+        if key not in data:
+            return None
+        try:
+            return datetime.fromtimestamp(data[key] / 1000, tz=timezone.utc)
+        except (OSError, ValueError):
+            return None
+
+    @staticmethod
+    def _parse_locality(data: dict) -> Optional[Locality]:
+        if "fileLocality" not in data:
+            return None
+        try:
+            return Locality(data["fileLocality"])
+        except ValueError:
+            return None
+
+    @staticmethod
+    def _parse_checksums(path: str, data: dict) -> tuple[Checksum, ...]:
+        return tuple(
+            Checksum(path=path, checksum_type=c.get("type", ""), value=c.get("value", ""))
+            for c in data.get("checksums", [])
         )

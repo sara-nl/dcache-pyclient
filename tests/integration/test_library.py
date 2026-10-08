@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import pytest
 
-from ada.exceptions import AdaValidationError
+from ada.exceptions import AdaValidationError, AdaAPIError
 from ada.client import AdaClient
 
 
@@ -34,6 +34,21 @@ class TestClassSystem:
 
 class TestClassNamespace:
     """Test namespace commands"""
+
+    def test_stat(self, ada_client, setup_data):
+        """Move and delete file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # stat file
+        out = ada_client.stat(dcache_file)
+        assert out['storageInfo']['map']['path'] == dcache_file
+
+        # stat directory
+        out = ada_client.stat(os.path.dirname(dcache_file))
+        assert out['storageInfo']['map']['path'] == os.path.dirname(dcache_file)
+
 
     def test_mkdir_delete(self, ada_client, target_env, testnames):
         """Create and delete directory on dCache"""
@@ -123,6 +138,69 @@ class TestClassNamespace:
         # Catch error when neither path nor from_file are given
         with pytest.raises(AdaValidationError):
             ada_client.checksum()
+
+
+    def test_label(self, ada_client, setup_data):
+        """Set label on a file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set label
+        out = ada_client.set_label(dcache_file, "testlabel")
+        assert "testlabel" in out
+
+        # find label
+        out = ada_client.find_label(os.path.dirname(dcache_file), "test")
+        assert dcache_file in out[0]
+
+        # list label
+        out = ada_client.list_labels(dcache_file)
+        assert "testlabel" in out[0]
+
+        # remove label
+        out = ada_client.remove_label(dcache_file, all_labels=True)
+        assert "All labels removed from" in out
+
+        # remove non-existing label
+        with pytest.raises(AdaAPIError):
+            ada_client.remove_label(dcache_file, "testlabel")
+
+        # check if label is removed
+        out = ada_client.list_labels(dcache_file)
+        assert not out
+
+
+    def test_xattr(self, ada_client, setup_data):
+        """Set extended attribute on a file on dCache"""
+
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # set extended attribute
+        attributes = {"test": "attribute"}
+        out = ada_client.set_xattr(dcache_file, attributes)
+        assert "Extended attributes set" in out
+
+        # find extended attribute
+        out = ada_client.find_xattr(os.path.dirname(dcache_file), key="test", regex="attr")
+        assert attributes in out[0]
+
+        # list extended attribute
+        out = ada_client.list_xattr(dcache_file)
+        assert attributes.items() <= out.items()
+
+        # remove extended attribute
+        out = ada_client.remove_xattr(dcache_file, all_keys=True)
+        assert "All extended attributes removed from" in out
+
+        # remove non-existing extended attribute
+        with pytest.raises(AdaAPIError):
+            ada_client.remove_xattr(dcache_file, [(dcache_file, attributes)])
+
+        # check if extended attribute is removed
+        out = ada_client.list_xattr(dcache_file)
+        assert not out
 
 
 class TestStaging:
