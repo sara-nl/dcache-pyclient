@@ -153,19 +153,24 @@ def viewtoken(parsed_args) -> None:
     """
 
     with __get_client__(parsed_args) as client:
-        if not parsed_args.minimal:
-            source = getattr(client.auth, "source", None)
-            if source:
-                print(f"Token source: {source}")
 
         decoded = client.view_token()
         _print_token_properties(decoded)
 
         if not parsed_args.minimal:
+            # Source of token
+            source = getattr(client.auth, "source", None)
+            if source:
+                print(f"Token source: {source}")
+
+            # Status of token
             print(f"Status: {client.auth.expiry_status()}")
 
-        if not parsed_args.minimal and "ip" in decoded:
-            print(f"IP caveat: {check_ip_caveat(decoded['ip'])}")
+            # IP caveats in macaroon
+            if "ip" in decoded:
+                print(f"IP caveat: {check_ip_caveat(decoded['ip'])}")
+            if "ip" not in decoded:
+                print(f"IP caveat is empty. Warning: use IP caveats in a macaroon to reduce security risks.")
 
 
 def _print_token_properties(properties: dict) -> None:

@@ -659,7 +659,7 @@ def check_ip_caveat(ip_caveat: str) -> str:
         informational.
     """
     if not ip_caveat.strip():
-        return "no IP caveat present (recommended, to reduce the impact of a stolen token)."
+        return "IP caveat is empty. Warning: use IP caveats in a macaroon to reduce security risks."
 
     try:
         networks = [

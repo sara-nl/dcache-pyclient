@@ -249,7 +249,7 @@ class TestGetPublicIp:
 
 class TestCheckIpCaveat:
     def test_empty_caveat(self):
-        assert "no IP caveat" in check_ip_caveat("")
+        assert "IP caveat is empty" in check_ip_caveat("")
 
     def test_unparseable_caveat(self):
         assert "could not parse" in check_ip_caveat("not-an-ip")
