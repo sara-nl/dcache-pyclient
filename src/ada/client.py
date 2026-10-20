@@ -57,7 +57,7 @@ class AdaClient:
         token: Optional[str] = None,
         netrc: Optional[str] = None,
         proxy: Optional[str] = None,
-        igtf: bool = True,
+        igtf: Optional[bool] = None,
         config_paths: Optional[list[str]] = None,
         verify: bool = True,
         debug: bool = False,
@@ -68,7 +68,8 @@ class AdaClient:
             self.config.api = api
         if debug:
             self.config.debug = debug
-        self.config.igtf = igtf
+        if igtf is not None:
+            self.config.igtf = igtf
         self.config.validate()
 
         # Resolve authentication
@@ -79,6 +80,7 @@ class AdaClient:
             proxy=proxy,
             config=self.config,
         )
+        self.auth.validate()
 
         # Create HTTP client
         self._api = DcacheAPI(
@@ -112,8 +114,8 @@ class AdaClient:
         """Get detailed file listing."""
         return self.namespace.longlist(paths, from_file=from_file)
 
-    def stat(self, path: str) -> FileInfo:
-        """Get complete file/directory metadata."""
+    def stat(self, path: str) -> dict:
+        """Get complete, raw file/directory metadata."""
         return self.namespace.stat(path)
 
     def mkdir(self, path: str, recursive: bool = False) -> str:
@@ -236,8 +238,7 @@ class AdaClient:
         from_file: Optional[str] = None,
     ) -> BulkRequest:
         """Stage files from tape to disk."""
-        # self.auth.validate(command="stage")
-        # this gives ada.exceptions.AdaAuthError
+        self.auth.validate(command="stage")
         return self.staging.stage(
             paths=paths, recursive=recursive, lifetime=lifetime, from_file=from_file
         )
@@ -271,9 +272,17 @@ class AdaClient:
         """Get authenticated user identity."""
         return self.system.whoami()
 
+    def dcache_versions(self) -> list[str]:
+        """Get the dCache version(s) running on the server."""
+        return self.system.dcache_versions()
+
     def space(self, poolgroup: Optional[str] = None) -> SpaceInfo | list[str]:
         """Get storage space info."""
         return self.system.space(poolgroup)
+
+    def poolgroups_for_path(self, path: str) -> list[str]:
+        """Resolve which pool group(s) serve a namespace directory."""
+        return self.system.poolgroups_for_path(path)
 
     def quota(self) -> list[QuotaInfo]:
         """Get storage quota info."""

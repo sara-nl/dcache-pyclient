@@ -11,6 +11,7 @@ Precedence (matching Bash):
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import os
 import base64
@@ -22,12 +23,18 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 from urllib.parse import urlparse
-import netrc as netrc_module
 import ssl
 
 import httpx
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.utils import check_file_permissions
+from ada.x509utils import (
+    VOMS_EXTENSION_OID,
+    find_extension,
+    pem_certs,
+    voms_ac_validity,
+    x509_validity,
+)
 
 
 if TYPE_CHECKING:
@@ -47,10 +54,30 @@ class AuthProvider(ABC):
     def method_name(self) -> str:
         """Human-readable name like 'token', 'netrc', 'proxy'."""
 
+    def describe(self) -> str:
+        """Human-readable description of the method and where it was resolved from.
+
+        Auth methods can come from explicit CLI arguments, environment
+        variables, or ada.conf, so this is shown in ``whoami`` to make an
+        otherwise invisible choice visible.
+        """
+        return self.method_name()
+
     def view_token(self) -> dict[str, Any]:
         """Decode and return token properties for display."""
-        raise NotImplementedError(
+        raise AdaAuthError(
             "Token viewing is not supported for this authentication method."
+        )
+
+    def expiry_status(self) -> str:
+        """Describe token expiry, informationally (never raises on expiry).
+
+        Unlike ``validate()``, this doesn't gate whether the token may
+        be used — it's for commands like ``viewtoken`` that just want
+        to show the status, even for an expired token.
+        """
+        raise AdaAuthError(
+            "Token expiry is not applicable for this authentication method."
         )
 
     def validate(self, command: Optional[str] = None) -> None:
@@ -78,6 +105,9 @@ class TokenAuth(AuthProvider):
     def method_name(self) -> str:
         return "token"
 
+    def describe(self) -> str:
+        return f"token ({self.source})"
+
     def validate(self, command: Optional[str] = None) -> None:
         validate_token(self.token, source=self.source, command=command)
 
@@ -86,11 +116,19 @@ class TokenAuth(AuthProvider):
             return decode_jwt(self.token)
         return decode_macaroon(self.token)
 
+    def expiry_status(self) -> str:
+        if is_jwt(self.token):
+            exp_unix = get_jwt_expiry(self.token)
+        else:
+            exp_unix = extract_macaroon_expiry(decode_macaroon_raw(self.token))
+        return describe_expiry(exp_unix)
+
 
 class TokenFileAuth(TokenAuth):
     """Reads token from a file (rclone config format or plain bearer token)."""
 
     def __init__(self, tokenfile: str) -> None:
+        tokenfile = str(Path(tokenfile).expanduser())
         check_file_permissions(tokenfile)
         token = self._read_token(tokenfile)
         super().__init__(token, source=f"tokenfile: {tokenfile}")
@@ -106,7 +144,11 @@ class TokenFileAuth(TokenAuth):
         """
         content = Path(path).read_text(encoding="utf-8")
 
-        # Try rclone config format first
+        # Try rclone config format first. A bearer_token key found with an
+        # empty value means this is an rclone-format file with no token
+        # configured — fail clearly rather than falling through to the
+        # plain-token fallback below, which would otherwise misread an
+        # unrelated line (e.g. the "[section]" header) as the token.
         for line in content.splitlines():
             stripped = line.strip()
             if stripped.startswith("bearer_token"):
@@ -115,8 +157,10 @@ class TokenFileAuth(TokenAuth):
                     token = parts[1].strip()
                     if token:
                         return token
+                    raise AdaAuthError(f"bearer_token is empty in tokenfile: {path}")
 
-        # Fall back to plain token (first non-empty line)
+        # Fall back to plain token (first non-empty line), only reached
+        # when the file has no bearer_token key at all.
         for line in content.splitlines():
             stripped = line.strip()
             if stripped:
@@ -125,11 +169,55 @@ class TokenFileAuth(TokenAuth):
         raise AdaAuthError(f"Could not read token from file: {path}")
 
 
+def _parse_netrc(path: str, hostname: str) -> tuple[str, str]:
+    """Parse a netrc file for the login/password of the given host.
+
+    Reimplemented instead of using the stdlib ``netrc`` module, which
+    silently strips backslashes from values — a long-standing, deliberately
+    unfixed bug (https://github.com/python/cpython/issues/99080) that
+    corrupts any password containing one. ``curl --netrc`` does not have
+    this bug, so this parser matches curl's plain whitespace-tokenized
+    behavior instead.
+    """
+    text = Path(path).read_text(encoding="utf-8")
+    entries: dict[str, dict[str, str]] = {}
+    default: dict[str, str] = {}
+    current: Optional[dict[str, str]] = None
+    in_macdef = False
+    for line in text.splitlines():
+        if in_macdef:
+            if not line.strip():
+                in_macdef = False
+            continue
+        tokens = line.split()
+        i = 0
+        while i < len(tokens):
+            keyword = tokens[i]
+            if keyword == "machine" and i + 1 < len(tokens):
+                current = entries.setdefault(tokens[i + 1], {})
+                i += 2
+            elif keyword == "default":
+                current = default
+                i += 1
+            elif keyword in ("login", "password", "account") and current is not None and i + 1 < len(tokens):
+                current[keyword] = tokens[i + 1]
+                i += 2
+            elif keyword == "macdef":
+                # Macro bodies run until a blank line; not used by ADA, so skip them.
+                in_macdef = True
+                break
+            else:
+                i += 1
+
+    entry = entries.get(hostname, default)
+    return entry.get("login", ""), entry.get("password", "")
+
+
 class NetrcAuth(AuthProvider):
     """Netrc-based username/password (Basic) authentication."""
 
     def __init__(self, netrcfile: Optional[str] = None, hostname: Optional[str] = None) -> None:
-        self.netrcfile = netrcfile or str(Path.home() / ".netrc")
+        self.netrcfile = str(Path(netrcfile).expanduser()) if netrcfile else str(Path.home() / ".netrc")
         self.hostname = hostname
         check_file_permissions(self.netrcfile)
 
@@ -140,28 +228,24 @@ class NetrcAuth(AuthProvider):
     def method_name(self) -> str:
         return "netrc"
 
+    def describe(self) -> str:
+        return f"netrc ({self.netrcfile})"
+
     def get_httpx_auth(self) -> Any:
         """Parse netrc and return httpx BasicAuth for the API host."""
-        try:
-            nrc = netrc_module.netrc(self.netrcfile)
-        except Exception as exc:
-            raise AdaAuthError(f"Cannot parse netrc file '{self.netrcfile}': {exc}") from exc
-
         if not self.hostname:
             raise AdaAuthError(
                 "Cannot use netrc authentication without knowing the API hostname."
             )
 
-        auth_tuple = nrc.authenticators(self.hostname)
-        if auth_tuple is None:
-            raise AdaAuthError(
-                f"No credentials found for host '{self.hostname}' in '{self.netrcfile}'."
-            )
+        try:
+            login, password = _parse_netrc(self.netrcfile, self.hostname)
+        except OSError as exc:
+            raise AdaAuthError(f"Cannot read netrc file '{self.netrcfile}': {exc}") from exc
 
-        login, _, password = auth_tuple
         if not login or not password:
             raise AdaAuthError(
-                f"Incomplete credentials for host '{self.hostname}' in '{self.netrcfile}'."
+                f"No credentials found for host '{self.hostname}' in '{self.netrcfile}'."
             )
 
         return httpx.BasicAuth(username=login, password=password)
@@ -176,12 +260,14 @@ class ProxyAuth(AuthProvider):
         certdir: Optional[str] = None,
         igtf: bool = True,
     ) -> None:
-        self.proxyfile = proxyfile or os.environ.get(
+        proxyfile = proxyfile or os.environ.get(
             "X509_USER_PROXY", f"/tmp/x509up_u{os.getuid()}"
         )
-        self.certdir = certdir or os.environ.get(
+        certdir = certdir or os.environ.get(
             "X509_CERT_DIR", "/etc/grid-security/certificates"
         )
+        self.proxyfile = str(Path(proxyfile).expanduser())
+        self.certdir = str(Path(certdir).expanduser())
         self.igtf = igtf
 
         if not Path(self.proxyfile).exists():
@@ -197,6 +283,51 @@ class ProxyAuth(AuthProvider):
 
     def method_name(self) -> str:
         return "proxy"
+
+    def validate(self, command: Optional[str] = None) -> None:
+        """Validate the proxy certificate's expiry.
+
+        A VOMS proxy has two, potentially different, validity windows:
+        the X.509 certificate's own ``notAfter``, and (if present) the
+        embedded VOMS attribute certificate's ``attrCertValidityPeriod``,
+        which the VOMS server controls independently of the certificate
+        lifetime requested at ``voms-proxy-init`` time. Both are checked;
+        whichever expires first determines the effective expiry.
+        """
+        pem_text = Path(self.proxyfile).read_text(encoding="utf-8")
+        der_certs = pem_certs(pem_text)
+        if not der_certs:
+            raise AdaAuthError(f"No certificates found in proxy file: {self.proxyfile}")
+
+        x509_expiry: Optional[int] = None
+        voms_expiry: Optional[int] = None
+        for der_cert in der_certs:
+            _, not_after = x509_validity(der_cert)
+            exp = int(not_after.timestamp())
+            if x509_expiry is None or exp < x509_expiry:
+                x509_expiry = exp
+
+            extension = find_extension(der_cert, VOMS_EXTENSION_OID)
+            if extension is None:
+                continue
+            validity = voms_ac_validity(extension)
+            if validity is None:
+                logger.debug(
+                    "Could not parse VOMS attribute validity in proxy: %s",
+                    self.proxyfile,
+                )
+                continue
+            _, voms_not_after = validity
+            exp = int(voms_not_after.timestamp())
+            if voms_expiry is None or exp < voms_expiry:
+                voms_expiry = exp
+
+        if voms_expiry is not None and voms_expiry < x509_expiry:
+            _check_expiry(voms_expiry, f"VOMS attributes in proxy: {self.proxyfile}")
+        else:
+            _check_expiry(x509_expiry, f"certificate in proxy: {self.proxyfile}")
+    def describe(self) -> str:
+        return f"proxy ({self.proxyfile})"
 
     def get_ssl_context(self) -> Any:
         """Return an SSL context configured with the proxy certificate."""
@@ -263,8 +394,10 @@ def resolve_auth(
             return NetrcAuth(config.netrcfile, hostname=hostname)
 
     raise AdaAuthError(
-        "No authentication method specified. "
-        "Use --tokenfile, --netrc, or --proxy."
+        "No authentication method configured. Use --token, --tokenfile, "
+        "--netrc, --netrcfile, --proxy, or --proxyfile; set $BEARER_TOKEN, "
+        "$ada_tokenfile, or $ada_netrcfile; or set tokenfile/netrcfile in "
+        "ada.conf."
     )
 
 
@@ -377,8 +510,14 @@ def decode_macaroon_raw(token: str) -> str:
     Raises:
         AdaAuthError: If the token cannot be decoded.
     """
+    # Macaroons are often base64url-encoded (- and _ instead of + and /)
+    # and unpadded. urlsafe_b64decode() also accepts standard base64
+    # unchanged, so this handles both; add padding since it's commonly
+    # omitted.
+    stripped = token.strip()
+    padded = stripped + "=" * (-len(stripped) % 4)
     try:
-        decoded_bytes = base64.b64decode(token.strip())
+        decoded_bytes = base64.urlsafe_b64decode(padded)
     except Exception as exc:
         raise AdaAuthError(f"Invalid macaroon: cannot base64 decode: {exc}") from exc
 
@@ -400,23 +539,40 @@ def decode_macaroon_raw(token: str) -> str:
     return result
 
 
+_MACAROON_CAVEAT_PATTERN = re.compile(
+    r"\b(before|activity|path|id|ip|home|root):(.*)"
+)
+
+# The location and identifier are macaroon header fields, not caveats:
+# space-separated rather than colon-separated, and optionally preceded
+# by a 4-hex-digit length (e.g. "0018identifier jy4B2HLA").
+_MACAROON_HEADER_PATTERN = re.compile(r"^(?:[0-9a-f]{4})?(location|identifier)\s+(.*)$")
+
+
 def decode_macaroon(token: str) -> dict[str, str]:
     """Decode a Macaroon and return its properties as a dict.
 
-    Parses the decoded text for known fields like ``before:``,
-    ``activity:``, ``path:``, ``id:``, etc.
+    Parses the decoded text for the ``location``/``identifier`` header
+    fields and known caveats like ``before:``, ``activity:``,
+    ``path:``, ``id:``, etc. Real macaroons (v2 binary format) prefix
+    each caveat line with a hex length and a ``cid `` tag (e.g.
+    ``002ecid before:2026-...Z``), so caveats are searched for
+    anywhere in the line rather than requiring them at the start.
     """
     raw = decode_macaroon_raw(token)
-    properties: dict[str, str] = {"raw": raw}
+    properties: dict[str, str] = {}
 
-    # Extract common Macaroon caveats
     for line in raw.splitlines():
-        line = line.strip()
-        if ":" in line:
-            key, _, value = line.partition(":")
-            key = key.strip().lower()
-            if key in ("before", "activity", "path", "id", "ip", "home", "root"):
-                properties[key] = value.strip()
+        header_match = _MACAROON_HEADER_PATTERN.match(line)
+        if header_match:
+            key, value = header_match.group(1), header_match.group(2).strip()
+            properties.setdefault(key, value)
+            continue
+
+        caveat_match = _MACAROON_CAVEAT_PATTERN.search(line)
+        if caveat_match:
+            key, value = caveat_match.group(1), caveat_match.group(2).strip()
+            properties.setdefault(key, value)
 
     return properties
 
@@ -454,6 +610,83 @@ def extract_macaroon_expiry(decoded_text: str) -> Optional[int]:
         ) from exc
 
 
+# IP caveat checking.
+
+# Looks up this system's public IP address(es) and compares them
+# against a macaroon's IP caveat, using the standard library's
+# ipaddress module for subnet matching (no external ipcalc dependency).
+
+
+# Hostnames that resolve/respond IPv4-only or IPv6-only, so we don't
+# need to force a specific address family at the socket level.
+_IP_LOOKUP_URLS = {
+    4: ("https://api.ipify.org", "https://ipv4.icanhazip.com", "https://checkip.amazonaws.com"),
+    6: ("https://api6.ipify.org", "https://ipv6.icanhazip.com"),
+}
+
+
+def get_public_ip(version: int) -> Optional[str]:
+    """Look up this system's public IPv4 or IPv6 address.
+
+    Tries a few well-known lookup services in order, falling through
+    to the next if one is unreachable.
+
+    Returns:
+        The address as a string, or None if it could not be
+        determined (e.g. this system has no address of that family).
+    """
+    for url in _IP_LOOKUP_URLS[version]:
+        try:
+            response = httpx.get(url, timeout=5.0)
+            response.raise_for_status()
+            candidate = response.text.strip()
+            if ipaddress.ip_address(candidate).version == version:
+                return candidate
+        except (httpx.HTTPError, ValueError):
+            continue
+    return None
+
+
+def check_ip_caveat(ip_caveat: str) -> str:
+    """Check this system's public IP address(es) against a macaroon's IP caveat.
+
+    Args:
+        ip_caveat: Comma-separated list of IPs/subnets, as found in a
+            macaroon's ``ip:`` caveat.
+
+    Returns:
+        A human-readable status message. Never raises — this is purely
+        informational.
+    """
+    if not ip_caveat.strip():
+        return "IP caveat is empty. Warning: use IP caveats in a macaroon to reduce security risks."
+
+    try:
+        networks = [
+            ipaddress.ip_network(item.strip(), strict=False)
+            for item in ip_caveat.split(",")
+            if item.strip()
+        ]
+    except ValueError as exc:
+        return f"could not parse IP caveat '{ip_caveat}': {exc}"
+    if not networks:
+        return f"could not parse IP caveat '{ip_caveat}'."
+
+    results = []
+    for version, label in ((4, "IPv4"), (6, "IPv6")):
+        my_ip = get_public_ip(version)
+        if my_ip is None:
+            continue
+        addr = ipaddress.ip_address(my_ip)
+        matched = any(addr in net for net in networks if net.version == version)
+        results.append(f"{label} ({my_ip}) {'matches' if matched else 'does not match'}")
+
+    if not results:
+        return "could not determine this system's public IP address(es); unable to check."
+
+    return "; ".join(results) + "."
+
+
 # Token validation logic.
 
 # Validates JWT and Macaroon tokens for expiry and required permissions,
@@ -461,6 +694,34 @@ def extract_macaroon_expiry(decoded_text: str) -> Optional[int]:
 
 
 MIN_VALID_TIME = 60  # seconds — token must be valid for at least this long
+
+
+def format_duration(seconds: int) -> str:
+    """Format a duration in seconds as a human-readable string, e.g. '2d 3h 15m'."""
+    seconds = int(seconds)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    days, hours = divmod(hours, 24)
+    parts = [f"{n}{unit}" for n, unit in ((days, "d"), (hours, "h"), (minutes, "m")) if n]
+    parts.append(f"{seconds}s")
+    return " ".join(parts)
+
+
+def describe_expiry(exp_unix: Optional[int]) -> str:
+    """Describe a token's expiry status, informationally — never raises.
+
+    Unlike ``_check_expiry()``, this doesn't gate whether the token may
+    be used; it's for 'viewtoken'-style commands where the goal is to
+    inspect the token, not to use it, so an expired token is not an
+    error — just a fact worth showing.
+    """
+    if exp_unix is None or not isinstance(exp_unix, (int, float)):
+        return "unknown (no expiration field found)"
+
+    now = int(time.time())
+    if now >= exp_unix:
+        return f"expired {format_duration(now - exp_unix)} ago"
+    return f"valid, expires in {format_duration(exp_unix - now)}"
 
 
 def validate_token(
