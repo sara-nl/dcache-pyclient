@@ -27,6 +27,22 @@ from ada.utils import encode_path
 logger = logging.getLogger("ada.api")
 
 
+def build_ssl_kwargs(auth: AuthProvider, verify: bool) -> dict[str, Any]:
+    """Build the httpx.Client verify/SSL kwargs for a given auth method.
+
+    Shared between DcacheAPI (REST) and the WebDAV client, since both
+    need the same client-certificate handling for proxy authentication.
+    """
+    kwargs: dict[str, Any] = {}
+    if verify is False:
+        kwargs["verify"] = False
+        return kwargs
+    ssl_ctx = auth.get_ssl_context()
+    if ssl_ctx:
+        kwargs["verify"] = ssl_ctx
+    return kwargs
+
+
 class DcacheAPI:
     """Low-level HTTP client for the dCache REST API.
 
@@ -43,6 +59,7 @@ class DcacheAPI:
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.auth = auth
+        self.verify = verify
         self.debug = debug
 
         # Build httpx client with appropriate auth and SSL settings
@@ -52,12 +69,9 @@ class DcacheAPI:
         }
 
         # verify: False to disable verification
-        ssl_ctx = auth.get_ssl_context()
         if verify is False:
             logger.warning("WARNING: You have disabled SSL verification, connection may be insecure!")
-            client_kwargs["verify"] = False
-        elif ssl_ctx:
-            client_kwargs["verify"] = ssl_ctx
+        client_kwargs.update(build_ssl_kwargs(auth, verify))
 
         self._client = httpx.Client(**client_kwargs)
 
@@ -92,6 +106,24 @@ class DcacheAPI:
         response = self._client.get(
             url, headers=self._headers(accept=accept), params=params,
             auth=self._httpx_auth(),
+        )
+        return self._handle_response(response)
+
+    def get_absolute(
+        self,
+        url: str,
+        accept: str = "application/json",
+    ) -> Any:
+        """Perform a GET against an absolute URL outside the REST API base path.
+
+        Used for endpoints that live alongside the REST API rather than
+        under it (e.g. ``/scripts/config.js``, used for WebDAV door
+        discovery), while reusing the same auth/SSL/timeout setup.
+        """
+        if self.debug:
+            logger.debug("GET (absolute) %s", url)
+        response = self._client.get(
+            url, headers=self._headers(accept=accept), auth=self._httpx_auth(),
         )
         return self._handle_response(response)
 

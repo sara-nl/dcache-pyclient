@@ -299,3 +299,38 @@ class TestStaging:
         # Catch error when neither path nor from_file are given
         with pytest.raises(subprocess.CalledProcessError):
             subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'],"unstage"], text=True)
+
+
+class TestTransfer:
+    def test_donwload_upload(self, target_env, setup_data, tmp_path):
+        """Stage and unstage file on dCache"""
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # write file and folder to filelist
+        local_file = tmp_path / "local_file"
+
+        # download
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"download", dcache_file, local_file], text=True)
+        assert "Downloaded" in out
+
+        # raise error when file already exists loally 
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"download", dcache_file, local_file], text=True)            
+
+        # verify checksum by downloading again with --verify-checksum
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"download", "--verify-checksum", dcache_file, local_file], text=True)
+        assert "checksum matches" in out
+
+        #upload
+        tmp_file = dcache_file + '_tmp'
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"upload", local_file,  tmp_file], text=True)
+        assert "Uploaded" in out
+
+        # raise error when file already exists on dCache
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"upload", local_file,  tmp_file], text=True)
+
+        # verify checksum by downloading again with --verify-checksum
+        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"upload", "--verify-checksum", local_file,  tmp_file], text=True)
+        assert "checksum matches" in out
