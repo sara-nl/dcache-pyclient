@@ -51,12 +51,12 @@ def check_file_permissions(filepath: str, *, check_readable: bool = True) -> Non
     if mode & stat.S_IWOTH:
         raise AdaSecurityError(
             f"File '{path}' is world writable. "
-            "Fix with: chmod o-w '{path}'"
+            f"Fix with: chmod o-w '{path}'"
         )
     if check_readable and mode & stat.S_IROTH:
         raise AdaSecurityError(
             f"File '{path}' is world readable. "
-            "Fix with: chmod o-r '{path}'"
+            f"Fix with: chmod o-r '{path}'"
         )
 
 
