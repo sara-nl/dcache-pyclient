@@ -314,6 +314,10 @@ class TestTransfer:
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"download", dcache_file, local_file], text=True)
         assert "Downloaded" in out
 
+        # raise error when file already exists loally 
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"download", dcache_file, local_file], text=True)            
+
         # verify checksum by downloading again with --verify-checksum
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"download", "--verify-checksum", dcache_file, local_file], text=True)
         assert "checksum matches" in out
@@ -323,6 +327,10 @@ class TestTransfer:
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"upload", local_file,  tmp_file], text=True)
         assert "Uploaded" in out
 
-       # verify checksum by downloading again with --verify-checksum
+        # raise error when file already exists on dCache
+        with pytest.raises(subprocess.CalledProcessError):
+            subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"upload", local_file,  tmp_file], text=True)
+
+        # verify checksum by downloading again with --verify-checksum
         out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"upload", "--verify-checksum", local_file,  tmp_file], text=True)
         assert "checksum matches" in out

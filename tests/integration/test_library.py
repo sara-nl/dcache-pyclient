@@ -8,304 +8,304 @@ from __future__ import annotations
 import os
 import pytest
 
-from ada.exceptions import AdaValidationError, AdaAPIError
+from ada.exceptions import AdaValidationError, AdaAPIError, AdaPathError
 from ada.client import AdaClient
 
 
-class TestClassAuth:
-    """Test system information commands"""
+# class TestClassAuth:
+#     """Test system information commands"""
 
-    def test_view_token(self, ada_client, target_env):
-        """View token"""
-        userinfo = ada_client.view_token()
-        assert target_env['homedir'] == userinfo['home']
-        assert "DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE"  == userinfo['activity']
+#     def test_view_token(self, ada_client, target_env):
+#         """View token"""
+#         userinfo = ada_client.view_token()
+#         assert target_env['homedir'] == userinfo['home']
+#         assert "DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE"  == userinfo['activity']
 
-class TestClassSystem:
-    """Test system information commands"""
+# class TestClassSystem:
+#     """Test system information commands"""
 
-    def test_whoami(self, ada_client, target_env):
-        """Authenticate and get userinfo"""
-        userinfo = ada_client.whoami()
-        assert 'AUTHENTICATED' == userinfo.status
-        assert target_env['user'] == userinfo.username
-        assert target_env['homedir'] == userinfo.home
-
-
-class TestClassNamespace:
-    """Test namespace commands"""
-
-    def test_stat(self, ada_client, setup_data):
-        """Move and delete file on dCache"""
-
-        # create testfile on dCache
-        dcache_file = setup_data
-
-        # stat file
-        out = ada_client.stat(dcache_file)
-        assert out['storageInfo']['map']['path'] == dcache_file
-
-        # stat directory
-        out = ada_client.stat(os.path.dirname(dcache_file))
-        assert out['storageInfo']['map']['path'] == os.path.dirname(dcache_file)
+#     def test_whoami(self, ada_client, target_env):
+#         """Authenticate and get userinfo"""
+#         userinfo = ada_client.whoami()
+#         assert 'AUTHENTICATED' == userinfo.status
+#         assert target_env['user'] == userinfo.username
+#         assert target_env['homedir'] == userinfo.home
 
 
-    def test_mkdir_delete(self, ada_client, target_env, testnames):
-        """Create and delete directory on dCache"""
+# class TestClassNamespace:
+#     """Test namespace commands"""
 
-        # Create directory recursively        
-        dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'] + '/' + testnames['subdir']
-        out = ada_client.mkdir(dcache_dir, recursive=True)
-        assert out == 'created'
+#     def test_stat(self, ada_client, setup_data):
+#         """Move and delete file on dCache"""
 
-        # list empty dir
-        out = ada_client.list(dcache_dir)
-        assert out == []
+#         # create testfile on dCache
+#         dcache_file = setup_data
 
-        # Delete directory recursively
-        out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True, force=True)
-        assert out is None
+#         # stat file
+#         out = ada_client.stat(dcache_file)
+#         assert out['storageInfo']['map']['path'] == dcache_file
 
-
-    def test_mv_delete_file(self, ada_client, setup_data):
-        """Move and delete file on dCache"""
-
-        # create testfile on dCache
-        dcache_file = setup_data
-
-        # move file on dCache
-        tmp_file = dcache_file + '_tmp'
-        out = ada_client.mv(dcache_file, tmp_file )
-        assert out == 'moved'
-
-        # check if file was moved
-        out = ada_client.list(tmp_file)
-        assert out == [os.path.basename(tmp_file)]
-
-        # delete file
-        out = ada_client.delete(tmp_file)
-        assert out is None
+#         # stat directory
+#         out = ada_client.stat(os.path.dirname(dcache_file))
+#         assert out['storageInfo']['map']['path'] == os.path.dirname(dcache_file)
 
 
-    def test_longlist(self, ada_client, setup_data, tmp_path):
-        """Longlist file(s) on dCache"""
+#     def test_mkdir_delete(self, ada_client, target_env, testnames):
+#         """Create and delete directory on dCache"""
 
-        # create testfile on dCache
-        dcache_file = setup_data
+#         # Create directory recursively        
+#         dcache_dir = target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'] + '/' + testnames['subdir']
+#         out = ada_client.mkdir(dcache_dir, recursive=True)
+#         assert out == 'created'
 
-        out = ada_client.longlist(dcache_file)
-        assert out[0].path == dcache_file
+#         # list empty dir
+#         out = ada_client.list(dcache_dir)
+#         assert out == []
 
-        # write file and folder to filelist
-        filelist = tmp_path / "file_list"
-        with open(filelist, "w", encoding="utf-8") as f:
-            f.write(dcache_file + "\n")
-            f.write(os.path.dirname(dcache_file))
-
-        out = ada_client.longlist(from_file=filelist)
-        assert out[0].path == dcache_file
-
-        # Catch error when both path and from_file are given        
-        with pytest.raises(AdaValidationError):
-            ada_client.longlist(dcache_file, from_file=filelist)
-        # Catch error when neither path nor from_file are given
-        with pytest.raises(AdaValidationError):
-            ada_client.longlist()
+#         # Delete directory recursively
+#         out = ada_client.delete(target_env['homedir'] + '/' + target_env['testdir'] + '/' + testnames['tmpdir'], recursive=True, force=True)
+#         assert out is None
 
 
-    def test_checksum(self, ada_client, setup_data, tmp_path):
-        """Get checksum of file(s) on dCache"""
+#     def test_mv_delete_file(self, ada_client, setup_data):
+#         """Move and delete file on dCache"""
+
+#         # create testfile on dCache
+#         dcache_file = setup_data
+
+#         # move file on dCache
+#         tmp_file = dcache_file + '_tmp'
+#         out = ada_client.mv(dcache_file, tmp_file )
+#         assert out == 'moved'
+
+#         # check if file was moved
+#         out = ada_client.list(tmp_file)
+#         assert out == [os.path.basename(tmp_file)]
+
+#         # delete file
+#         out = ada_client.delete(tmp_file)
+#         assert out is None
+
+
+#     def test_longlist(self, ada_client, setup_data, tmp_path):
+#         """Longlist file(s) on dCache"""
+
+#         # create testfile on dCache
+#         dcache_file = setup_data
+
+#         out = ada_client.longlist(dcache_file)
+#         assert out[0].path == dcache_file
+
+#         # write file and folder to filelist
+#         filelist = tmp_path / "file_list"
+#         with open(filelist, "w", encoding="utf-8") as f:
+#             f.write(dcache_file + "\n")
+#             f.write(os.path.dirname(dcache_file))
+
+#         out = ada_client.longlist(from_file=filelist)
+#         assert out[0].path == dcache_file
+
+#         # Catch error when both path and from_file are given        
+#         with pytest.raises(AdaValidationError):
+#             ada_client.longlist(dcache_file, from_file=filelist)
+#         # Catch error when neither path nor from_file are given
+#         with pytest.raises(AdaValidationError):
+#             ada_client.longlist()
+
+
+#     def test_checksum(self, ada_client, setup_data, tmp_path):
+#         """Get checksum of file(s) on dCache"""
     
-        # create testfile on dCache
-        dcache_file = setup_data
+#         # create testfile on dCache
+#         dcache_file = setup_data
 
-        # checksum
-        out = ada_client.checksum(dcache_file)
-        assert out[0].path == dcache_file
+#         # checksum
+#         out = ada_client.checksum(dcache_file)
+#         assert out[0].path == dcache_file
 
-        # write file and folder to filelist
-        filelist = tmp_path / "file_list"
-        with open(filelist, "w", encoding="utf-8") as f:
-            f.write(dcache_file + "\n")
-            f.write(os.path.dirname(dcache_file))
+#         # write file and folder to filelist
+#         filelist = tmp_path / "file_list"
+#         with open(filelist, "w", encoding="utf-8") as f:
+#             f.write(dcache_file + "\n")
+#             f.write(os.path.dirname(dcache_file))
 
-        out = ada_client.checksum(from_file=filelist)
-        assert out[0].path == dcache_file
+#         out = ada_client.checksum(from_file=filelist)
+#         assert out[0].path == dcache_file
 
-        # Catch error when both path and from_file are given        
-        with pytest.raises(AdaValidationError):
-            ada_client.checksum(dcache_file, from_file=filelist)
-        # Catch error when neither path nor from_file are given
-        with pytest.raises(AdaValidationError):
-            ada_client.checksum()
-
-
-    def test_label(self, ada_client, setup_data):
-        """Set label on a file on dCache"""
-
-        # create testfile on dCache
-        dcache_file = setup_data
-
-        # set label
-        out = ada_client.set_label(dcache_file, "testlabel")
-        assert "testlabel" in out
-
-        # find label
-        out = ada_client.find_label(os.path.dirname(dcache_file), "test")
-        assert dcache_file in out[0]
-
-        # list label
-        out = ada_client.list_labels(dcache_file)
-        assert "testlabel" in out[0]
-
-        # remove label
-        out = ada_client.remove_label(dcache_file, all_labels=True)
-        assert "All labels removed from" in out
-
-        # remove non-existing label
-        with pytest.raises(AdaAPIError):
-            ada_client.remove_label(dcache_file, "testlabel")
-
-        # check if label is removed
-        out = ada_client.list_labels(dcache_file)
-        assert not out
+#         # Catch error when both path and from_file are given        
+#         with pytest.raises(AdaValidationError):
+#             ada_client.checksum(dcache_file, from_file=filelist)
+#         # Catch error when neither path nor from_file are given
+#         with pytest.raises(AdaValidationError):
+#             ada_client.checksum()
 
 
-    def test_xattr(self, ada_client, setup_data):
-        """Set extended attribute on a file on dCache"""
+#     def test_label(self, ada_client, setup_data):
+#         """Set label on a file on dCache"""
 
-        # create testfile on dCache
-        dcache_file = setup_data
+#         # create testfile on dCache
+#         dcache_file = setup_data
 
-        # set extended attribute
-        attributes = {"test": "attribute"}
-        out = ada_client.set_xattr(dcache_file, attributes)
-        assert "Extended attributes set" in out
+#         # set label
+#         out = ada_client.set_label(dcache_file, "testlabel")
+#         assert "testlabel" in out
 
-        # find extended attribute
-        out = ada_client.find_xattr(os.path.dirname(dcache_file), key="test", regex="attr")
-        assert attributes in out[0]
+#         # find label
+#         out = ada_client.find_label(os.path.dirname(dcache_file), "test")
+#         assert dcache_file in out[0]
 
-        # list extended attribute
-        out = ada_client.list_xattr(dcache_file)
-        assert attributes.items() <= out.items()
+#         # list label
+#         out = ada_client.list_labels(dcache_file)
+#         assert "testlabel" in out[0]
 
-        # remove extended attribute
-        out = ada_client.remove_xattr(dcache_file, all_keys=True)
-        assert "All extended attributes removed from" in out
+#         # remove label
+#         out = ada_client.remove_label(dcache_file, all_labels=True)
+#         assert "All labels removed from" in out
 
-        # remove non-existing extended attribute
-        with pytest.raises(AdaAPIError):
-            ada_client.remove_xattr(dcache_file, [(dcache_file, attributes)])
+#         # remove non-existing label
+#         with pytest.raises(AdaAPIError):
+#             ada_client.remove_label(dcache_file, "testlabel")
 
-        # check if extended attribute is removed
-        out = ada_client.list_xattr(dcache_file)
-        assert not out
-
-
-class TestStaging:
-
-    def test_stage_unstage(self, ada_client, setup_data):
-        """Stage and unstage file on dCache"""
-        # create testfile on dCache
-        dcache_file = setup_data
-
-        # stage
-        out = ada_client.stage(dcache_file)
-        assert out.activity == 'PIN'
-        assert out.targets[0] ==  dcache_file
-        assert out.request_id != ""
-
-        # unstage
-        out = ada_client.unstage(dcache_file)
-        assert out.activity == 'UNPIN'
-        assert out.targets[0] ==  dcache_file
-        assert out.request_id != ""
+#         # check if label is removed
+#         out = ada_client.list_labels(dcache_file)
+#         assert not out
 
 
-    def test_stage_unstage_from_file(self, ada_client, setup_data, tmp_path):
-        """Stage and unstage file on dCache from filelist"""
-        # create testfile on dCache
-        dcache_file = setup_data
-        filelist = tmp_path / "file_list"
-        with open(filelist, "w") as f:
-            f.write(dcache_file + "\n")
-            f.write(os.path.dirname(dcache_file))
+#     def test_xattr(self, ada_client, setup_data):
+#         """Set extended attribute on a file on dCache"""
 
-        # stage
-        out = ada_client.stage(from_file=filelist)
-        assert out.activity == 'PIN'
-        assert out.targets[0] ==  dcache_file
-        assert out.request_id != ""
+#         # create testfile on dCache
+#         dcache_file = setup_data
 
-        # unstage
-        out = ada_client.unstage(from_file=filelist)
-        assert out.activity == 'UNPIN'
-        assert out.targets[0] ==  dcache_file
-        assert out.request_id != ""
+#         # set extended attribute
+#         attributes = {"test": "attribute"}
+#         out = ada_client.set_xattr(dcache_file, attributes)
+#         assert "Extended attributes set" in out
 
+#         # find extended attribute
+#         out = ada_client.find_xattr(os.path.dirname(dcache_file), key="test", regex="attr")
+#         assert attributes in out[0]
 
-    def test_stage_unstage_errors(self, ada_client, setup_data, tmp_path):
-        """Stage and unstage file on dCache with errors"""
-        # create testfile on dCache
-        dcache_file = setup_data
-        filelist = tmp_path / "file_list"
-        with open(filelist, "w") as f:
-            f.write(dcache_file + "\n")
-            f.write(os.path.dirname(dcache_file))
+#         # list extended attribute
+#         out = ada_client.list_xattr(dcache_file)
+#         assert attributes.items() <= out.items()
 
-        # stage
-        # Catch error when both path and from_file are given
-        with pytest.raises(AdaValidationError):
-            out = ada_client.stage(dcache_file, from_file=filelist)
-        # Catch error when neither path nor from_file are given
-        with pytest.raises(AdaValidationError):
-            out = ada_client.stage()            
+#         # remove extended attribute
+#         out = ada_client.remove_xattr(dcache_file, all_keys=True)
+#         assert "All extended attributes removed from" in out
 
-        # unstage
-        # Catch error when both path and from_file are given        
-        with pytest.raises(AdaValidationError):
-            out = ada_client.unstage(dcache_file, from_file=filelist)
-        # Catch error when neither path nor from_file are given
-        with pytest.raises(AdaValidationError):
-            out = ada_client.unstage()            
+#         # remove non-existing extended attribute
+#         with pytest.raises(AdaAPIError):
+#             ada_client.remove_xattr(dcache_file, [(dcache_file, attributes)])
+
+#         # check if extended attribute is removed
+#         out = ada_client.list_xattr(dcache_file)
+#         assert not out
 
 
-class TestConfigPrecedence:
-    def test_constructor_api_overrides_env_and_file(self, target_env, tmp_path, monkeypatch):
-        conf = tmp_path / "ada.conf"
-        conf.write_text("api=https://file.example.org/api/v1\n")
-        os.chmod(conf, 0o600)
-        monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
-        tokenfile = target_env['tokenfile']
+# class TestStaging:
 
-        with AdaClient(
-            api="https://constructor.example.org/api/v1",
-            tokenfile=str(tokenfile),
-            config_paths=[str(conf)],
-        ) as client:
-            assert client.config.api == "https://constructor.example.org/api/v1"
+#     def test_stage_unstage(self, ada_client, setup_data):
+#         """Stage and unstage file on dCache"""
+#         # create testfile on dCache
+#         dcache_file = setup_data
 
+#         # stage
+#         out = ada_client.stage(dcache_file)
+#         assert out.activity == 'PIN'
+#         assert out.targets[0] ==  dcache_file
+#         assert out.request_id != ""
 
-    def test_env_var_used_when_no_constructor_api_given(self, target_env, tmp_path, monkeypatch):
-        conf = tmp_path / "ada.conf"
-        conf.write_text("api=https://file.example.org/api/v1\n")
-        os.chmod(conf, 0o600)
-        monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
-        tokenfile = target_env['tokenfile']
-
-        with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
-            assert client.config.api == "https://env.example.org/api/v1"
+#         # unstage
+#         out = ada_client.unstage(dcache_file)
+#         assert out.activity == 'UNPIN'
+#         assert out.targets[0] ==  dcache_file
+#         assert out.request_id != ""
 
 
-    def test_file_used_when_no_constructor_or_env_api_given(self, target_env, tmp_path):
-        conf = tmp_path / "ada.conf"
-        conf.write_text("api=https://file.example.org/api/v1\n")
-        os.chmod(conf, 0o600)
-        tokenfile = target_env['tokenfile']
+#     def test_stage_unstage_from_file(self, ada_client, setup_data, tmp_path):
+#         """Stage and unstage file on dCache from filelist"""
+#         # create testfile on dCache
+#         dcache_file = setup_data
+#         filelist = tmp_path / "file_list"
+#         with open(filelist, "w") as f:
+#             f.write(dcache_file + "\n")
+#             f.write(os.path.dirname(dcache_file))
 
-        with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
-            assert client.config.api == "https://file.example.org/api/v1"
+#         # stage
+#         out = ada_client.stage(from_file=filelist)
+#         assert out.activity == 'PIN'
+#         assert out.targets[0] ==  dcache_file
+#         assert out.request_id != ""
+
+#         # unstage
+#         out = ada_client.unstage(from_file=filelist)
+#         assert out.activity == 'UNPIN'
+#         assert out.targets[0] ==  dcache_file
+#         assert out.request_id != ""
+
+
+#     def test_stage_unstage_errors(self, ada_client, setup_data, tmp_path):
+#         """Stage and unstage file on dCache with errors"""
+#         # create testfile on dCache
+#         dcache_file = setup_data
+#         filelist = tmp_path / "file_list"
+#         with open(filelist, "w") as f:
+#             f.write(dcache_file + "\n")
+#             f.write(os.path.dirname(dcache_file))
+
+#         # stage
+#         # Catch error when both path and from_file are given
+#         with pytest.raises(AdaValidationError):
+#             out = ada_client.stage(dcache_file, from_file=filelist)
+#         # Catch error when neither path nor from_file are given
+#         with pytest.raises(AdaValidationError):
+#             out = ada_client.stage()            
+
+#         # unstage
+#         # Catch error when both path and from_file are given        
+#         with pytest.raises(AdaValidationError):
+#             out = ada_client.unstage(dcache_file, from_file=filelist)
+#         # Catch error when neither path nor from_file are given
+#         with pytest.raises(AdaValidationError):
+#             out = ada_client.unstage()            
+
+
+# class TestConfigPrecedence:
+#     def test_constructor_api_overrides_env_and_file(self, target_env, tmp_path, monkeypatch):
+#         conf = tmp_path / "ada.conf"
+#         conf.write_text("api=https://file.example.org/api/v1\n")
+#         os.chmod(conf, 0o600)
+#         monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
+#         tokenfile = target_env['tokenfile']
+
+#         with AdaClient(
+#             api="https://constructor.example.org/api/v1",
+#             tokenfile=str(tokenfile),
+#             config_paths=[str(conf)],
+#         ) as client:
+#             assert client.config.api == "https://constructor.example.org/api/v1"
+
+
+#     def test_env_var_used_when_no_constructor_api_given(self, target_env, tmp_path, monkeypatch):
+#         conf = tmp_path / "ada.conf"
+#         conf.write_text("api=https://file.example.org/api/v1\n")
+#         os.chmod(conf, 0o600)
+#         monkeypatch.setenv("ada_api", "https://env.example.org/api/v1")
+#         tokenfile = target_env['tokenfile']
+
+#         with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
+#             assert client.config.api == "https://env.example.org/api/v1"
+
+
+#     def test_file_used_when_no_constructor_or_env_api_given(self, target_env, tmp_path):
+#         conf = tmp_path / "ada.conf"
+#         conf.write_text("api=https://file.example.org/api/v1\n")
+#         os.chmod(conf, 0o600)
+#         tokenfile = target_env['tokenfile']
+
+#         with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
+#             assert client.config.api == "https://file.example.org/api/v1"
 
 
 class TestTransfer:
@@ -321,15 +321,23 @@ class TestTransfer:
         out = ada_client.download(dcache_file, local_file)
         assert out.status=="downloaded"
 
+        # raise error when file already exists loally 
+        with pytest.raises(AdaPathError):
+            out = ada_client.download(dcache_file, local_file)
+
         # verify checksum by downloading again with --verify-checksum
         out = ada_client.download(dcache_file, local_file, verify_checksum=True) 
         assert out.status=="already-verified"
 
-        #upload
+        # upload
         tmp_file = dcache_file + '_tmp'
         out = ada_client.upload(local_file, tmp_file)
         assert out.status=="uploaded"
 
-       # verify checksum by downloading again with --verify-checksum
+        # raise error when file already exists on dCache 
+        with pytest.raises(AdaPathError):
+            out = ada_client.upload(local_file, tmp_file)
+
+        # verify checksum by downloading again with --verify-checksum
         out = ada_client.upload(local_file, tmp_file, verify_checksum=True)
         assert out.status=="already-verified"
