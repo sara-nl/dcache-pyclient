@@ -52,6 +52,14 @@ ada.services.system module
    :show-inheritance:
    :undoc-members:
 
+ada.services.transfer module
+----------------------------
+
+.. automodule:: ada.services.transfer
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 ada.services.xattr module
 -------------------------
 

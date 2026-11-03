@@ -56,6 +56,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-ada.services.namespace">ada.services.namespace module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ada.services.staging">ada.services.staging module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ada.services.system">ada.services.system module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ada.services.transfer">ada.services.transfer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ada.services.xattr">ada.services.xattr module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-ada.services">Module contents</a></li>
 </ul>
@@ -70,6 +71,7 @@
 <li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.exceptions">ada.exceptions module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.models">ada.models module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.utils">ada.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.webdav">ada.webdav module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.x509utils">ada.x509utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada">Module contents</a></li>
 </ul>
@@ -595,6 +597,89 @@ the user nor the group has any quota set.</p>
 <dd><p>Get the authenticated user’s identity.</p>
 <p>Returns user info including UID, GIDs, username, home directory,
 and the dCache version.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ada.services.transfer">
+<span id="ada-services-transfer-module"></span><h2>ada.services.transfer module<a class="headerlink" href="#module-ada.services.transfer" title="Link to this heading"></a></h2>
+<p>Transfer service — upload and download file content via WebDAV.</p>
+<p>The dCache REST API can only manage metadata; actual file content is
+transferred through a WebDAV door (see <code class="docutils literal notranslate"><span class="pre">ada.webdav</span></code>). This service
+applies the same safety rules as the Bash version: no silent
+overwrites, no downloading directories/symlinks, and — importantly —
+refuses to download a file that’s only on tape (nearline), since
+dCache would otherwise silently stage it while the connection sits
+there waiting, which can take anywhere from minutes to days.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.services.transfer.TransferService">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.transfer.</span></span><span class="sig-name descname"><span class="pre">TransferService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="ada.html#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.services.namespace.NamespaceService" title="ada.services.namespace.NamespaceService"><span class="pre">NamespaceService</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checksums</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.services.checksum.ChecksumService" title="ada.services.checksum.ChecksumService"><span class="pre">ChecksumService</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.transfer.TransferService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Upload and download file content via WebDAV.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.transfer.TransferService.download">
+<span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_checksum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_insecure_redirects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.TransferResult" title="ada.models.TransferResult"><span class="pre">TransferResult</span></a></span></span><a class="headerlink" href="#ada.services.transfer.TransferService.download" title="Link to this definition"></a></dt>
+<dd><p>Download a file from dCache.</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>remote_path: Source dCache path. May be prefixed with a</dt><dd><p>WebDAV door (e.g. <code class="docutils literal notranslate"><span class="pre">https://door/path</span></code>) to bypass door
+discovery.</p>
+</dd>
+<dt>local_path: Destination local path, or a directory to</dt><dd><p>download into (keeping the remote filename).</p>
+</dd>
+<dt>verify_checksum: If True and the local file already exists,</dt><dd><p>compare checksums instead of failing outright; and after
+a fresh download, verify the transferred content’s
+checksum against dCache’s.</p>
+</dd>
+<dt>allow_insecure_redirects: If True, follow WebDAV redirects</dt><dd><p>even if they downgrade to plain HTTP.</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>AdaPathError: If the local target already exists (without</dt><dd><p>verify_checksum), or the source is a directory/symlink,
+or the parent directory doesn’t exist.</p>
+</dd>
+</dl>
+<p>AdaNotFoundError: If the source doesn’t exist.
+AdaTransferError: If the source is on tape and not online</p>
+<blockquote>
+<div><p>(with a suggestion to stage it first), or on checksum
+mismatch / WebDAV-level failure.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.services.transfer.TransferService.upload">
+<span class="sig-name descname"><span class="pre">upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_checksum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_insecure_redirects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="ada.html#ada.models.TransferResult" title="ada.models.TransferResult"><span class="pre">TransferResult</span></a></span></span><a class="headerlink" href="#ada.services.transfer.TransferService.upload" title="Link to this definition"></a></dt>
+<dd><p>Upload a local file to dCache.</p>
+<dl>
+<dt>Args:</dt><dd><p>local_path: Path to the local file to upload.
+remote_path: Destination dCache path, or a directory to</p>
+<blockquote>
+<div><p>upload into (keeping the local filename). May be
+prefixed with a WebDAV door (e.g. <code class="docutils literal notranslate"><span class="pre">https://door/path</span></code>)
+to bypass door discovery.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>verify_checksum: If True, ask dCache to verify the upload’s</dt><dd><p>MD5 checksum server-side (via the Content-MD5 header),
+and if the destination already exists, compare checksums
+instead of failing outright.</p>
+</dd>
+<dt>allow_insecure_redirects: If True, follow WebDAV redirects</dt><dd><p>even if they downgrade to plain HTTP.</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>AdaPathError: If the local file doesn’t exist, the</dt><dd><p>destination is an existing file (without
+verify_checksum) or a symlink, or its parent doesn’t exist.</p>
+</dd>
+</dl>
+<p>AdaTransferError: On a checksum mismatch or WebDAV-level failure.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

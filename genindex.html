@@ -194,13 +194,20 @@
         <li><a href="ada.services.html#module-ada.services.staging">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     ada.services.system
 
       <ul>
         <li><a href="ada.services.html#module-ada.services.system">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    ada.services.transfer
+
+      <ul>
+        <li><a href="ada.services.html#module-ada.services.transfer">module</a>
 </li>
       </ul></li>
       <li>
@@ -215,6 +222,13 @@
 
       <ul>
         <li><a href="ada.html#module-ada.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    ada.webdav
+
+      <ul>
+        <li><a href="ada.html#module-ada.webdav">module</a>
 </li>
       </ul></li>
       <li>
@@ -256,6 +270,8 @@
 </li>
       <li><a href="ada.html#ada.exceptions.AdaTokenPermissionError">AdaTokenPermissionError</a>
 </li>
+      <li><a href="ada.html#ada.exceptions.AdaTransferError">AdaTransferError</a>
+</li>
       <li><a href="ada.html#ada.exceptions.AdaValidationError">AdaValidationError</a>
 </li>
       <li><a href="ada.html#ada.config.AdaConfig.api">api (ada.config.AdaConfig attribute)</a>
@@ -268,10 +284,12 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="ada.html#ada.models.BulkRequest">BulkRequest (class in ada.models)</a>
+      <li><a href="ada.html#ada.api.build_ssl_kwargs">build_ssl_kwargs() (in module ada.api)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ada.html#ada.models.BulkRequest">BulkRequest (class in ada.models)</a>
+</li>
       <li><a href="ada.html#ada.models.BulkRequestStatus">BulkRequestStatus (class in ada.models)</a>
 </li>
   </ul></td>
@@ -306,6 +324,8 @@
       </ul></li>
       <li><a href="ada.html#ada.models.Checksum.checksum_type">checksum_type (ada.models.Checksum attribute)</a>
 </li>
+      <li><a href="ada.html#ada.models.TransferResult.checksum_verified">checksum_verified (ada.models.TransferResult attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ada.html#ada.models.FileInfo.checksums">checksums (ada.models.FileInfo attribute)</a>
@@ -320,6 +340,8 @@
         <li><a href="ada.html#ada.api.DcacheAPI.close">(ada.api.DcacheAPI method)</a>
 </li>
         <li><a href="ada.html#ada.client.AdaClient.close">(ada.client.AdaClient method)</a>
+</li>
+        <li><a href="ada.html#ada.webdav.WebdavClient.close">(ada.webdav.WebdavClient method)</a>
 </li>
       </ul></li>
       <li><a href="ada.html#ada.utils.confirm_deletion">confirm_deletion() (in module ada.utils)</a>
@@ -370,12 +392,12 @@
         <li><a href="ada.services.html#ada.services.namespace.NamespaceService.delete">(ada.services.namespace.NamespaceService method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ada.services.html#ada.services.events.EventService.delete_channel">delete_channel() (ada.services.events.EventService method)</a>
 </li>
       <li><a href="ada.services.html#ada.services.events.AdaState.delete_channel_files">delete_channel_files() (ada.services.events.AdaState method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ada.html#ada.AdaClient.delete_request">delete_request() (ada.AdaClient method)</a>
 
       <ul>
@@ -400,6 +422,18 @@
 </li>
       <li><a href="ada.html#ada.models.FileType.DIR">DIR (ada.models.FileType attribute)</a>
 </li>
+      <li><a href="ada.html#ada.webdav.discover_webdav_door">discover_webdav_door() (in module ada.webdav)</a>
+</li>
+      <li><a href="ada.html#ada.AdaClient.download">download() (ada.AdaClient method)</a>
+
+      <ul>
+        <li><a href="ada.html#ada.client.AdaClient.download">(ada.client.AdaClient method)</a>
+</li>
+        <li><a href="ada.services.html#ada.services.transfer.TransferService.download">(ada.services.transfer.TransferService method)</a>
+</li>
+        <li><a href="ada.html#ada.webdav.WebdavClient.download">(ada.webdav.WebdavClient method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -486,6 +520,8 @@
         <li><a href="ada.services.html#ada.services.checksum.ChecksumService.get">(ada.services.checksum.ChecksumService method)</a>
 </li>
       </ul></li>
+      <li><a href="ada.html#ada.api.DcacheAPI.get_absolute">get_absolute() (ada.api.DcacheAPI method)</a>
+</li>
       <li><a href="ada.services.html#ada.services.events.AdaState.get_channel_name">get_channel_name() (ada.services.events.AdaState method)</a>
 </li>
       <li><a href="ada.services.html#ada.services.namespace.NamespaceService.get_file_type">get_file_type() (ada.services.namespace.NamespaceService method)</a>
@@ -594,14 +630,14 @@
         <li><a href="ada.services.html#ada.services.events.EventService.list_channels">(ada.services.events.EventService method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ada.html#ada.AdaClient.list_labels">list_labels() (ada.AdaClient method)</a>
 
       <ul>
         <li><a href="ada.html#ada.client.AdaClient.list_labels">(ada.client.AdaClient method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ada.html#ada.AdaClient.list_xattr">list_xattr() (ada.AdaClient method)</a>
 
       <ul>
@@ -609,6 +645,8 @@
 </li>
       </ul></li>
       <li><a href="ada.html#ada.config.load_config">load_config() (in module ada.config)</a>
+</li>
+      <li><a href="ada.html#ada.models.TransferResult.local_path">local_path (ada.models.TransferResult attribute)</a>
 </li>
       <li><a href="ada.html#ada.models.FileInfo.locality">locality (ada.models.FileInfo attribute)</a>
 </li>
@@ -682,9 +720,13 @@
 </li>
         <li><a href="ada.services.html#module-ada.services.system">ada.services.system</a>
 </li>
+        <li><a href="ada.services.html#module-ada.services.transfer">ada.services.transfer</a>
+</li>
         <li><a href="ada.services.html#module-ada.services.xattr">ada.services.xattr</a>
 </li>
         <li><a href="ada.html#module-ada.utils">ada.utils</a>
+</li>
+        <li><a href="ada.html#module-ada.webdav">ada.webdav</a>
 </li>
         <li><a href="ada.html#module-ada.x509utils">ada.x509utils</a>
 </li>
@@ -817,6 +859,8 @@
 </li>
       <li><a href="ada.html#ada.models.FileType.REGULAR">REGULAR (ada.models.FileType attribute)</a>
 </li>
+      <li><a href="ada.html#ada.models.TransferResult.remote_path">remote_path (ada.models.TransferResult attribute)</a>
+</li>
       <li><a href="ada.html#ada.models.SpaceInfo.removable">removable (ada.models.SpaceInfo attribute)</a>
 </li>
       <li><a href="ada.services.html#ada.services.labels.LabelService.remove">remove() (ada.services.labels.LabelService method)</a>
@@ -930,6 +974,8 @@
       <li><a href="ada.html#ada.models.BulkRequestStatus.status">status (ada.models.BulkRequestStatus attribute)</a>
 
       <ul>
+        <li><a href="ada.html#ada.models.TransferResult.status">(ada.models.TransferResult attribute)</a>
+</li>
         <li><a href="ada.html#ada.models.UserInfo.status">(ada.models.UserInfo attribute)</a>
 </li>
       </ul></li>
@@ -961,10 +1007,10 @@
       </ul></li>
       <li><a href="ada.html#ada.models.Channel.timeout">timeout (ada.models.Channel attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ada.html#ada.utils.to_json">to_json() (in module ada.utils)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="ada.html#ada.auth.TokenAuth">TokenAuth (class in ada.auth)</a>
 </li>
       <li><a href="ada.html#ada.config.AdaConfig.tokenfile">tokenfile (ada.config.AdaConfig attribute)</a>
@@ -972,6 +1018,10 @@
       <li><a href="ada.html#ada.auth.TokenFileAuth">TokenFileAuth (class in ada.auth)</a>
 </li>
       <li><a href="ada.html#ada.models.SpaceInfo.total">total (ada.models.SpaceInfo attribute)</a>
+</li>
+      <li><a href="ada.html#ada.models.TransferResult">TransferResult (class in ada.models)</a>
+</li>
+      <li><a href="ada.services.html#ada.services.transfer.TransferService">TransferService (class in ada.services.transfer)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -997,6 +1047,18 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ada.html#ada.AdaClient.upload">upload() (ada.AdaClient method)</a>
+
+      <ul>
+        <li><a href="ada.html#ada.client.AdaClient.upload">(ada.client.AdaClient method)</a>
+</li>
+        <li><a href="ada.services.html#ada.services.transfer.TransferService.upload">(ada.services.transfer.TransferService method)</a>
+</li>
+        <li><a href="ada.html#ada.webdav.WebdavClient.upload">(ada.webdav.WebdavClient method)</a>
+</li>
+      </ul></li>
+      <li><a href="ada.html#ada.webdav.WebdavClient.url_for">url_for() (ada.webdav.WebdavClient method)</a>
+</li>
       <li><a href="ada.html#ada.models.UserInfo">UserInfo (class in ada.models)</a>
 </li>
       <li><a href="ada.html#ada.models.UserInfo.username">username (ada.models.UserInfo attribute)</a>
@@ -1045,6 +1107,8 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="ada.html#ada.webdav.WebdavClient">WebdavClient (class in ada.webdav)</a>
+</li>
       <li><a href="ada.html#ada.AdaClient.whoami">whoami() (ada.AdaClient method)</a>
 
       <ul>

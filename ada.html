@@ -59,12 +59,14 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.delete"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.delete()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.encode_path"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.encode_path()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.get"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.get_absolute"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.get_absolute()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.patch"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.patch()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.post"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.post()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.post_raw"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.post_raw()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.api.DcacheAPI.stream_sse"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.stream_sse()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.api.build_ssl_kwargs"><code class="docutils literal notranslate"><span class="pre">build_ssl_kwargs()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ada.auth">ada.auth module</a><ul>
@@ -128,6 +130,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.dcache_versions"><code class="docutils literal notranslate"><span class="pre">AdaClient.dcache_versions()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.delete"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.delete_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete_request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.download"><code class="docutils literal notranslate"><span class="pre">AdaClient.download()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.find_label"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_label()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.find_xattr"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_xattr()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.list"><code class="docutils literal notranslate"><span class="pre">AdaClient.list()</span></code></a></li>
@@ -147,6 +150,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.stat"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.stat_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat_request()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.unstage"><code class="docutils literal notranslate"><span class="pre">AdaClient.unstage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.upload"><code class="docutils literal notranslate"><span class="pre">AdaClient.upload()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.view_token"><code class="docutils literal notranslate"><span class="pre">AdaClient.view_token()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.client.AdaClient.whoami"><code class="docutils literal notranslate"><span class="pre">AdaClient.whoami()</span></code></a></li>
 </ul>
@@ -180,6 +184,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaSecurityError"><code class="docutils literal notranslate"><span class="pre">AdaSecurityError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaTokenExpiredError"><code class="docutils literal notranslate"><span class="pre">AdaTokenExpiredError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaTokenPermissionError"><code class="docutils literal notranslate"><span class="pre">AdaTokenPermissionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaTransferError"><code class="docutils literal notranslate"><span class="pre">AdaTransferError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaValidationError"><code class="docutils literal notranslate"><span class="pre">AdaValidationError</span></code></a></li>
 </ul>
 </li>
@@ -270,6 +275,13 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.models.Subscription.subscription_id"><code class="docutils literal notranslate"><span class="pre">Subscription.subscription_id</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.models.TransferResult"><code class="docutils literal notranslate"><span class="pre">TransferResult</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ada.models.TransferResult.checksum_verified"><code class="docutils literal notranslate"><span class="pre">TransferResult.checksum_verified</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.models.TransferResult.local_path"><code class="docutils literal notranslate"><span class="pre">TransferResult.local_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.models.TransferResult.remote_path"><code class="docutils literal notranslate"><span class="pre">TransferResult.remote_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.models.TransferResult.status"><code class="docutils literal notranslate"><span class="pre">TransferResult.status</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.models.UserInfo"><code class="docutils literal notranslate"><span class="pre">UserInfo</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#ada.models.UserInfo.gids"><code class="docutils literal notranslate"><span class="pre">UserInfo.gids</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.models.UserInfo.home"><code class="docutils literal notranslate"><span class="pre">UserInfo.home</span></code></a></li>
@@ -295,6 +307,17 @@
 <li class="toctree-l3"><a class="reference internal" href="#ada.utils.to_json"><code class="docutils literal notranslate"><span class="pre">to_json()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ada.webdav">ada.webdav module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ada.webdav.WebdavClient"><code class="docutils literal notranslate"><span class="pre">WebdavClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ada.webdav.WebdavClient.close"><code class="docutils literal notranslate"><span class="pre">WebdavClient.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.webdav.WebdavClient.download"><code class="docutils literal notranslate"><span class="pre">WebdavClient.download()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.webdav.WebdavClient.upload"><code class="docutils literal notranslate"><span class="pre">WebdavClient.upload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.webdav.WebdavClient.url_for"><code class="docutils literal notranslate"><span class="pre">WebdavClient.url_for()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.webdav.discover_webdav_door"><code class="docutils literal notranslate"><span class="pre">discover_webdav_door()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ada.x509utils">ada.x509utils module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ada.x509utils.DerNode"><code class="docutils literal notranslate"><span class="pre">DerNode</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#ada.x509utils.DerNode.children"><code class="docutils literal notranslate"><span class="pre">DerNode.children</span></code></a></li>
@@ -317,6 +340,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.dcache_versions"><code class="docutils literal notranslate"><span class="pre">AdaClient.dcache_versions()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.delete"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.delete_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete_request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.download"><code class="docutils literal notranslate"><span class="pre">AdaClient.download()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.find_label"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_label()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.find_xattr"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_xattr()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.list"><code class="docutils literal notranslate"><span class="pre">AdaClient.list()</span></code></a></li>
@@ -336,6 +360,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.stat"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.stat_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat_request()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.unstage"><code class="docutils literal notranslate"><span class="pre">AdaClient.unstage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.upload"><code class="docutils literal notranslate"><span class="pre">AdaClient.upload()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.view_token"><code class="docutils literal notranslate"><span class="pre">AdaClient.view_token()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.AdaClient.whoami"><code class="docutils literal notranslate"><span class="pre">AdaClient.whoami()</span></code></a></li>
 </ul>
@@ -457,6 +482,14 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="ada.services.html#module-ada.services.transfer">ada.services.transfer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ada.services.html#ada.services.transfer.TransferService"><code class="docutils literal notranslate"><span class="pre">TransferService</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ada.services.html#ada.services.transfer.TransferService.download"><code class="docutils literal notranslate"><span class="pre">TransferService.download()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.services.html#ada.services.transfer.TransferService.upload"><code class="docutils literal notranslate"><span class="pre">TransferService.upload()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="ada.services.html#module-ada.services.xattr">ada.services.xattr module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ada.services.html#ada.services.xattr.XattrService"><code class="docutils literal notranslate"><span class="pre">XattrService</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ada.services.html#ada.services.xattr.XattrService.find"><code class="docutils literal notranslate"><span class="pre">XattrService.find()</span></code></a></li>
@@ -518,6 +551,15 @@ It handles authentication, error mapping, and optional debug logging.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ada.api.DcacheAPI.get_absolute">
+<span class="sig-name descname"><span class="pre">get_absolute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accept</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'application/json'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#ada.api.DcacheAPI.get_absolute" title="Link to this definition"></a></dt>
+<dd><p>Perform a GET against an absolute URL outside the REST API base path.</p>
+<p>Used for endpoints that live alongside the REST API rather than
+under it (e.g. <code class="docutils literal notranslate"><span class="pre">/scripts/config.js</span></code>, used for WebDAV door
+discovery), while reusing the same auth/SSL/timeout setup.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ada.api.DcacheAPI.patch">
 <span class="sig-name descname"><span class="pre">patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#ada.api.DcacheAPI.patch" title="Link to this definition"></a></dt>
 <dd><p>Perform a PATCH request.</p>
@@ -542,6 +584,14 @@ It handles authentication, error mapping, and optional debug logging.</p>
 <p>Each yielded dict has keys: <code class="docutils literal notranslate"><span class="pre">event</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code> (all optional).</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.api.build_ssl_kwargs">
+<span class="sig-prename descclassname"><span class="pre">ada.api.</span></span><span class="sig-name descname"><span class="pre">build_ssl_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.auth.AuthProvider" title="ada.auth.AuthProvider"><span class="pre">AuthProvider</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.api.build_ssl_kwargs" title="Link to this definition"></a></dt>
+<dd><p>Build the httpx.Client verify/SSL kwargs for a given auth method.</p>
+<p>Shared between DcacheAPI (REST) and the WebDAV client, since both
+need the same client-certificate handling for proxy authentication.</p>
 </dd></dl>
 
 </section>
@@ -982,6 +1032,12 @@ interacting with dCache. Fully independent of the CLI layer.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ada.client.AdaClient.download">
+<span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_checksum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_insecure_redirects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ada.models.TransferResult" title="ada.models.TransferResult"><span class="pre">TransferResult</span></a></span></span><a class="headerlink" href="#ada.client.AdaClient.download" title="Link to this definition"></a></dt>
+<dd><p>Download a file from dCache via WebDAV.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ada.client.AdaClient.find_label">
 <span class="sig-name descname"><span class="pre">find_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.client.AdaClient.find_label" title="Link to this definition"></a></dt>
 <dd><p>Find files with labels matching a regex.</p>
@@ -1093,6 +1149,12 @@ interacting with dCache. Fully independent of the CLI layer.</p>
 <dt class="sig sig-object py" id="ada.client.AdaClient.unstage">
 <span class="sig-name descname"><span class="pre">unstage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ada.models.BulkRequest" title="ada.models.BulkRequest"><span class="pre">BulkRequest</span></a></span></span><a class="headerlink" href="#ada.client.AdaClient.unstage" title="Link to this definition"></a></dt>
 <dd><p>Unstage files — release disk pins.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.client.AdaClient.upload">
+<span class="sig-name descname"><span class="pre">upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_checksum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_insecure_redirects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ada.models.TransferResult" title="ada.models.TransferResult"><span class="pre">TransferResult</span></a></span></span><a class="headerlink" href="#ada.client.AdaClient.upload" title="Link to this definition"></a></dt>
+<dd><p>Upload a local file to dCache via WebDAV.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1273,6 +1335,15 @@ broad or specific error categories as needed.</p>
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.exceptions.</span></span><span class="sig-name descname"><span class="pre">AdaTokenPermissionError</span></span><a class="headerlink" href="#ada.exceptions.AdaTokenPermissionError" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ada.exceptions.AdaAuthError" title="ada.exceptions.AdaAuthError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaAuthError</span></code></a></p>
 <p>Token lacks required permissions (e.g., storage.stage).</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="ada.exceptions.AdaTransferError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.exceptions.</span></span><span class="sig-name descname"><span class="pre">AdaTransferError</span></span><a class="headerlink" href="#ada.exceptions.AdaTransferError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ada.exceptions.AdaError" title="ada.exceptions.AdaError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaError</span></code></a></p>
+<p>Upload/download (WebDAV) transfer could not proceed.</p>
+<p>Covers issues that aren’t an HTTP error response from the server,
+e.g. no WebDAV door could be found, or a redirect was refused.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1630,6 +1701,33 @@ broad or specific error categories as needed.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="ada.models.TransferResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.models.</span></span><span class="sig-name descname"><span class="pre">TransferResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checksum_verified</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.models.TransferResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Result of an upload or download.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.models.TransferResult.checksum_verified">
+<span class="sig-name descname"><span class="pre">checksum_verified</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#ada.models.TransferResult.checksum_verified" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.models.TransferResult.local_path">
+<span class="sig-name descname"><span class="pre">local_path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#ada.models.TransferResult.local_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.models.TransferResult.remote_path">
+<span class="sig-name descname"><span class="pre">remote_path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#ada.models.TransferResult.remote_path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.models.TransferResult.status">
+<span class="sig-name descname"><span class="pre">status</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#ada.models.TransferResult.status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="ada.models.UserInfo">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.models.</span></span><span class="sig-name descname"><span class="pre">UserInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">...]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">home</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.models.UserInfo" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -1774,6 +1872,85 @@ returns “unknown”.</p>
 </dd></dl>
 
 </section>
+<section id="module-ada.webdav">
+<span id="ada-webdav-module"></span><h2>ada.webdav module<a class="headerlink" href="#module-ada.webdav" title="Link to this heading"></a></h2>
+<p>WebDAV client for uploading and downloading file content.</p>
+<p>The dCache REST API (<code class="docutils literal notranslate"><span class="pre">api.py</span></code>) can manage metadata (list, stat, mkdir,
+checksums, …) but cannot transfer file <em>content</em>. That requires a
+WebDAV door: a separate endpoint dCache exposes for PUT/GET, often on
+a different host and/or port than the REST API.</p>
+<p>This module:
+- finds a suitable WebDAV door (<code class="docutils literal notranslate"><span class="pre">discover_webdav_door</span></code>), and
+- performs the actual streaming PUT/GET (<code class="docutils literal notranslate"><span class="pre">WebdavClient</span></code>),</p>
+<p>reusing the same <a class="reference internal" href="#ada.auth.AuthProvider" title="ada.auth.AuthProvider"><code class="xref py py-class docutils literal notranslate"><span class="pre">AuthProvider</span></code></a> as the REST API client,
+since the same credentials (bearer token, netrc, X.509 proxy) are valid
+for both.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ada.webdav.WebdavClient">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.webdav.</span></span><span class="sig-name descname"><span class="pre">WebdavClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">door</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.auth.AuthProvider" title="ada.auth.AuthProvider"><span class="pre">AuthProvider</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_insecure_redirects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.webdav.WebdavClient" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Streaming upload/download over WebDAV, reusing an AuthProvider.</p>
+<p>By default, redirects are only followed if they stay on https — a
+dCache WebDAV door redirecting to a plain http pool would otherwise
+silently downgrade the connection. Pass <code class="docutils literal notranslate"><span class="pre">allow_insecure_redirects</span></code>
+to override this (matching the Bash version’s behavior).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.webdav.WebdavClient.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.webdav.WebdavClient.close" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.webdav.WebdavClient.download">
+<span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.webdav.WebdavClient.download" title="Link to this definition"></a></dt>
+<dd><p>Download a remote file to a local path via GET, streaming to disk.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>AdaTransferError: On too many redirects or an insecure redirect.
+AdaAPIError: If the server returns an HTTP error status.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.webdav.WebdavClient.upload">
+<span class="sig-name descname"><span class="pre">upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.webdav.WebdavClient.upload" title="Link to this definition"></a></dt>
+<dd><p>Upload a local file to a remote path via PUT.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>AdaTransferError: On too many redirects or an insecure redirect.
+AdaAPIError: If the server returns an HTTP error status.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.webdav.WebdavClient.url_for">
+<span class="sig-name descname"><span class="pre">url_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.webdav.WebdavClient.url_for" title="Link to this definition"></a></dt>
+<dd><p>Build the full WebDAV URL for a dCache namespace path.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ada.webdav.discover_webdav_door">
+<span class="sig-prename descclassname"><span class="pre">ada.webdav.</span></span><span class="sig-name descname"><span class="pre">discover_webdav_door</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.api.DcacheAPI" title="ada.api.DcacheAPI"><span class="pre">DcacheAPI</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#ada.auth.AuthProvider" title="ada.auth.AuthProvider"><span class="pre">AuthProvider</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.webdav.discover_webdav_door" title="Link to this definition"></a></dt>
+<dd><p>Find a WebDAV door to use for uploads/downloads.</p>
+<dl class="simple">
+<dt>Tries, in order:</dt><dd><ol class="arabic simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">url</span> <span class="pre">=</span></code> entry in an rclone-format tokenfile, if that’s
+the active authentication method.</p></li>
+<li><p>The dCache-view configuration endpoint (<code class="docutils literal notranslate"><span class="pre">/scripts/config.js</span></code>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">/doors</span></code> API, picking the best public HTTPS door.</p></li>
+</ol>
+</dd>
+</dl>
+<p>A user can always bypass discovery entirely by prepending a door to
+the remote path (e.g. <code class="docutils literal notranslate"><span class="pre">https://dcache.example.org:2880/pnfs/...</span></code>).</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>AdaTransferError: If no WebDAV door could be found by any method.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="module-ada.x509utils">
 <span id="ada-x509utils-module"></span><h2>ada.x509utils module<a class="headerlink" href="#module-ada.x509utils" title="Link to this heading"></a></h2>
 <p>Minimal DER/ASN.1 helpers for X.509 proxy certificate validation.</p>
@@ -1906,6 +2083,12 @@ than raising, so callers can fall back to X.509-only validation.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ada.AdaClient.download">
+<span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_checksum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_insecure_redirects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ada.models.TransferResult" title="ada.models.TransferResult"><span class="pre">TransferResult</span></a></span></span><a class="headerlink" href="#ada.AdaClient.download" title="Link to this definition"></a></dt>
+<dd><p>Download a file from dCache via WebDAV.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ada.AdaClient.find_label">
 <span class="sig-name descname"><span class="pre">find_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.AdaClient.find_label" title="Link to this definition"></a></dt>
 <dd><p>Find files with labels matching a regex.</p>
@@ -2017,6 +2200,12 @@ than raising, so callers can fall back to X.509-only validation.</p>
 <dt class="sig sig-object py" id="ada.AdaClient.unstage">
 <span class="sig-name descname"><span class="pre">unstage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ada.models.BulkRequest" title="ada.models.BulkRequest"><span class="pre">BulkRequest</span></a></span></span><a class="headerlink" href="#ada.AdaClient.unstage" title="Link to this definition"></a></dt>
 <dd><p>Unstage files — release disk pins.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.AdaClient.upload">
+<span class="sig-name descname"><span class="pre">upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_checksum</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_insecure_redirects</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ada.models.TransferResult" title="ada.models.TransferResult"><span class="pre">TransferResult</span></a></span></span><a class="headerlink" href="#ada.AdaClient.upload" title="Link to this definition"></a></dt>
+<dd><p>Upload a local file to dCache via WebDAV.</p>
 </dd></dl>
 
 <dl class="py method">

@@ -86,6 +86,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ada.services.html#module-ada.services.namespace">ada.services.namespace module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.services.html#module-ada.services.staging">ada.services.staging module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.services.html#module-ada.services.system">ada.services.system module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.services.html#module-ada.services.transfer">ada.services.transfer module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.services.html#module-ada.services.xattr">ada.services.xattr module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.services.html#module-ada.services">Module contents</a></li>
 </ul>
@@ -99,12 +100,14 @@
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.delete"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.delete()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.encode_path"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.encode_path()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.get"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.get_absolute"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.get_absolute()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.patch"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.patch()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.post"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.post()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.post_raw"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.post_raw()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.api.DcacheAPI.stream_sse"><code class="docutils literal notranslate"><span class="pre">DcacheAPI.stream_sse()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="ada.html#ada.api.build_ssl_kwargs"><code class="docutils literal notranslate"><span class="pre">build_ssl_kwargs()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.auth">ada.auth module</a><ul>
@@ -168,6 +171,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.dcache_versions"><code class="docutils literal notranslate"><span class="pre">AdaClient.dcache_versions()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.delete"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.delete_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete_request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.download"><code class="docutils literal notranslate"><span class="pre">AdaClient.download()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.find_label"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_label()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.find_xattr"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_xattr()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.list"><code class="docutils literal notranslate"><span class="pre">AdaClient.list()</span></code></a></li>
@@ -187,6 +191,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.stat"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.stat_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat_request()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.unstage"><code class="docutils literal notranslate"><span class="pre">AdaClient.unstage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.upload"><code class="docutils literal notranslate"><span class="pre">AdaClient.upload()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.view_token"><code class="docutils literal notranslate"><span class="pre">AdaClient.view_token()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.client.AdaClient.whoami"><code class="docutils literal notranslate"><span class="pre">AdaClient.whoami()</span></code></a></li>
 </ul>
@@ -220,6 +225,7 @@
 <li class="toctree-l3"><a class="reference internal" href="ada.html#ada.exceptions.AdaSecurityError"><code class="docutils literal notranslate"><span class="pre">AdaSecurityError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ada.html#ada.exceptions.AdaTokenExpiredError"><code class="docutils literal notranslate"><span class="pre">AdaTokenExpiredError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ada.html#ada.exceptions.AdaTokenPermissionError"><code class="docutils literal notranslate"><span class="pre">AdaTokenPermissionError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="ada.html#ada.exceptions.AdaTransferError"><code class="docutils literal notranslate"><span class="pre">AdaTransferError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="ada.html#ada.exceptions.AdaValidationError"><code class="docutils literal notranslate"><span class="pre">AdaValidationError</span></code></a></li>
 </ul>
 </li>
@@ -310,6 +316,13 @@
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.models.Subscription.subscription_id"><code class="docutils literal notranslate"><span class="pre">Subscription.subscription_id</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="ada.html#ada.models.TransferResult"><code class="docutils literal notranslate"><span class="pre">TransferResult</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.models.TransferResult.checksum_verified"><code class="docutils literal notranslate"><span class="pre">TransferResult.checksum_verified</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.models.TransferResult.local_path"><code class="docutils literal notranslate"><span class="pre">TransferResult.local_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.models.TransferResult.remote_path"><code class="docutils literal notranslate"><span class="pre">TransferResult.remote_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.models.TransferResult.status"><code class="docutils literal notranslate"><span class="pre">TransferResult.status</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="ada.html#ada.models.UserInfo"><code class="docutils literal notranslate"><span class="pre">UserInfo</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.models.UserInfo.gids"><code class="docutils literal notranslate"><span class="pre">UserInfo.gids</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.models.UserInfo.home"><code class="docutils literal notranslate"><span class="pre">UserInfo.home</span></code></a></li>
@@ -335,6 +348,17 @@
 <li class="toctree-l3"><a class="reference internal" href="ada.html#ada.utils.to_json"><code class="docutils literal notranslate"><span class="pre">to_json()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.webdav">ada.webdav module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ada.html#ada.webdav.WebdavClient"><code class="docutils literal notranslate"><span class="pre">WebdavClient</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.webdav.WebdavClient.close"><code class="docutils literal notranslate"><span class="pre">WebdavClient.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.webdav.WebdavClient.download"><code class="docutils literal notranslate"><span class="pre">WebdavClient.download()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.webdav.WebdavClient.upload"><code class="docutils literal notranslate"><span class="pre">WebdavClient.upload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.webdav.WebdavClient.url_for"><code class="docutils literal notranslate"><span class="pre">WebdavClient.url_for()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ada.html#ada.webdav.discover_webdav_door"><code class="docutils literal notranslate"><span class="pre">discover_webdav_door()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="ada.html#module-ada.x509utils">ada.x509utils module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="ada.html#ada.x509utils.DerNode"><code class="docutils literal notranslate"><span class="pre">DerNode</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.x509utils.DerNode.children"><code class="docutils literal notranslate"><span class="pre">DerNode.children</span></code></a></li>
@@ -357,6 +381,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.dcache_versions"><code class="docutils literal notranslate"><span class="pre">AdaClient.dcache_versions()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.delete"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.delete_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.delete_request()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.download"><code class="docutils literal notranslate"><span class="pre">AdaClient.download()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.find_label"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_label()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.find_xattr"><code class="docutils literal notranslate"><span class="pre">AdaClient.find_xattr()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.list"><code class="docutils literal notranslate"><span class="pre">AdaClient.list()</span></code></a></li>
@@ -376,6 +401,7 @@
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.stat"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.stat_request"><code class="docutils literal notranslate"><span class="pre">AdaClient.stat_request()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.unstage"><code class="docutils literal notranslate"><span class="pre">AdaClient.unstage()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.upload"><code class="docutils literal notranslate"><span class="pre">AdaClient.upload()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.view_token"><code class="docutils literal notranslate"><span class="pre">AdaClient.view_token()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="ada.html#ada.AdaClient.whoami"><code class="docutils literal notranslate"><span class="pre">AdaClient.whoami()</span></code></a></li>
 </ul>
