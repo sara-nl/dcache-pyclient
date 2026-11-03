@@ -13,19 +13,20 @@ The configuration options are:
 | `api` | string | - | dCache REST API URL (must start with `https://` and end with `/api/v1` or `/api/v2`) |
 | `channel_timeout` | integer | `3600` | Default SSE channel timeout in seconds |
 | `debug` | boolean | `false` | Enable debug logging |
-| `tokenfile` | string | — | Default token file path (precedence over netrcfile) |
+| `tokenfile` | string | — | Default token file path (precedence over tokenclient and netrcfile) |
+| `tokenclient` | string | — | Default OIDC client config to use (needs oidc-agent, precedence over netrcfile) |
 | `netrcfile` | string | — | Default netrc file path (precedence over proxy authentification)|
 | `igtf` | boolean | `true` | Use IGTF Grid certificates for proxy authentication |
 
 Note that the order of precedence for authentication is (high-to-low):
 ```
-token ← tokenfile ← netrcfile ← Grid proxy
+token ← tokenfile ← tokenclient ← netrcfile ← Grid proxy
 ```
 
 The CLI `--token` flag does not take a value; it explicitly selects token
 authentication and reads the token from the `$BEARER_TOKEN` environment
 variable, raising an error if it is not set. It is mutually exclusive with
-`--tokenfile`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`. If none
+`--tokenfile`, `--tokenclient`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`. If none
 of these is given, `$BEARER_TOKEN` is still used automatically when set (see
 [Environment Variables](#environment-variables)).
 
@@ -41,7 +42,7 @@ different file. By default the proxy is verified against IGTF Grid CA
 certificates; pass `--no-igtf` to disable this (overriding the `igtf` config
 value for this run).
 
-All of `--token`, `--tokenfile`, `--netrc`, `--netrcfile`, `--proxy`, and
+All of `--token`, `--tokenfile`, `--tokenclient`, `--netrc`, `--netrcfile`, `--proxy`, and
 `--proxyfile` are mutually exclusive with each other.
 
 ## Config File
@@ -78,7 +79,8 @@ Environment variables override config file values. They are checked after loadin
 | `ada_debug` | `debug` | Enable debug output (`true`/`false`) |
 | `ada_channel_timeout` | `channel_timeout` | SSE channel timeout |
 | `ada_igtf` | `igtf` | Use IGTF certificates |
-| `ada_tokenfile` | `tokenfile` (precedence over ada_netrcfile)| Token file path |
+| `ada_tokenfile` | `tokenfile` | Token file path (precedence over tokenclient and ada_netrcfile)|
+| `ada_tokenclient` | `tokenclient` | OIDC client config (needs oidc-agent, precedence over ada_netrcfile)|
 | `ada_netrcfile` | `netrcfile` | Netrc file path (precedence over X509_USER_PROXY) |
 | `BEARER_TOKEN` | — | Direct bearer token string (precedence over ada_tokenfile) |
 | `X509_USER_PROXY` | — | X.509 proxy file path |

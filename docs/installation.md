@@ -25,5 +25,12 @@ Check the installation of the CLI application:
 ada-cli --help
 ```
 
+### Using dcache-pyclient with oidc-agent
+To use dcache-pyclient with [oidc-agent](https://indigo-dc.github.io/oidc-agent/), install it with the oidc-agent extra:
+```
+pip install dcache-pyclient[oidc-agent]
+```
+The oidc-agent tool has to be installed and properly configured on the system for dcache-pyclient to be able use it. Refer to the [oidc-agent documentation](https://indigo-dc.github.io/oidc-agent/usage/oidc-gen/) on how to set up oidc-agent and configure the client. It is recommended to use the command `oidc-add myClientName` to pre-load the client configuration in oidc-agent before starting dcache-pyclient. You can re-use you oidc-agent setup for file transfers with [rclone](https://rclone.org/webdav/#openid-connect).
+
 ## For developers
 If you want to modify `dcache-pyclient` or run integration tests on your dCache instance, find the source code and instructions on the [Github repo](https://github.com/sara-nl/dcache-pyclient).

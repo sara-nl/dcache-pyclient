@@ -43,13 +43,19 @@ ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
 ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
 ```
 
-`--tokenfile`, `--token`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`
+`--tokenfile`, `--tokenclient`, `--token`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`
 are mutually exclusive. Use `--token` to explicitly request token
 authentication from the `$BEARER_TOKEN` environment variable (the token value
 itself is never passed on the command line):
 ```
 export BEARER_TOKEN=<your-bearer-token>
 ada-cli --token --api <URL> whoami
+```
+
+Use `--tokenclient` to instruct ADA to use oidc-agent with the specified client configuration.
+This requires that the requested client configuration is known to oidc-agent:
+```
+ada-cli --tokenclient <clientConfigName> --api <URL> whoami
 ```
 
 Use `--netrc` to explicitly request netrc-based password authentication from

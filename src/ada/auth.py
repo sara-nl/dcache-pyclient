@@ -168,6 +168,38 @@ class TokenFileAuth(TokenAuth):
 
         raise AdaAuthError(f"Could not read token from file: {path}")
 
+class TokenOidcAgentAuth(TokenAuth):
+    '''
+    Bearer token auth using the oidc-agent client library.
+    Requires oidc-agent to be installed, configured and running on the system.
+    '''
+
+    def __init__(self, client: str,**kwargs):
+        
+        try:
+            import liboidcagent as agent
+            self.agent = agent
+        except ImportError:
+            raise RuntimeError(
+                "This auth method requires 'liboidcagent'. "
+                "Install it using: pip install dcache-pyclient [oidc-agent]"
+            ) from None
+
+        self.client = client
+        self.token_options = kwargs
+
+        token = self._get_token()
+        
+        source = f"oidc-agent : {client}"
+        super().__init__(token, source)
+
+    def _get_token(self) -> str:
+        return self.agent.get_access_token(self.client, **self.token_options)
+
+    def headers(self) -> dict[str, str]:
+        self.token = self._get_token() 
+        return super().headers()
+
 
 def _parse_netrc(path: str, hostname: str) -> tuple[str, str]:
     """Parse a netrc file for the login/password of the given host.
@@ -348,6 +380,7 @@ def _extract_hostname(api_url: str) -> str:
 def resolve_auth(
     token: Optional[str] = None,
     tokenfile: Optional[str] = None,
+    tokenclient: Optional[str] = None,
     netrc: Optional[str] = None,
     proxy: Optional[str] = None,
     config: Optional[AdaConfig] = None,
@@ -355,9 +388,9 @@ def resolve_auth(
     """Resolve authentication method from args, env vars, and config.
 
     Precedence (from high to low):
-        1. Explicit arguments (token, tokenfile, netrc, proxy)
-        2. Environment variables ($BEARER_TOKEN, $ada_tokenfile, $ada_netrcfile)
-        3. Config file values (tokenfile, netrcfile)
+        1. Explicit arguments (token, tokenfile, tokenclient, netrc, proxy)
+        2. Environment variables ($BEARER_TOKEN, $ada_tokenfile, $ada_tokenclient, $ada_netrcfile)
+        3. Config file values (tokenfile, tokenclient, netrcfile)
 
     Raises:
         AdaAuthError: If no authentication method can be resolved.
@@ -370,6 +403,8 @@ def resolve_auth(
         return TokenAuth(token, source="direct")
     if tokenfile:
         return TokenFileAuth(tokenfile)
+    if tokenclient:
+        return TokenOidcAgentAuth(tokenclient)
     if netrc is not None:
         return NetrcAuth(netrc if netrc else None, hostname=hostname)
     if proxy is not None:
@@ -383,6 +418,8 @@ def resolve_auth(
         return TokenAuth(bearer, source="$BEARER_TOKEN")
     if tf := os.environ.get("ada_tokenfile"):
         return TokenFileAuth(tf)
+    if tc := os.environ.get("ada_tokenclient"):
+        return TokenOidcAgentAuth(tc)
     if nf := os.environ.get("ada_netrcfile"):
         return NetrcAuth(nf, hostname=hostname)
 
@@ -390,14 +427,16 @@ def resolve_auth(
     if config:
         if config.tokenfile:
             return TokenFileAuth(config.tokenfile)
+        if config.tokenclient:
+           return TokenOidcAgentAuth(config.tokenclient)
         if config.netrcfile:
             return NetrcAuth(config.netrcfile, hostname=hostname)
 
     raise AdaAuthError(
         "No authentication method configured. Use --token, --tokenfile, "
-        "--netrc, --netrcfile, --proxy, or --proxyfile; set $BEARER_TOKEN, "
-        "$ada_tokenfile, or $ada_netrcfile; or set tokenfile/netrcfile in "
-        "ada.conf."
+        "--tokenclient, --netrc, --netrcfile, --proxy, or --proxyfile;"
+        "set $BEARER_TOKEN, $ada_tokenfile, $ada_tokenclient or $ada_netrcfile;"
+        "or set tokenfile/tokenclient/netrcfile in ada.conf."
     )
 
 

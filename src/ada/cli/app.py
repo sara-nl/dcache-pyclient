@@ -51,6 +51,11 @@ def parse_args() -> argparse.ArgumentParser:
         help="Path to tokenfile."
     )
     auth_group.add_argument(
+        "--tokenclient",
+        type=str,
+        help="OIDC client configuration to use with oidc-agent."
+    )
+    auth_group.add_argument(
         "--token",
         action="store_true",
         help="Use token authentication, reading the token from $BEARER_TOKEN."

@@ -400,6 +400,7 @@ def __get_client__(parsed_args):
         api=parsed_args.api,
         token=token,
         tokenfile=parsed_args.tokenfile,
+        tokenclient=parsed_args.tokenclient,
         netrc=netrc,
         proxy=proxy,
         igtf=igtf,

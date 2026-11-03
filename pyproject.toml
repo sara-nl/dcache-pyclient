@@ -12,6 +12,10 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 httpx = "^0.28.1"
+liboidcagent = {version=">=0.5", optional=true}
+
+[tool.poetry.extras]
+oidc-agent = ["liboidcagent"]
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.2"
