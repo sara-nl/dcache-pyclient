@@ -20,16 +20,30 @@ ada-cli --help
 ```
 This will show the currently supported ADA commands:
 ```
-whoami          Show how dCache identifies you.
-list            List files in a directory.
-longlist        List a file or directory with details.
-mkdir           Create a directory.
-delete          Delete a file or directory.
-mv              Rename or move a file or directory. Note that moving a file will not change its properties. A tape file will remain on tape, even when you
-                move it to a disk directory.
-checksum        Show MD5/Adler32 checksums for a file, files in directory, or files listed in a file.
-stage           Stage/pin a file from tape (bring to disk/online).
-unstage         Unstage/unpin file so dCache may purge its online replica.
+    whoami              Show how dCache identifies you.
+    list                List files in a directory.
+    longlist            List a file or directory with details.
+    stat                Show complete metadata for a file or directory.
+    mkdir               Create a directory.
+    delete              Delete a file or directory.
+    mv                  Rename or move a file or directory. Note that moving a file will not change its properties. A tape file will remain on tape,
+                        even when you move it to a disk directory.
+    checksum            Show MD5/Adler32 checksums for a file, files in directory, or files listed in a file.
+    stage               Stage/pin a file from tape (bring to disk/online).
+    unstage             Unstage/unpin file so dCache may purge its online replica.
+    upload              Upload a local file to dCache.
+    download            Download a file from dCache.
+    viewtoken           Decode and show the properties of the current token.
+    setxattr            Set extended attributes on a file.
+    rmxattr             Remove one extended attribute, or all, from a file.
+    lsxattr             List extended attributes of a file, or check a specific key.
+    findxattr           Find files in a directory whose extended attributes match a regex.
+    setlabel            Attach a label to a file.
+    rmlabel             Remove one label, or all labels, from a file.
+    lslabel             List labels of a file, or check whether it has a specific label.
+    findlabel           Find files in a directory whose labels match a regex pattern.
+    space               Show pool group names, or space usage for a pool group.
+    quota               Show storage quotas (tape/custodial and disk/replica), for user and group.
 ```
 To get details for a specific ADA command:
 ```
