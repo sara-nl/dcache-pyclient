@@ -13,6 +13,7 @@ with AdaClient(api="https://...", tokenfile="/path/to/token") as client:
 
 Find a complete description of the interface in the [ADA API Reference](https://sara-nl.github.io/dcache-pyclient/ada.html).
 
+
 ## Using ADA as a CLI tool
 For more information abpout how to use the ADA command line interface tool:
 ```
@@ -45,18 +46,38 @@ This will show the currently supported ADA commands:
     space               Show pool group names, or space usage for a pool group.
     quota               Show storage quotas (tape/custodial and disk/replica), for user and group.
 ```
+and options:
+```
+  -h, --help            show this help message and exit
+  --tokenfile TOKENFILE
+                        Path to tokenfile.
+  --token               Use token authentication, reading the token from $BEARER_TOKEN.
+  --netrcfile NETRCFILE
+                        Path to netrc file.
+  --netrc               Use netrc-based password authentication, reading from ~/.netrc.
+  --proxyfile PROXYFILE
+                        Path to X.509 proxy file.
+  --proxy               Use X.509 proxy authentication, reading from $X509_USER_PROXY or /tmp/x509up_u<uid>.
+  --no-igtf             Disable IGTF Grid CA certificate verification (only relevant for --proxy/--proxyfile authentication).
+  --api API             The dCache API URL to talk to.
+  --no-verify           Disable SSL verification. Do not use in production, connection may be insecure!
+  --debug               Run in debug mode (not yet implemented).
+  --version             show program's version number and exit
+```
+
 To get details for a specific ADA command:
 ```
 ada-cli <command> --help
 ```
 
-Examples:
+### Examples
 ```
 ada-cli --tokenfile </path/to/token> --api <URL> whoami 
 ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
 ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
 ```
 
+### Authentication
 `--tokenfile`, `--token`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`
 are mutually exclusive. Use `--token` to explicitly request token
 authentication from the `$BEARER_TOKEN` environment variable (the token value
