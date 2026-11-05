@@ -809,13 +809,13 @@ to show the status, even for an expired token.</p>
 <dt class="sig sig-object py" id="ada.auth.check_ip_caveat">
 <span class="sig-prename descclassname"><span class="pre">ada.auth.</span></span><span class="sig-name descname"><span class="pre">check_ip_caveat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ip_caveat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.auth.check_ip_caveat" title="Link to this definition"></a></dt>
 <dd><p>Check this system’s public IP address(es) against a macaroon’s IP caveat.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>ip_caveat: Comma-separated list of IPs/subnets, as found in a</dt><dd><p>macaroon’s <code class="docutils literal notranslate"><span class="pre">ip:</span></code> caveat.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ip_caveat</strong> – Comma-separated list of IPs/subnets, as found in a
+macaroon’s <code class="docutils literal notranslate"><span class="pre">ip:</span></code> caveat.</p>
 </dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>A human-readable status message. Never raises — this is purely
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A human-readable status message. Never raises — this is purely
 informational.</p>
 </dd>
 </dl>
@@ -835,10 +835,12 @@ to ISO 8601 strings (matching the Bash <code class="docutils literal notranslate
 <dd><p>Decode the payload section of a JWT token.</p>
 <p>Does NOT verify the signature — this is for inspection only,
 matching the Bash version’s behavior.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>Decoded payload as a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Decoded payload as a dict.</p>
 </dd>
-<dt>Raises:</dt><dd><p>AdaAuthError: If the token cannot be decoded.</p>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#ada.exceptions.AdaAuthError" title="ada.exceptions.AdaAuthError"><strong>AdaAuthError</strong></a> – If the token cannot be decoded.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -862,9 +864,13 @@ anywhere in the line rather than requiring them at the start.</p>
 <dl class="simple">
 <dt>Replicates the Bash decoding logic:</dt><dd><p>base64 -d | awk ‘{print substr($0, 5)}’ | grep -v ‘signature’ | tr -d ‘0’</p>
 </dd>
-<dt>Returns:</dt><dd><p>Decoded macaroon text (caveats, etc.).</p>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Decoded macaroon text (caveats, etc.).</p>
 </dd>
-<dt>Raises:</dt><dd><p>AdaAuthError: If the token cannot be decoded.</p>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#ada.exceptions.AdaAuthError" title="ada.exceptions.AdaAuthError"><strong>AdaAuthError</strong></a> – If the token cannot be decoded.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -884,8 +890,9 @@ error — just a fact worth showing.</p>
 <span class="sig-prename descclassname"><span class="pre">ada.auth.</span></span><span class="sig-name descname"><span class="pre">extract_macaroon_expiry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decoded_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#ada.auth.extract_macaroon_expiry" title="Link to this definition"></a></dt>
 <dd><p>Extract the expiration timestamp from decoded Macaroon text.</p>
 <p>Looks for <code class="docutils literal notranslate"><span class="pre">before:</span></code> caveat with ISO 8601 timestamp.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>Unix timestamp as int, or None if not found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Unix timestamp as int, or None if not found.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -900,8 +907,9 @@ error — just a fact worth showing.</p>
 <dt class="sig sig-object py" id="ada.auth.get_jwt_expiry">
 <span class="sig-prename descclassname"><span class="pre">ada.auth.</span></span><span class="sig-name descname"><span class="pre">get_jwt_expiry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#ada.auth.get_jwt_expiry" title="Link to this definition"></a></dt>
 <dd><p>Extract the expiration timestamp (exp) from a JWT.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>Unix timestamp as int, or None if not present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Unix timestamp as int, or None if not present.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -910,8 +918,9 @@ error — just a fact worth showing.</p>
 <dt class="sig sig-object py" id="ada.auth.get_jwt_scope">
 <span class="sig-prename descclassname"><span class="pre">ada.auth.</span></span><span class="sig-name descname"><span class="pre">get_jwt_scope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ada.auth.get_jwt_scope" title="Link to this definition"></a></dt>
 <dd><p>Extract the scope claim from a JWT.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>The scope string, or empty string if not present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The scope string, or empty string if not present.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -922,8 +931,9 @@ error — just a fact worth showing.</p>
 <dd><p>Look up this system’s public IPv4 or IPv6 address.</p>
 <p>Tries a few well-known lookup services in order, falling through
 to the next if one is unreachable.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>The address as a string, or None if it could not be
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The address as a string, or None if it could not be
 determined (e.g. this system has no address of that family).</p>
 </dd>
 </dl>
@@ -952,7 +962,10 @@ determined (e.g. this system has no address of that family).</p>
 <li><p>Config file values (tokenfile, netrcfile)</p></li>
 </ol>
 </dd>
-<dt>Raises:</dt><dd><p>AdaAuthError: If no authentication method can be resolved.</p>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#ada.exceptions.AdaAuthError" title="ada.exceptions.AdaAuthError"><strong>AdaAuthError</strong></a> – If no authentication method can be resolved.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -961,17 +974,21 @@ determined (e.g. this system has no address of that family).</p>
 <dt class="sig sig-object py" id="ada.auth.validate_token">
 <span class="sig-prename descclassname"><span class="pre">ada.auth.</span></span><span class="sig-name descname"><span class="pre">validate_token</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.auth.validate_token" title="Link to this definition"></a></dt>
 <dd><p>Validate a token (JWT or Macaroon) for expiry and permissions.</p>
-<dl>
-<dt>Args:</dt><dd><p>token: The raw token string.
-source: Description of where the token came from (for error messages).
-command: The command being executed (e.g., “stage”), used to check</p>
-<blockquote>
-<div><p>command-specific permissions.</p>
-</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>token</strong> – The raw token string.</p></li>
+<li><p><strong>source</strong> – Description of where the token came from (for error messages).</p></li>
+<li><p><strong>command</strong> – The command being executed (e.g., “stage”), used to check
+command-specific permissions.</p></li>
+</ul>
 </dd>
-<dt>Raises:</dt><dd><p>AdaTokenExpiredError: If the token has expired or is about to expire.
-AdaTokenPermissionError: If the token lacks required permissions.
-AdaAuthError: If the token cannot be decoded.</p>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#ada.exceptions.AdaTokenExpiredError" title="ada.exceptions.AdaTokenExpiredError"><strong>AdaTokenExpiredError</strong></a> – If the token has expired or is about to expire.</p></li>
+<li><p><a class="reference internal" href="#ada.exceptions.AdaTokenPermissionError" title="ada.exceptions.AdaTokenPermissionError"><strong>AdaTokenPermissionError</strong></a> – If the token lacks required permissions.</p></li>
+<li><p><a class="reference internal" href="#ada.exceptions.AdaAuthError" title="ada.exceptions.AdaAuthError"><strong>AdaAuthError</strong></a> – If the token cannot be decoded.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1231,8 +1248,9 @@ existing <code class="docutils literal notranslate"><span class="pre">~/.ada/ada
 <dt class="sig sig-object py" id="ada.config.AdaConfig.validate">
 <span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.config.AdaConfig.validate" title="Link to this definition"></a></dt>
 <dd><p>Validate configuration values.</p>
-<dl class="simple">
-<dt>Raises:</dt><dd><p>AdaConfigError: If the API URL is set but has an invalid format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#ada.exceptions.AdaConfigError" title="ada.exceptions.AdaConfigError"><strong>AdaConfigError</strong></a> – If the API URL is set but has an invalid format.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1243,13 +1261,13 @@ existing <code class="docutils literal notranslate"><span class="pre">~/.ada/ada
 <dt class="sig sig-object py" id="ada.config.load_config">
 <span class="sig-prename descclassname"><span class="pre">ada.config.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ada.config.AdaConfig" title="ada.config.AdaConfig"><span class="pre">AdaConfig</span></a></span></span><a class="headerlink" href="#ada.config.load_config" title="Link to this definition"></a></dt>
 <dd><p>Load configuration from files and environment variables.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>paths: Optional list of config file paths to search.</dt><dd><p>If not provided, uses default search paths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>paths</strong> – Optional list of config file paths to search.
+If not provided, uses default search paths.</p>
 </dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>Populated AdaConfig instance.</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Populated AdaConfig instance.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1788,12 +1806,18 @@ and human-readable size formatting.</p>
 <dd><p>Verify a file is not world-readable or world-writable.</p>
 <p>Replicates the Bash security checks on token files, netrc files,
 and config files.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>filepath: Path to check.
-check_readable: If True, also checks world-readable bit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> – Path to check.</p></li>
+<li><p><strong>check_readable</strong> – If True, also checks world-readable bit.</p></li>
+</ul>
 </dd>
-<dt>Raises:</dt><dd><p>AdaSecurityError: If the file has insecure permissions.
-FileNotFoundError: If the file does not exist.</p>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#ada.exceptions.AdaSecurityError" title="ada.exceptions.AdaSecurityError"><strong>AdaSecurityError</strong></a> – If the file has insecure permissions.</p></li>
+<li><p><strong>FileNotFoundError</strong> – If the file does not exist.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1839,10 +1863,12 @@ returns “unknown”.</p>
 <dt class="sig sig-object py" id="ada.utils.parse_lifetime">
 <span class="sig-prename descclassname"><span class="pre">ada.utils.</span></span><span class="sig-name descname"><span class="pre">parse_lifetime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifetime_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#ada.utils.parse_lifetime" title="Link to this definition"></a></dt>
 <dd><p>Parse a lifetime string like ‘7D’, ‘24H’, ‘30M’ into (value, unit).</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>Tuple of (numeric_value, unit_character).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple of (numeric_value, unit_character).</p>
 </dd>
-<dt>Raises:</dt><dd><p>AdaValidationError: If the format is invalid.</p>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#ada.exceptions.AdaValidationError" title="ada.exceptions.AdaValidationError"><strong>AdaValidationError</strong></a> – If the format is invalid.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1903,9 +1929,12 @@ to override this (matching the Bash version’s behavior).</p>
 <dt class="sig sig-object py" id="ada.webdav.WebdavClient.download">
 <span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.webdav.WebdavClient.download" title="Link to this definition"></a></dt>
 <dd><p>Download a remote file to a local path via GET, streaming to disk.</p>
-<dl class="simple">
-<dt>Raises:</dt><dd><p>AdaTransferError: On too many redirects or an insecure redirect.
-AdaAPIError: If the server returns an HTTP error status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#ada.exceptions.AdaTransferError" title="ada.exceptions.AdaTransferError"><strong>AdaTransferError</strong></a> – On too many redirects or an insecure redirect.</p></li>
+<li><p><a class="reference internal" href="#ada.exceptions.AdaAPIError" title="ada.exceptions.AdaAPIError"><strong>AdaAPIError</strong></a> – If the server returns an HTTP error status.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1914,9 +1943,12 @@ AdaAPIError: If the server returns an HTTP error status.</p>
 <dt class="sig sig-object py" id="ada.webdav.WebdavClient.upload">
 <span class="sig-name descname"><span class="pre">upload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remote_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ada.webdav.WebdavClient.upload" title="Link to this definition"></a></dt>
 <dd><p>Upload a local file to a remote path via PUT.</p>
-<dl class="simple">
-<dt>Raises:</dt><dd><p>AdaTransferError: On too many redirects or an insecure redirect.
-AdaAPIError: If the server returns an HTTP error status.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#ada.exceptions.AdaTransferError" title="ada.exceptions.AdaTransferError"><strong>AdaTransferError</strong></a> – On too many redirects or an insecure redirect.</p></li>
+<li><p><a class="reference internal" href="#ada.exceptions.AdaAPIError" title="ada.exceptions.AdaAPIError"><strong>AdaAPIError</strong></a> – If the server returns an HTTP error status.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1944,8 +1976,9 @@ the active authentication method.</p></li>
 </dl>
 <p>A user can always bypass discovery entirely by prepending a door to
 the remote path (e.g. <code class="docutils literal notranslate"><span class="pre">https://dcache.example.org:2880/pnfs/...</span></code>).</p>
-<dl class="simple">
-<dt>Raises:</dt><dd><p>AdaTransferError: If no WebDAV door could be found by any method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#ada.exceptions.AdaTransferError" title="ada.exceptions.AdaTransferError"><strong>AdaTransferError</strong></a> – If no WebDAV door could be found by any method.</p>
 </dd>
 </dl>
 </dd></dl>
