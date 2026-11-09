@@ -76,6 +76,12 @@ Before releasing a new version, update the version number in `pyproject.toml`, c
 git tag [vX.X.X]
 git push origin --tags
 ```
+Release this version on GitHub and publish the package to PyPI. The latter is done automatically via a [Github workflow](https://github.com/sara-nl/dcache-pyclient/blob/main/.github/workflows/release.yml) when pushing a tag to the repo. If needed, this can also be done manually with `poetry`:
+```
+poetry build
+poetry publish
+```
+but this requires you to have a [PyPI API token](https://packaging.python.org/en/latest/specifications/pypirc/#using-a-pypi-token). 
 
 
 ### Build documentation
