@@ -196,15 +196,9 @@ def confirm_deletion(path):
 def get_version() -> str:
     """Return ADA's version string.
 
-    The installed package's version (from pyproject.toml via package
-    metadata) is always shown when available. Since Poetry's editable
-    dev install has valid metadata regardless of which branch/commit
-    is checked out, the package version alone doesn't tell you that
-    you're on unreleased code — so when running from a git checkout,
-    the branch and commit are appended too, e.g.::
-
-        0.2.1 (branch: 26-add-ada-cli---version, commit: 5977a71)
-
+    If running from a git repo (editable install), get version from  
+    tag and append branch and commit.
+    If package is installed, get version via package metadata (pyproject.toml).
     If neither is available (not installed, and not a git checkout),
     returns "unknown".
     """
@@ -215,12 +209,10 @@ def get_version() -> str:
 
     git_info = _git_info()
 
-    if version and git_info:
-        return f"{version} ({git_info})"
+    if git_info:
+        return git_info
     if version:
         return version
-    if git_info:
-        return f"{git_info} (development version)"
     return "unknown"
 
 
@@ -236,12 +228,12 @@ def _git_info() -> Optional[str]:
         check=True,
     )
     try:
+        version = subprocess.run(
+            ["git", "describe", "--tags", "--always", "--dirty"], **run_kwargs
+        ).stdout.strip()
         branch = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], **run_kwargs
         ).stdout.strip()
-        commit = subprocess.run(
-            ["git", "describe", "--always", "--dirty"], **run_kwargs
-        ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return None
-    return f"branch: {branch}, commit: {commit}"
+    return f"{version}, branch: {branch} (development version)"
