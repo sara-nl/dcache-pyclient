@@ -110,9 +110,7 @@ class TestNormalizePath:
 def _fake_git_run(args, **kwargs):
     if args[:2] == ["git", "rev-parse"]:
         return subprocess.CompletedProcess(args, 0, stdout="my-branch\n")
-    if args[3] == "--abbrev=0":
-        return subprocess.CompletedProcess(args, 0, stdout="3.2.1\n")    
-    return subprocess.CompletedProcess(args, 0, stdout="abc1234\n")
+    return subprocess.CompletedProcess(args, 0, stdout="3.2.1\n")
 
 
 class TestGetVersion:
@@ -132,12 +130,12 @@ class TestGetVersion:
         with patch("ada.utils._pkg_version", return_value="1.2.3"), \
              patch("ada.utils.subprocess.run", side_effect=_fake_git_run):
             print(get_version())
-            assert get_version() == "3.2.1, branch: my-branch, commit: abc1234 (development version)"
+            assert get_version() == "3.2.1, branch: my-branch (development version)"
 
     def test_falls_back_to_git_info_when_package_not_installed(self):
         with patch("ada.utils._pkg_version", side_effect=PackageNotFoundError), \
              patch("ada.utils.subprocess.run", side_effect=_fake_git_run):
-           assert get_version() == "3.2.1, branch: my-branch, commit: abc1234 (development version)"
+           assert get_version() == "3.2.1, branch: my-branch (development version)"
 
     def test_falls_back_to_unknown_when_neither_available(self):
         with patch("ada.utils._pkg_version", side_effect=PackageNotFoundError), \

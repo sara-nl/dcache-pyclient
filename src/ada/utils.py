@@ -229,14 +229,11 @@ def _git_info() -> Optional[str]:
     )
     try:
         version = subprocess.run(
-            ["git", "describe", "--tags", "--abbrev=0"], **run_kwargs
+            ["git", "describe", "--tags", "--always", "--dirty"], **run_kwargs
         ).stdout.strip()
         branch = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], **run_kwargs
         ).stdout.strip()
-        commit = subprocess.run(
-            ["git", "describe", "--always", "--dirty"], **run_kwargs
-        ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
         return None
-    return f"{version}, branch: {branch}, commit: {commit} (development version)"
+    return f"{version}, branch: {branch} (development version)"
