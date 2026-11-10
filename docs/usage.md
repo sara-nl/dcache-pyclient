@@ -87,7 +87,7 @@ If successful, you should see something like:
 ```
 API:      <URL>
 Version:  11.2.11(11.2.11)
-Auth:     token (tokenfile: tokenfile_prod.conf)
+Auth:     token (tokenfile: tokenfile.conf)
 Status:   AUTHENTICATED
 Username: username
 UID:      XXXXX
@@ -96,10 +96,10 @@ Home:     </path/to/dCache/homedir>
 Root:     /
 ```
 
-For convenience, we can put the tokenfile path and the API URL in ADA's configuration file so we don't need to add them on the commandline anymore:
+For convenience, we can put the tokenfile path and the API URL in ADA's configuration file so we don't need to add them on the commandline every time:
 ```
-echo api=<URL> > ~/.ada/ada.conf
-echo tokenfile=</path/to/token> >> ~/.ada/ada.conf
+echo "api=<URL>"> ~/.ada/ada.conf
+echo "tokenfile=</path/to/token>" >> ~/.ada/ada.conf
 ```
 
 To investigate your home directory on dCache: 
@@ -138,7 +138,7 @@ Then delete the directory:
 ada-cli delete --recursive </path/to/dCache/homedir/testdir/
 ```
 
-Now you have performed some of the most-used commmands of `ada-cli`!
+These are some of the basic commands of `ada-cli`. More advanced examples will follow later.
 
 
 ## Using authentication methods
