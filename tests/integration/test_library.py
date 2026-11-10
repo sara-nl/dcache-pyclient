@@ -19,7 +19,10 @@ class TestClassAuth:
         """View token"""
         userinfo = ada_client.view_token()
         assert target_env['homedir'] == userinfo['home']
-        assert "DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE"  == userinfo['activity']
+        # The order of activities depends on how the macaroon was created
+        expected = {"DOWNLOAD", "UPLOAD", "DELETE", "MANAGE", "LIST",
+                    "READ_METADATA", "UPDATE_METADATA", "STAGE"}
+        assert expected == set(userinfo['activity'].split(","))
 
 class TestClassSystem:
     """Test system information commands"""
