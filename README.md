@@ -70,8 +70,22 @@ pytest tests/integration/test_cli.py --target-env tests/env.json -v
 pytest tests/integration/test_library.py --target-env tests/env.json -v
 ```
 
+### Release a new version
+Before releasing a new version, update the version number in `pyproject.toml`, commit this in the main branch, create a git tag, and push it to the repo:
+```
+git tag [vX.X.X]
+git push origin --tags
+```
+Release this version on GitHub and publish the package to PyPI. The latter is done automatically via a [Github workflow](https://github.com/sara-nl/dcache-pyclient/blob/main/.github/workflows/release.yml) when pushing a tag to the repo. If needed, this can also be done manually with `poetry`:
+```
+poetry build
+poetry publish
+```
+but this requires you to have a [PyPI API token](https://packaging.python.org/en/latest/specifications/pypirc/#using-a-pypi-token). 
+
+
 ### Build documentation
-The documentation is generated automatically with [Sphinx](https://www.sphinx-doc.org) and Github Actions, see the [workflow](.github/workflows/documentation.yml). If you want to build the documentation locally, run:
+The documentation is generated automatically with [Sphinx](https://www.sphinx-doc.org) and Github Actions, see the [workflow](https://github.com/sara-nl/dcache-pyclient/blob/main/.github/workflows/documentation.yml). If you want to build the documentation locally, run:
 
 ```
 pip install sphinx sphinx_rtd_theme myst_parser

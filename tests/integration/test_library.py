@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import pytest
 
-from ada.exceptions import AdaValidationError, AdaAPIError
+from ada.exceptions import AdaValidationError, AdaAPIError, AdaPathError
 from ada.client import AdaClient
 
 
@@ -306,3 +306,42 @@ class TestConfigPrecedence:
 
         with AdaClient(tokenfile=str(tokenfile), config_paths=[str(conf)]) as client:
             assert client.config.api == "https://file.example.org/api/v1"
+
+
+class TestTransfer:
+    def test_donwload_upload(self, ada_client, setup_data, target_env, tmp_path):
+        """Stage and unstage file on dCache"""
+        # create testfile on dCache
+        dcache_file = setup_data
+
+        # write file and folder to filelist
+        local_file = tmp_path / "local_file"
+
+        # download
+        out = ada_client.download(dcache_file, local_file)
+        assert out.status=="downloaded"
+
+        # download with webdav door and into folder 
+        out = ada_client.download(target_env["webdav"] + dcache_file, tmp_path)
+        assert out.status=="downloaded"
+
+        # raise error when file already exists loally 
+        with pytest.raises(AdaPathError):
+            out = ada_client.download(dcache_file, local_file)
+
+        # verify checksum by downloading again with --verify-checksum
+        out = ada_client.download(dcache_file, local_file, verify_checksum=True) 
+        assert out.status=="already-verified"
+
+        # upload
+        tmp_file = dcache_file + '_tmp'
+        out = ada_client.upload(local_file, tmp_file)
+        assert out.status=="uploaded"
+
+        # raise error when file already exists on dCache 
+        with pytest.raises(AdaPathError):
+            out = ada_client.upload(local_file, tmp_file)
+
+        # verify checksum by downloading again with --verify-checksum
+        out = ada_client.upload(local_file, tmp_file, verify_checksum=True)
+        assert out.status=="already-verified"
