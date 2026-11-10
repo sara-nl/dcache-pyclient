@@ -6,8 +6,9 @@ Put configuration in tests/prod.json and pass to test:
 from __future__ import annotations
 
 import os
-import subprocess
 import json
+import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -22,10 +23,13 @@ class TestClassSystem:
 
     def test_viewtoken(self, target_env):
         """View token"""
-        out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"viewtoken"], text=True)
-        assert "valid" in out
-        assert target_env["user"] in out
-        assert target_env["homedir"] in out
+        try:
+            out = subprocess.check_output(["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'] ,"viewtoken"], text=True)
+            assert "valid" in out
+            assert target_env["user"] in out
+            assert target_env["homedir"] in out
+        except:
+            pytest.exit("No valid tokenfile, create one with:\n get-macaroon --url "+target_env['webdav']+'/'+target_env['homedir']+" --user "+target_env['user']+" --permissions DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE --output rclone "+Path(target_env['tokenfile']).stem)
 
     def test_whoami(self, target_env):
         """Authenticate and get userinfo"""
