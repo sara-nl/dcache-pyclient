@@ -73,11 +73,75 @@ ada-cli <command> --help
 ```
 
 ### Examples
+In the examples below we assume you have a valid tokenfile. You can check if that is the case with:
 ```
-ada-cli --tokenfile </path/to/token> --api <URL> whoami 
-ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
-ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
+ada-cli --tokenfile </path/to/token> viewtoken
 ```
+
+Now let's try to authenticate to the dCache API with this tokenfile:
+```
+ada-cli --tokenfile </path/to/token> --api <URL> whoami
+```
+
+If successful, you should see something like:
+```
+API:      <URL>
+Version:  11.2.11(11.2.11)
+Auth:     token (tokenfile: tokenfile_prod.conf)
+Status:   AUTHENTICATED
+Username: username
+UID:      XXXXX
+GIDs:     XXXXX, XXXXX
+Home:     </path/to/dCache/homedir>
+Root:     /
+```
+
+For convenience, we can put the tokenfile path and the API URL in ADA's configuration file so we don't need to add them on the commandline anymore:
+```
+echo api=<URL> > ~/.ada/ada.conf
+echo tokenfile=</path/to/token> >> ~/.ada/ada.conf
+```
+
+To investigate your home directory on dCache: 
+```
+ada-cli list </path/to/dCache/homedir>
+```
+
+Create a directory:
+```
+ada-cli mkdir </path/to/dCache/homedir/testdir>
+```
+
+Next, we will create a testfile and upload it to the directory we just created:
+```
+fallocate -x -l 1G testfile (or "mkfile 1g $testfile" on Darwin/macOS)
+ada-cli upload testfile </path/to/dCache/homedir/testdir>
+```
+
+Check if the file was uploaded:
+```
+ada-cli list </path/to/dCache/homedir/testdir>
+```
+
+Let's move/rename the file:
+```
+ada-cli mv </path/to/dCache/homedir/testdir/testfile> </path/to/dCache/homedir/testdir/testfile2>
+```
+
+To delete the file:
+```
+ada-cli delete </path/to/dCache/homedir/testdir/testfile2>
+```
+
+Then delete the directory:
+```
+ada-cli delete --recursive </path/to/dCache/homedir/testdir/
+```
+
+Now you have performed some of the most-used commmands of `ada-cli`!
+
+
+## Using authentication methods
 
 `--token`, `--tokenfile`, `--tokenclient`, `--netrc`, `--netrcfile`,  `--proxy`, and `--proxyfile`
 are mutually exclusive. Use `--token` to explicitly request token
