@@ -51,6 +51,8 @@ and options:
   -h, --help            show this help message and exit
   --tokenfile TOKENFILE
                         Path to tokenfile.
+  --tokenclient TOKENCLIENT
+                        OIDC client configuration to use with oidc-agent.
   --token               Use token authentication, reading the token from $BEARER_TOKEN.
   --netrcfile NETRCFILE
                         Path to netrc file.
@@ -77,7 +79,7 @@ ada-cli --tokenfile </path/to/token> --api <URL> list </path/to/dCache/dir>
 ada-cli --tokenfile </path/to/token> --api <URL> longlist --from-file <filename>
 ```
 
-`--tokenfile`, `--tokenclient`, `--token`, `--netrcfile`, `--netrc`, `--proxyfile`, and `--proxy`
+`--token`, `--tokenfile`, `--tokenclient`, `--netrc`, `--netrcfile`,  `--proxy`, and `--proxyfile`
 are mutually exclusive. Use `--token` to explicitly request token
 authentication from the `$BEARER_TOKEN` environment variable (the token value
 itself is never passed on the command line):
