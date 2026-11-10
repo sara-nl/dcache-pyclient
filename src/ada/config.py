@@ -35,6 +35,7 @@ class AdaConfig:
     igtf: bool = True
     channel_timeout: int = 3600
     tokenfile: Optional[str] = None
+    tokenclient: Optional[str] = None
     netrcfile: Optional[str] = None
     curl_options: list[str] = field(default_factory=list)
 
@@ -142,6 +143,8 @@ def _apply_config_value(config: AdaConfig, key: str, value: str) -> None:
         config.debug = value.lower() in ("true", "1", "yes")
     elif key == "tokenfile":
         config.tokenfile = value
+    elif key == "tokenclient":
+        config.tokenclient = value
     elif key == "netrcfile":
         config.netrcfile = value
 
@@ -161,5 +164,7 @@ def _apply_env_vars(config: AdaConfig) -> None:
         config.igtf = v.lower() in ("true", "1", "yes")
     if v := os.environ.get("ada_tokenfile"):
         config.tokenfile = v
+    if v := os.environ.get("ada_tokenclient"):
+            config.tokenclient = v
     if v := os.environ.get("ada_netrcfile"):
         config.netrcfile = v

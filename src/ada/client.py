@@ -55,6 +55,7 @@ class AdaClient:
         api: Optional[str] = None,
         tokenfile: Optional[str] = None,
         token: Optional[str] = None,
+        tokenclient: Optional[str] = None,
         netrc: Optional[str] = None,
         proxy: Optional[str] = None,
         igtf: Optional[bool] = None,
@@ -76,6 +77,7 @@ class AdaClient:
         self.auth: AuthProvider = resolve_auth(
             token=token,
             tokenfile=tokenfile,
+            tokenclient=tokenclient,
             netrc=netrc,
             proxy=proxy,
             config=self.config,
