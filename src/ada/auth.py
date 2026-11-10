@@ -182,7 +182,7 @@ class TokenOidcAgentAuth(TokenAuth):
         except ImportError:
             raise RuntimeError(
                 "This auth method requires 'liboidcagent'. "
-                "Install it using: pip install dcache-pyclient [oidc-agent]"
+                "Install it using: pip install 'dcache-pyclient[oidc-agent]'"
             ) from None
 
         self.client = client
