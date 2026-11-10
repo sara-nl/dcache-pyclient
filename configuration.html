@@ -114,14 +114,19 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tokenfile</span></code></p></td>
 <td><p>string</p></td>
 <td><p>—</p></td>
-<td><p>Default token file path (precedence over netrcfile)</p></td>
+<td><p>Default token file path (precedence over tokenclient and netrcfile)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">netrcfile</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tokenclient</span></code></p></td>
+<td><p>string</p></td>
+<td><p>—</p></td>
+<td><p>Default OIDC client config to use (needs oidc-agent, precedence over netrcfile)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">netrcfile</span></code></p></td>
 <td><p>string</p></td>
 <td><p>—</p></td>
 <td><p>Default netrc file path (precedence over proxy authentification)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">igtf</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">igtf</span></code></p></td>
 <td><p>boolean</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 <td><p>Use IGTF Grid certificates for proxy authentication</p></td>
@@ -129,13 +134,13 @@
 </tbody>
 </table>
 <p>Note that the order of precedence for authentication is (high-to-low):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>token ← tokenfile ← netrcfile ← Grid proxy
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>token ← tokenfile ← tokenclient ← netrcfile ← Grid proxy
 </pre></div>
 </div>
 <p>The CLI <code class="docutils literal notranslate"><span class="pre">--token</span></code> flag does not take a value; it explicitly selects token
 authentication and reads the token from the <code class="docutils literal notranslate"><span class="pre">$BEARER_TOKEN</span></code> environment
 variable, raising an error if it is not set. It is mutually exclusive with
-<code class="docutils literal notranslate"><span class="pre">--tokenfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrcfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrc</span></code>, <code class="docutils literal notranslate"><span class="pre">--proxyfile</span></code>, and <code class="docutils literal notranslate"><span class="pre">--proxy</span></code>. If none
+<code class="docutils literal notranslate"><span class="pre">--tokenfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--tokenclient</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrcfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrc</span></code>, <code class="docutils literal notranslate"><span class="pre">--proxyfile</span></code>, and <code class="docutils literal notranslate"><span class="pre">--proxy</span></code>. If none
 of these is given, <code class="docutils literal notranslate"><span class="pre">$BEARER_TOKEN</span></code> is still used automatically when set (see
 <a class="reference internal" href="#environment-variables"><span class="xref myst">Environment Variables</span></a>).</p>
 <p>The CLI <code class="docutils literal notranslate"><span class="pre">--netrc</span></code> flag does not take a value; it explicitly selects netrc-based
@@ -148,7 +153,7 @@ proxy authentication, reading the proxy certificate from <code class="docutils l
 different file. By default the proxy is verified against IGTF Grid CA
 certificates; pass <code class="docutils literal notranslate"><span class="pre">--no-igtf</span></code> to disable this (overriding the <code class="docutils literal notranslate"><span class="pre">igtf</span></code> config
 value for this run).</p>
-<p>All of <code class="docutils literal notranslate"><span class="pre">--token</span></code>, <code class="docutils literal notranslate"><span class="pre">--tokenfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrc</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrcfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--proxy</span></code>, and
+<p>All of <code class="docutils literal notranslate"><span class="pre">--token</span></code>, <code class="docutils literal notranslate"><span class="pre">--tokenfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--tokenclient</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrc</span></code>, <code class="docutils literal notranslate"><span class="pre">--netrcfile</span></code>, <code class="docutils literal notranslate"><span class="pre">--proxy</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">--proxyfile</span></code> are mutually exclusive with each other.</p>
 <section id="config-file">
 <h2>Config File<a class="headerlink" href="#config-file" title="Link to this heading"></a></h2>
@@ -215,22 +220,26 @@ value for this run).</p>
 <td><p>Use IGTF certificates</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ada_tokenfile</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">tokenfile</span></code> (precedence over ada_netrcfile)</p></td>
-<td><p>Token file path</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tokenfile</span></code></p></td>
+<td><p>Token file path (precedence over tokenclient and ada_netrcfile)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ada_netrcfile</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ada_tokenclient</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tokenclient</span></code></p></td>
+<td><p>OIDC client config (needs oidc-agent, precedence over ada_netrcfile)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ada_netrcfile</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">netrcfile</span></code></p></td>
 <td><p>Netrc file path (precedence over X509_USER_PROXY)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">BEARER_TOKEN</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BEARER_TOKEN</span></code></p></td>
 <td><p>—</p></td>
 <td><p>Direct bearer token string (precedence over ada_tokenfile)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">X509_USER_PROXY</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">X509_USER_PROXY</span></code></p></td>
 <td><p>—</p></td>
 <td><p>X.509 proxy file path</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">X509_CERT_DIR</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">X509_CERT_DIR</span></code></p></td>
 <td><p>—</p></td>
 <td><p>Grid certificate directory</p></td>
 </tr>
