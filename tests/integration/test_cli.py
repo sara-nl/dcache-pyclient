@@ -29,7 +29,7 @@ class TestClassSystem:
             assert target_env["user"] in out
             assert target_env["homedir"] in out
         except:
-            pytest.exit("No valid tokenfile, create one with:\n get-macaroon --url "+target_env['webdav']+'/'+target_env['homedir']+" --user "+target_env['user']+" --permissions DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE --output rclone "+Path(target_env['tokenfile']).stem)
+            pytest.exit("No valid tokenfile, create one with:\n get-macaroon --url "+target_env['webdav']+'/'+target_env['homedir']+" --user "+target_env['user']+" --duration PT24H --ip 0.0.0.0/0 --permissions DOWNLOAD,UPLOAD,DELETE,MANAGE,LIST,READ_METADATA,UPDATE_METADATA,STAGE --output rclone "+Path(target_env['tokenfile']).stem)
 
     def test_whoami(self, target_env):
         """Authenticate and get userinfo"""
