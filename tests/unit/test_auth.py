@@ -12,6 +12,7 @@ import pytest
 
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.auth import (
+    AuthProvider,
     TokenAuth,
     check_ip_caveat,
     decode_jwt,
@@ -286,6 +287,35 @@ class TestGetPublicIp:
         # IPv4 lookup, it must not be accepted as a match.
         with patch("ada.auth.httpx.get", return_value=_fake_response("2001:db8::1")):
             assert get_public_ip(4) is None
+
+
+class TestIpCaveatStatus:
+    def test_jwt_has_no_ip_caveat_status(self, make_jwt_token):
+        assert TokenAuth(make_jwt_token()).ip_caveat_status() is None
+
+    def test_macaroon_without_ip(self, make_macaroon_token):
+        status = TokenAuth(make_macaroon_token(before="2099-01-01T00:00:00.000Z")).ip_caveat_status()
+        assert "empty. Warning" in status
+
+    def test_macaroon_with_ip(self, make_macaroon_token):
+        token = make_macaroon_token(before="2099-01-01T00:00:00.000Z", ip="203.0.113.0/24")
+        with patch("ada.auth.check_ip_caveat", return_value="ok") as check:
+            assert TokenAuth(token).ip_caveat_status() == "ok"
+        check.assert_called_once_with("203.0.113.0/24")
+
+    def test_unknown_token_format(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            TokenAuth("notatoken").ip_caveat_status()
+
+    def test_non_token_auth_has_no_ip_caveat_status(self):
+        class _NoTokenAuth(AuthProvider):
+            def headers(self):
+                return {}
+
+            def method_name(self):
+                return "none"
+
+        assert _NoTokenAuth().ip_caveat_status() is None
 
 
 class TestCheckIpCaveat:

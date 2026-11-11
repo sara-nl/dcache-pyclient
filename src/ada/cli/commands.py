@@ -7,7 +7,6 @@ import os
 import sys
 from pathlib import Path
 
-from ada.auth import check_ip_caveat, is_macaroon
 from ada.client import AdaClient
 from ada.exceptions import AdaAPIError, AdaNotFoundError, AdaValidationError
 from ada.cli.formatters import format_longlist, format_quota, format_space, format_space_groups, format_stat
@@ -202,9 +201,10 @@ def viewtoken(parsed_args) -> None:
             # Status of token
             print(f"Status: {client.auth.expiry_status()}")
 
-            # IP caveats only exist in macaroons, not in JWT/OIDC tokens
-            if is_macaroon(client.auth.token):
-                print(f"IP caveat: {check_ip_caveat(decoded.get('ip', ''))}")
+            # IP caveat (macaroons only)
+            ip_status = client.auth.ip_caveat_status()
+            if ip_status is not None:
+                print(f"IP caveat: {ip_status}")
 
 
 def _print_token_properties(properties: dict) -> None:
