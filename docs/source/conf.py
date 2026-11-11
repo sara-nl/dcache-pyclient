@@ -26,7 +26,10 @@ source_suffix = ['.rst', '.md']
 
 # Show type hints in the parameter descriptions instead of in the
 # signature, and document members in source order instead of alphabetically.
+# Only for documented parameters, so a dataclass doesn't get a list of its
+# fields as undocumented parameters on top of the documented fields.
 autodoc_typehints = 'description'
+autodoc_typehints_description_target = 'documented_params'
 autodoc_member_order = 'bysource'
 
 # Link types from the standard library (datetime, Path, ...) to the Python docs
