@@ -19,6 +19,9 @@ are written in English, in
   and the exceptions a caller can expect under `Raises:`. Leave out
   sections that don't apply.
 - Don't repeat types in the text: they are taken from the type hints.
+- Don't start a `Returns:` section with a colon on its first line
+  ("For a file: ..."): napoleon then reads the part before the colon as
+  the return type.
 - Add an `Example::` section where it helps to see how something is
   used. Examples are shown as code, not run, because they need a dCache
   instance; keep them short and realistic.
