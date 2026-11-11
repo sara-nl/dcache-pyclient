@@ -1,7 +1,7 @@
-"""Utility functions for ADA.
+"""Helper functions used throughout ADA.
 
-Provides URL encoding, file permission checks, JSON conversion helpers,
-and human-readable size formatting.
+URL encoding of dCache paths, file permission checks, parsing of
+metadata and lifetimes, reading lists of paths, and ADA's version.
 """
 
 from __future__ import annotations
@@ -21,11 +21,18 @@ DISTRIBUTION_NAME = "dcache-pyclient"
 
 
 def encode_path(path: str) -> str:
-    """URL-encode a dCache namespace path.
+    """URL-encode a dCache path, for use in a REST API URL.
 
-    Equivalent to the Bash ``urlencode`` function (``jq -sRr @uri``).
-    Encodes all characters including ``/`` so the entire path becomes
-    a single URL path segment (e.g., ``/pnfs/data`` → ``%2Fpnfs%2Fdata``).
+    All characters are encoded, including ``/``, so the whole path
+    becomes a single URL path segment, the way the dCache REST API
+    expects it. Equivalent to the Bash ``urlencode`` function
+    (``jq -sRr @uri``).
+
+    Args:
+        path: dCache path.
+
+    Returns:
+        The encoded path, e.g. ``%2Fpnfs%2Fdata`` for ``/pnfs/data``.
     """
     return urlquote(path, safe="")
 
@@ -61,22 +68,45 @@ def check_file_permissions(filepath: str, *, check_readable: bool = True) -> Non
 
 
 def check_config_permissions(filepath: str) -> None:
-    """Verify a config file is not world-writable.
+    """Check that a config file is not writable by others.
 
-    Config files are allowed to be world-readable but not world-writable.
+    Unlike credentials files, config files may be readable by others.
+
+    Args:
+        filepath: Path of the config file.
+
+    Raises:
+        AdaSecurityError: If the file is writable by others.
+        FileNotFoundError: If the file does not exist.
     """
     check_file_permissions(filepath, check_readable=False)
 
 
 def to_json(input_str: str) -> dict[str, str]:
-    """Convert various metadata formats to a JSON dict.
+    """Parse key-value metadata, e.g. for extended attributes, into a dict.
 
-    Supports:
-    - JSON format: ``{"key": "value"}``
-    - key=value pairs (one per line, or comma-separated)
-    - Tab-separated key/value pairs
+    Accepted formats:
+
+    - A JSON object: ``{"key": "value"}``. Values are converted to strings.
+    - ``key=value`` pairs, separated by newlines or commas. Quotes around
+      values are removed.
+    - Tab-separated key and value, one pair per line.
 
     Replicates the Bash ``to_json`` function.
+
+    Args:
+        input_str: The metadata text.
+
+    Returns:
+        The key-value pairs.
+
+    Raises:
+        AdaValidationError: If no key-value pairs can be found.
+
+    Example::
+
+        to_json("experiment=lofar, quality='good'")
+        # {'experiment': 'lofar', 'quality': 'good'}
     """
     input_str = input_str.strip()
 
@@ -114,13 +144,20 @@ def to_json(input_str: str) -> dict[str, str]:
 
 
 def parse_lifetime(lifetime_str: str) -> tuple[int, str]:
-    """Parse a lifetime string like '7D', '24H', '30M' into (value, unit).
+    """Parse a lifetime like ``"7D"``, ``"24H"`` or ``"30M"``.
+
+    Args:
+        lifetime_str: A positive whole number followed by a unit: S
+            (seconds), M (minutes), H (hours) or D (days). The unit is
+            not case-sensitive.
 
     Returns:
-        Tuple of (numeric_value, unit_character).
+        A tuple of the number and the unit (in upper case), e.g.
+        ``(7, "D")``.
 
     Raises:
-        AdaValidationError: If the format is invalid.
+        AdaValidationError: If the lifetime is empty, has an unknown
+            unit, or the number is not a positive whole number.
     """
     if not lifetime_str:
         raise AdaValidationError("Lifetime cannot be empty.")
@@ -143,7 +180,15 @@ def parse_lifetime(lifetime_str: str) -> tuple[int, str]:
 
 
 def normalize_path(path: str) -> str:
-    """Normalize a dCache path by removing trailing slashes and double slashes."""
+    """Clean up a dCache path: remove double slashes and a trailing slash.
+
+    Args:
+        path: dCache path.
+
+    Returns:
+        The cleaned-up path, e.g. ``/pnfs/data`` for ``/pnfs//data/``.
+        The root ``/`` stays as it is.
+    """
     path = path.strip()
     # Remove double slashes but keep leading /
     while "//" in path:
@@ -155,9 +200,20 @@ def normalize_path(path: str) -> str:
 
 
 def read_file_list(filepath: str) -> list[str]:
-    """Read a file containing one path per line.
+    """Read a local file with one dCache path per line.
 
-    Strips whitespace and ignores empty lines and comments (lines starting with #).
+    Whitespace around paths is removed. Empty lines and lines starting
+    with ``#`` are skipped.
+
+    Args:
+        filepath: Path of the local file.
+
+    Returns:
+        The paths in the file.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        AdaValidationError: If the file contains no paths.
     """
     path = Path(filepath)
     if not path.exists():
@@ -175,7 +231,21 @@ def read_file_list(filepath: str) -> list[str]:
 def resolve_paths(
     paths: Optional[str | list[str]] = None, from_file: Optional[str] = None
 ) -> list[str]:
-    """Resolve paths from arguments or file list."""
+    """Get the list of paths to work on, from either ``paths`` or ``from_file``.
+
+    Args:
+        paths: A path, or a list of paths.
+        from_file: Local file with one path per line, read with
+            :func:`read_file_list`.
+
+    Returns:
+        The paths, as a list.
+
+    Raises:
+        AdaValidationError: If both or neither of ``paths`` and
+            ``from_file`` are given, or the file contains no paths.
+        FileNotFoundError: If ``from_file`` does not exist.
+    """
 
     if paths is None and from_file is None:
         raise AdaValidationError("Neither path nor from_file is given")
@@ -189,18 +259,30 @@ def resolve_paths(
 
 
 def confirm_deletion(path):
+    """Ask the user on the terminal to confirm deleting a directory's contents.
+
+    Args:
+        path: The directory that will be emptied.
+
+    Returns:
+        True if the user answered ``y``.
+    """
     confirmation = input(f"Delete all items in '{path}'? (y/n): ")
     return confirmation.lower() == 'y'
 
 
 def get_version() -> str:
-    """Return ADA's version string.
+    """Get ADA's version, as shown by ``ada-cli --version``.
 
-    If running from a git repo (editable install), get version from  
-    tag and append branch and commit.
-    If package is installed, get version via package metadata (pyproject.toml).
-    If neither is available (not installed, and not a git checkout),
-    returns "unknown".
+    When ADA runs from a git checkout (e.g. an editable install), the
+    version comes from git: the latest tag, the number of commits since
+    it, the commit and the branch. Otherwise it comes from the installed
+    package's metadata (``pyproject.toml``).
+
+    Returns:
+        The version, e.g. ``"1.1.1"``, or
+        ``"v1.1.1-3-g2db9fac, branch: main (development version)"`` in a
+        git checkout, or ``"unknown"`` if neither is available.
     """
     try:
         version = _pkg_version(DISTRIBUTION_NAME)
@@ -217,8 +299,9 @@ def get_version() -> str:
 
 
 def _git_info() -> Optional[str]:
-    """Return "branch: <branch>, commit: <commit>" if running from a git
-    checkout, else None. Independent of whether the package is installed.
+    """Return "<git describe>, branch: <branch> (development version)" if
+    running from a git checkout, else None. Independent of whether the
+    package is installed.
     """
     run_kwargs = dict(
         cwd=Path(__file__).resolve().parent,

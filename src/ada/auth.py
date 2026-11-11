@@ -1,12 +1,18 @@
-"""Authentication providers for ADA.
+"""Authentication for ADA, and inspection of tokens.
 
-Implements the strategy pattern with an abstract ``AuthProvider`` base
-and concrete implementations for token, netrc, and proxy authentication.
+Each authentication method is an :class:`AuthProvider`: a bearer token
+(:class:`TokenAuth`, :class:`TokenFileAuth`, :class:`TokenOidcAgentAuth`),
+a netrc file (:class:`NetrcAuth`) or an X.509 proxy certificate
+(:class:`ProxyAuth`). :func:`resolve_auth` picks the method from, in
+order of precedence (matching the Bash version):
 
-Precedence (matching Bash):
-    1. Explicit arguments (highest)
-    2. Environment variables
-    3. Config file values (lowest)
+1. Explicit arguments (highest)
+2. Environment variables
+3. Config file values (lowest)
+
+The module also decodes JWT/OIDC tokens and macaroons, checks their
+expiry and permissions, and checks a macaroon's IP caveat against this
+system's public IP address.
 """
 
 from __future__ import annotations
@@ -44,56 +50,117 @@ logger = logging.getLogger("ada.auth")
 
 
 class AuthProvider(ABC):
-    """Abstract base for all authentication methods."""
+    """Base class for all authentication methods.
+
+    Subclasses provide the request headers and, where needed, httpx
+    credentials or an SSL context with a client certificate.
+    """
 
     @abstractmethod
     def headers(self) -> dict[str, str]:
-        """Return HTTP headers for authentication."""
+        """Get the HTTP headers that authenticate a request.
+
+        Returns:
+            The headers, e.g. an Authorization header with a bearer
+            token. Empty for methods that authenticate otherwise.
+        """
 
     @abstractmethod
     def method_name(self) -> str:
-        """Human-readable name like 'token', 'netrc', 'proxy'."""
+        """Get the short name of the method.
+
+        Returns:
+            ``"token"``, ``"netrc"`` or ``"proxy"``.
+        """
 
     def describe(self) -> str:
-        """Human-readable description of the method and where it was resolved from.
+        """Describe the method and where it came from.
 
         Auth methods can come from explicit CLI arguments, environment
         variables, or ada.conf, so this is shown in ``whoami`` to make an
         otherwise invisible choice visible.
+
+        Returns:
+            A description, e.g.
+            ``"token (tokenfile: /home/user/macaroon.conf)"``.
         """
         return self.method_name()
 
     def view_token(self) -> dict[str, Any]:
-        """Decode and return token properties for display."""
+        """Decode the token, to show its properties.
+
+        Returns:
+            The token's claims (OIDC) or caveats (macaroon).
+
+        Raises:
+            AdaAuthError: If the method does not use a token.
+        """
         raise AdaAuthError(
             "Token viewing is not supported for this authentication method."
         )
 
     def expiry_status(self) -> str:
-        """Describe token expiry, informationally (never raises on expiry).
+        """Describe when the token expires, without failing if it has.
 
-        Unlike ``validate()``, this doesn't gate whether the token may
-        be used — it's for commands like ``viewtoken`` that just want
-        to show the status, even for an expired token.
+        Unlike :meth:`validate`, this doesn't decide whether the token
+        may be used: it's for commands like ``viewtoken`` that only show
+        the status, even of an expired token.
+
+        Returns:
+            E.g. ``"valid, expires in 2h 5m 0s"`` or
+            ``"expired 3m 10s ago"``.
+
+        Raises:
+            AdaAuthError: If the method does not use a token.
         """
         raise AdaAuthError(
             "Token expiry is not applicable for this authentication method."
         )
 
     def validate(self, command: Optional[str] = None) -> None:
-        """Validate credentials before use. Override in subclasses."""
+        """Check the credentials before they are used.
+
+        For tokens and proxies, checks that they don't expire within 60
+        seconds, and, for ``command="stage"``, that a token allows
+        staging. Methods without such checks do nothing.
+
+        Args:
+            command: The operation the credentials will be used for, to
+                check operation-specific permissions. Only ``"stage"``
+                is checked.
+
+        Raises:
+            AdaTokenExpiredError: If the token or proxy has expired or
+                expires within 60 seconds.
+            AdaTokenPermissionError: If the token does not allow the
+                operation.
+            AdaAuthError: If the credentials can't be decoded.
+        """
 
     def get_httpx_auth(self) -> Any:
-        """Return an httpx auth object, if applicable (e.g., BasicAuth)."""
+        """Get httpx credentials, for methods that need them.
+
+        Returns:
+            E.g. ``httpx.BasicAuth`` for netrc authentication, or None.
+        """
         return None
 
     def get_ssl_context(self) -> Any:
-        """Return an SSL context for client certificate auth, if applicable."""
+        """Get an SSL context with a client certificate, for methods that need it.
+
+        Returns:
+            An SSL context for proxy authentication, or None.
+        """
         return None
 
 
 class TokenAuth(AuthProvider):
-    """Bearer token authentication (JWT/OIDC or Macaroon)."""
+    """Bearer token authentication, with an OIDC token or a macaroon.
+
+    Args:
+        token: The token. Surrounding whitespace is removed.
+        source: Where the token came from, shown by :meth:`describe`.
+    """
 
     def __init__(self, token: str, source: str = "direct") -> None:
         self.token = token.strip()
@@ -125,7 +192,20 @@ class TokenAuth(AuthProvider):
 
 
 class TokenFileAuth(TokenAuth):
-    """Reads token from a file (rclone config format or plain bearer token)."""
+    """Bearer token authentication, with the token read from a file.
+
+    The file is either an rclone config file with a
+    ``bearer_token = <token>`` line, or a file with only the token (the
+    first non-empty line is used).
+
+    Args:
+        tokenfile: Path of the file. ``~`` is expanded.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        AdaSecurityError: If the file is readable or writable by others.
+        AdaAuthError: If no token can be read from the file.
+    """
 
     def __init__(self, tokenfile: str) -> None:
         tokenfile = str(Path(tokenfile).expanduser())
@@ -169,9 +249,20 @@ class TokenFileAuth(TokenAuth):
         raise AdaAuthError(f"Could not read token from file: {path}")
 
 class TokenOidcAgentAuth(TokenAuth):
-    '''
-    Bearer token auth using the oidc-agent client library.
-    Requires oidc-agent to be installed, configured and running on the system.
+    '''Bearer token authentication, with OIDC tokens from oidc-agent.
+
+    A fresh token is requested from oidc-agent for each request, so a
+    token never expires during a long operation. Requires oidc-agent to be
+    installed, configured and running, and the ``liboidcagent`` library
+    (``pip install 'dcache-pyclient[oidc-agent]'``).
+
+    Args:
+        client: Name of the oidc-agent account.
+        **kwargs: Passed on to ``liboidcagent.get_access_token``, e.g.
+            ``min_valid_period`` or ``scope``.
+
+    Raises:
+        RuntimeError: If ``liboidcagent`` is not installed.
     '''
 
     def __init__(self, client: str,**kwargs):
@@ -246,7 +337,20 @@ def _parse_netrc(path: str, hostname: str) -> tuple[str, str]:
 
 
 class NetrcAuth(AuthProvider):
-    """Netrc-based username/password (Basic) authentication."""
+    """Username and password (HTTP Basic) authentication, from a netrc file.
+
+    The login and password of the ``machine`` entry for the API host are
+    used, or the ``default`` entry if there is none.
+
+    Args:
+        netrcfile: Path of the netrc file. ``~`` is expanded. Defaults
+            to ``~/.netrc``.
+        hostname: Host name of the API, to find its entry.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        AdaSecurityError: If the file is readable or writable by others.
+    """
 
     def __init__(self, netrcfile: Optional[str] = None, hostname: Optional[str] = None) -> None:
         self.netrcfile = str(Path(netrcfile).expanduser()) if netrcfile else str(Path.home() / ".netrc")
@@ -284,7 +388,22 @@ class NetrcAuth(AuthProvider):
 
 
 class ProxyAuth(AuthProvider):
-    """X.509 proxy certificate authentication."""
+    """Authentication with an X.509 proxy certificate (TLS client certificate).
+
+    Args:
+        proxyfile: Path of the proxy file. Defaults to
+            ``$X509_USER_PROXY``, or ``/tmp/x509up_u<uid>`` if not set.
+        certdir: Directory with CA certificates to verify the server
+            with. Defaults to ``$X509_CERT_DIR``, or
+            ``/etc/grid-security/certificates`` if not set.
+        igtf: Also trust the CA certificates in ``certdir`` (e.g. IGTF
+            Grid CAs) when verifying the server, besides the system's
+            default CAs.
+
+    Raises:
+        AdaAuthError: If the proxy file or (with ``igtf``) the CA
+            certificate directory does not exist.
+    """
 
     def __init__(
         self,
@@ -317,14 +436,24 @@ class ProxyAuth(AuthProvider):
         return "proxy"
 
     def validate(self, command: Optional[str] = None) -> None:
-        """Validate the proxy certificate's expiry.
+        """Check that the proxy does not expire within 60 seconds.
 
         A VOMS proxy has two, potentially different, validity windows:
         the X.509 certificate's own ``notAfter``, and (if present) the
         embedded VOMS attribute certificate's ``attrCertValidityPeriod``,
         which the VOMS server controls independently of the certificate
         lifetime requested at ``voms-proxy-init`` time. Both are checked;
-        whichever expires first determines the effective expiry.
+        whichever expires first determines the effective expiry. With
+        several certificates in the file, the earliest expiry counts.
+
+        Args:
+            command: Not used; a proxy has no operation-specific
+                permissions to check.
+
+        Raises:
+            AdaTokenExpiredError: If the proxy or its VOMS attributes
+                have expired or expire within 60 seconds.
+            AdaAuthError: If the file contains no certificates.
         """
         pem_text = Path(self.proxyfile).read_text(encoding="utf-8")
         der_certs = pem_certs(pem_text)
@@ -385,15 +514,31 @@ def resolve_auth(
     proxy: Optional[str] = None,
     config: Optional[AdaConfig] = None,
 ) -> AuthProvider:
-    """Resolve authentication method from args, env vars, and config.
+    """Pick the authentication method from arguments, environment and config.
 
-    Precedence (from high to low):
-        1. Explicit arguments (token, tokenfile, tokenclient, netrc, proxy)
-        2. Environment variables ($BEARER_TOKEN, $ada_tokenfile, $ada_tokenclient, $ada_netrcfile)
-        3. Config file values (tokenfile, tokenclient, netrcfile)
+    The first method found is used, in this order:
+
+    1. Arguments: ``token``, ``tokenfile``, ``tokenclient``, ``netrc``,
+       ``proxy``.
+    2. Environment variables: ``$BEARER_TOKEN``, ``$ada_tokenfile``,
+       ``$ada_tokenclient``, ``$ada_netrcfile``.
+    3. Config file values: ``tokenfile``, ``tokenclient``, ``netrcfile``.
+
+    Args:
+        token: Bearer token.
+        tokenfile: File with a bearer token.
+        tokenclient: oidc-agent account name.
+        netrc: Netrc file; an empty string means ``~/.netrc``.
+        proxy: Proxy certificate file; an empty string means the default
+            location (see :class:`ProxyAuth`).
+        config: The configuration, for the config file values, the API
+            host name (for netrc) and the ``igtf`` setting (for proxies).
+
+    Returns:
+        The authentication method.
 
     Raises:
-        AdaAuthError: If no authentication method can be resolved.
+        AdaAuthError: If no authentication method is found.
     """
     igtf = config.igtf if config else True
     hostname = _extract_hostname(config.api) if config and config.api else ""
@@ -451,18 +596,29 @@ JWT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
 
 
 def is_jwt(token: str) -> bool:
-    """Check if a token looks like a JWT (three dot-separated base64url parts)."""
+    """Check whether a token looks like a JWT (OIDC token).
+
+    Args:
+        token: The token.
+
+    Returns:
+        True if the token consists of three base64url parts separated
+        by dots.
+    """
     return bool(JWT_PATTERN.match(token.strip()))
 
 
 def decode_jwt_payload(token: str) -> dict[str, Any]:
     """Decode the payload section of a JWT token.
 
-    Does NOT verify the signature — this is for inspection only,
+    Does NOT verify the signature: this is for inspection only,
     matching the Bash version's behavior.
 
+    Args:
+        token: The JWT.
+
     Returns:
-        Decoded payload as a dict.
+        The claims in the payload.
 
     Raises:
         AdaAuthError: If the token cannot be decoded.
@@ -485,10 +641,20 @@ def decode_jwt_payload(token: str) -> dict[str, Any]:
 
 
 def decode_jwt(token: str) -> dict[str, Any]:
-    """Decode a JWT and return payload with human-readable timestamps.
+    """Decode a JWT, with its times in a readable format.
 
     Converts ``exp``, ``nbf``, and ``iat`` fields from Unix timestamps
     to ISO 8601 strings (matching the Bash ``jq .exp |= todate`` behavior).
+    The signature is not verified.
+
+    Args:
+        token: The JWT.
+
+    Returns:
+        The claims in the payload.
+
+    Raises:
+        AdaAuthError: If the token cannot be decoded.
     """
     payload = decode_jwt_payload(token)
     result = dict(payload)
@@ -504,10 +670,17 @@ def decode_jwt(token: str) -> dict[str, Any]:
 
 
 def get_jwt_expiry(token: str) -> Optional[int]:
-    """Extract the expiration timestamp (exp) from a JWT.
+    """Get the expiry time (``exp`` claim) of a JWT.
+
+    Args:
+        token: The JWT.
 
     Returns:
-        Unix timestamp as int, or None if not present.
+        The expiry time as a Unix timestamp, or None if the token has
+        no ``exp`` claim.
+
+    Raises:
+        AdaAuthError: If the token can't be decoded.
     """
     payload = decode_jwt_payload(token)
     exp = payload.get("exp")
@@ -517,10 +690,17 @@ def get_jwt_expiry(token: str) -> Optional[int]:
 
 
 def get_jwt_scope(token: str) -> str:
-    """Extract the scope claim from a JWT.
+    """Get the ``scope`` claim of a JWT.
+
+    Args:
+        token: The JWT.
 
     Returns:
-        The scope string, or empty string if not present.
+        The scopes, separated by spaces, e.g. ``"openid storage.read:/"``.
+        Empty if the token has no ``scope`` claim.
+
+    Raises:
+        AdaAuthError: If the token can't be decoded.
     """
     payload = decode_jwt_payload(token)
     return str(payload.get("scope", ""))
@@ -540,11 +720,16 @@ def is_macaroon(token: str) -> bool:
 def decode_macaroon_raw(token: str) -> str:
     """Decode a Macaroon token to its raw text representation.
 
-    Replicates the Bash decoding logic:
+    Replicates the Bash decoding logic::
+
         base64 -d | awk '{print substr($0, 5)}' | grep -v 'signature' | tr -d '\\0'
 
+    Args:
+        token: The macaroon.
+
     Returns:
-        Decoded macaroon text (caveats, etc.).
+        The decoded text, with the location, identifier and caveats,
+        without the signature.
 
     Raises:
         AdaAuthError: If the token cannot be decoded.
@@ -617,12 +802,18 @@ def decode_macaroon(token: str) -> dict[str, str]:
 
 
 def extract_macaroon_expiry(decoded_text: str) -> Optional[int]:
-    """Extract the expiration timestamp from decoded Macaroon text.
+    """Get the expiry time of a macaroon, from its ``before:`` caveat.
 
-    Looks for ``before:`` caveat with ISO 8601 timestamp.
+    Args:
+        decoded_text: The decoded macaroon, from
+            :func:`decode_macaroon_raw`.
 
     Returns:
-        Unix timestamp as int, or None if not found.
+        The expiry time as a Unix timestamp, or None if there is no
+        ``before:`` caveat.
+
+    Raises:
+        AdaAuthError: If the ``before:`` time can't be parsed.
     """
     match = re.search(r"before:([0-9T:.\-]+Z)", decoded_text)
     if not match:
@@ -669,6 +860,9 @@ def get_public_ip(version: int) -> Optional[str]:
 
     Tries a few well-known lookup services in order, falling through
     to the next if one is unreachable.
+
+    Args:
+        version: 4 for IPv4, 6 for IPv6.
 
     Returns:
         The address as a string, or None if it could not be
@@ -736,7 +930,15 @@ MIN_VALID_TIME = 60  # seconds — token must be valid for at least this long
 
 
 def format_duration(seconds: int) -> str:
-    """Format a duration in seconds as a human-readable string, e.g. '2d 3h 15m'."""
+    """Format a duration in seconds in a readable way.
+
+    Args:
+        seconds: The duration in seconds.
+
+    Returns:
+        E.g. ``"2d 3h 15m 0s"`` or ``"45s"``. Zero days, hours or
+        minutes are left out; seconds are always shown.
+    """
     seconds = int(seconds)
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
@@ -747,12 +949,20 @@ def format_duration(seconds: int) -> str:
 
 
 def describe_expiry(exp_unix: Optional[int]) -> str:
-    """Describe a token's expiry status, informationally — never raises.
+    """Describe when a token expires, without failing if it has.
 
-    Unlike ``_check_expiry()``, this doesn't gate whether the token may
-    be used; it's for 'viewtoken'-style commands where the goal is to
-    inspect the token, not to use it, so an expired token is not an
-    error — just a fact worth showing.
+    Unlike ``_check_expiry()``, this doesn't decide whether the token
+    may be used; it's for 'viewtoken'-style commands where the goal is
+    to inspect the token, not to use it, so an expired token is not an
+    error, just a fact worth showing.
+
+    Args:
+        exp_unix: The expiry time as a Unix timestamp, or None if
+            unknown.
+
+    Returns:
+        ``"valid, expires in <duration>"``, ``"expired <duration> ago"``,
+        or ``"unknown (no expiration field found)"``.
     """
     if exp_unix is None or not isinstance(exp_unix, (int, float)):
         return "unknown (no expiration field found)"

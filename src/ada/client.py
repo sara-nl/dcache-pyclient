@@ -85,10 +85,11 @@ class AdaClient:
         proxy: X.509 proxy certificate file. An empty string means
             ``$X509_USER_PROXY``, or ``/tmp/x509up_u<uid>`` if that is
             not set.
-        igtf: For proxy authentication: verify the server against the
-            IGTF Grid CA certificates (in ``$X509_CERT_DIR``, by default
-            ``/etc/grid-security/certificates``). Set to False when the
-            server has a regular certificate, e.g. from Let's Encrypt.
+        igtf: For proxy authentication, also trust the IGTF Grid CA
+            certificates (in ``$X509_CERT_DIR``, by default
+            ``/etc/grid-security/certificates``) when verifying the
+            server. Set to False when the server has a regular
+            certificate, e.g. from Let's Encrypt.
             Overrides the ``igtf`` config setting.
         config_paths: Config files to read instead of the default ones,
             highest precedence first.
@@ -214,7 +215,9 @@ class AdaClient:
 
         Raises:
             AdaValidationError: If both or neither of ``paths`` and
-                ``from_file`` are given.
+                ``from_file`` are given, or ``from_file`` contains no
+                paths.
+            FileNotFoundError: If ``from_file`` does not exist.
             AdaNotFoundError: If a path does not exist.
 
         Example::
@@ -387,6 +390,7 @@ class AdaClient:
 
         Raises:
             AdaPathError: If the path is a file.
+            re.error: If the regular expression is invalid.
 
         Example::
 
@@ -489,6 +493,7 @@ class AdaClient:
 
         Raises:
             AdaPathError: If the path is a file.
+            re.error: If the regular expression is invalid.
 
         Example::
 
@@ -525,7 +530,9 @@ class AdaClient:
 
         Raises:
             AdaValidationError: If both or neither of ``paths`` and
-                ``from_file`` are given.
+                ``from_file`` are given, or ``from_file`` contains no
+                paths.
+            FileNotFoundError: If ``from_file`` does not exist.
 
         Example::
 
@@ -572,8 +579,9 @@ class AdaClient:
             AdaPathError: If the local file doesn't exist, the dCache
                 file already exists (without ``verify_checksum``) or is
                 a symlink, or the dCache parent directory doesn't exist.
-            AdaTransferError: If the checksums don't match, or the
-                WebDAV transfer fails.
+            AdaTransferError: If the checksums don't match, or no WebDAV
+                door is found, or a redirect is refused.
+            AdaAPIError: If the WebDAV door returns an HTTP error.
 
         Example::
 
@@ -627,7 +635,9 @@ class AdaClient:
                 or the dCache path is a directory or symlink.
             AdaNotFoundError: If the dCache file doesn't exist.
             AdaTransferError: If the file is only on tape (not online),
-                the checksums don't match, or the WebDAV transfer fails.
+                the checksums don't match, no WebDAV door is found, or a
+                redirect is refused.
+            AdaAPIError: If the WebDAV door returns an HTTP error.
 
         Example::
 
@@ -673,11 +683,14 @@ class AdaClient:
 
         Raises:
             AdaTokenPermissionError: If the token does not allow staging.
-            AdaValidationError: If the lifetime is not valid, or both or
-                neither of ``paths`` and ``from_file`` are given.
+            AdaValidationError: If the lifetime is not valid, both or
+                neither of ``paths`` and ``from_file`` are given, or
+                ``from_file`` contains no paths.
+            FileNotFoundError: If ``from_file`` does not exist.
             AdaForbiddenError: If the server refuses the request, e.g.
                 because staging directories (recursively) is not
                 allowed.
+            AdaAPIError: If the request fails otherwise.
 
         Example::
 
@@ -720,10 +733,13 @@ class AdaClient:
 
         Raises:
             AdaValidationError: If both or neither of ``paths`` and
-                ``from_file`` are given.
+                ``from_file`` are given, or ``from_file`` contains no
+                paths.
+            FileNotFoundError: If ``from_file`` does not exist.
             AdaForbiddenError: If the server refuses the request, e.g.
                 because unstaging directories (recursively) is not
                 allowed.
+            AdaAPIError: If the request fails otherwise.
         """
         return self.staging.unstage(
             paths=paths,

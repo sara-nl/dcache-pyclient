@@ -35,9 +35,13 @@ def _strip_docstrings(tree: ast.AST) -> ast.AST:
                 and isinstance(body[0].value, ast.Constant)
                 and isinstance(body[0].value.value, str)
             ):
-                # Keep the body non-empty, so a function that only had a
-                # docstring still parses the same way.
-                node.body = body[1:] or [ast.Pass()]
+                # A class or function body can't be empty: replace a
+                # body that only had a docstring by "pass". A module
+                # body can be empty.
+                if isinstance(node, ast.Module):
+                    node.body = body[1:]
+                else:
+                    node.body = body[1:] or [ast.Pass()]
     return tree
 
 

@@ -34,6 +34,15 @@ autodoc_member_order = 'bysource'
 
 # Link types from the standard library (datetime, Path, ...) to the Python docs
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+
+# References that can't be resolved, so 'sphinx-build -n' doesn't warn about
+# them: httpx has no Sphinx documentation, a bare 'Path' in type hints isn't
+# qualified, and re.error is called re.PatternError in the Python docs.
+nitpick_ignore = [
+    ('py:class', 'httpx.Response'),
+    ('py:class', 'Path'),
+    ('py:exc', 're.error'),
+]
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 language = 'en'
