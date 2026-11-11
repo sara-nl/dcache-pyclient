@@ -16,12 +16,21 @@ author = 'Onno Zweers, Haili Hu'
 
 extensions = [
     'sphinx.ext.autodoc',
-    "sphinx.ext.napoleon",    
+    "sphinx.ext.napoleon",
+    'sphinx.ext.intersphinx',
     'myst_parser',
     'sphinx_rtd_theme',
 ]
 
 source_suffix = ['.rst', '.md']
+
+# Show type hints in the parameter descriptions instead of in the
+# signature, and document members in source order instead of alphabetically.
+autodoc_typehints = 'description'
+autodoc_member_order = 'bysource'
+
+# Link types from the standard library (datetime, Path, ...) to the Python docs
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 language = 'en'
@@ -30,4 +39,4 @@ language = 'en'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-html_static_path = ['_static']
+html_static_path = []
