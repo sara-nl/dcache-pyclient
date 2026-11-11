@@ -21,6 +21,7 @@ from ada.auth import (
     format_duration,
     get_public_ip,
     is_jwt,
+    is_macaroon,
     validate_token,
     ProxyAuth,
 )
@@ -37,6 +38,46 @@ class TestIsJwt:
 
     def test_macaroon_like(self):
         assert is_jwt("MDAxY2xvY2F0aW9uIG1hY2Fyb29u") is False
+
+
+class TestIsMacaroon:
+    def test_real_macaroon_start(self):
+        # base64 of "001clocation macaroon", how dCache macaroons start
+        assert is_macaroon("MDAxY2xvY2F0aW9uIG1hY2Fyb29u") is True
+
+    def test_fake_macaroon_fixture(self, make_macaroon_token):
+        assert is_macaroon(make_macaroon_token(before="2030-01-01T00:00:00Z")) is True
+
+    def test_jwt_is_not_a_macaroon(self, make_jwt_token):
+        assert is_macaroon(make_jwt_token()) is False
+
+    def test_garbage_is_not_a_macaroon(self):
+        assert is_macaroon("notatoken") is False
+
+    def test_empty_is_not_a_macaroon(self):
+        assert is_macaroon("") is False
+
+    def test_v2_binary_macaroon_is_not_recognized(self):
+        # V2 macaroons start with a 0x02 version byte; dCache issues V1.
+        token = base64.urlsafe_b64encode(b"\x02\x01\x0fdcache-macaroon").decode()
+        assert is_macaroon(token) is False
+
+
+class TestUnknownTokenFormat:
+    """A token that is neither a JWT nor a macaroon gets a clear error,
+    instead of being decoded as if it were a macaroon."""
+
+    def test_view_token(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            TokenAuth("notatoken").view_token()
+
+    def test_expiry_status(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            TokenAuth("notatoken").expiry_status()
+
+    def test_validate_token(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            validate_token("notatoken", source="$BEARER_TOKEN")
 
 
 class TestDecodeJwtPayload:
@@ -98,7 +139,7 @@ class TestValidateToken:
 
 
 class TestDecodeMacaroonRealWorldFormat:
-    """Real macaroons (v2 binary format) are base64url-encoded, often
+    """Real macaroons (V1 format) are base64url-encoded, often
     unpadded, and each caveat line is prefixed with a hex length and a
     'cid ' tag rather than starting with the caveat name directly —
     e.g. '002ecid before:2026-...Z' instead of 'before:2026-...Z'.
@@ -117,7 +158,7 @@ class TestDecodeMacaroonRealWorldFormat:
             "signature deadbeefdeadbeef",
         ]
         text = "\n".join(lines)
-        encoded = base64.urlsafe_b64encode(b"\x00\x00\x00\x00" + text.encode()).decode()
+        encoded = base64.urlsafe_b64encode(b"001c" + text.encode()).decode()
         return encoded.rstrip("=")  # unpadded, like real macaroons often are
 
     def test_decodes_unpadded_base64url_with_cid_prefixed_lines(self):
@@ -249,7 +290,7 @@ class TestGetPublicIp:
 
 class TestCheckIpCaveat:
     def test_empty_caveat(self):
-        assert "IP caveat is empty" in check_ip_caveat("")
+        assert "empty. Warning" in check_ip_caveat("")
 
     def test_unparseable_caveat(self):
         assert "could not parse" in check_ip_caveat("not-an-ip")
