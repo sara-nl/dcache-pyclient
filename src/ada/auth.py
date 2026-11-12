@@ -117,6 +117,14 @@ class AuthProvider(ABC):
             "Token expiry is not applicable for this authentication method."
         )
 
+    def ip_caveat_status(self) -> Optional[str]:
+        """Describe the token's IP caveat, informationally.
+
+        Returns None when IP caveats don't apply, e.g. for OIDC tokens,
+        which never have them.
+        """
+        return None
+
     def validate(self, command: Optional[str] = None) -> None:
         """Check the credentials before they are used.
 
@@ -181,14 +189,26 @@ class TokenAuth(AuthProvider):
     def view_token(self) -> dict[str, Any]:
         if is_jwt(self.token):
             return decode_jwt(self.token)
-        return decode_macaroon(self.token)
+        if is_macaroon(self.token):
+            return decode_macaroon(self.token)
+        raise _unknown_token_format_error(self.source)
 
     def expiry_status(self) -> str:
         if is_jwt(self.token):
             exp_unix = get_jwt_expiry(self.token)
-        else:
+        elif is_macaroon(self.token):
             exp_unix = extract_macaroon_expiry(decode_macaroon_raw(self.token))
+        else:
+            raise _unknown_token_format_error(self.source)
         return describe_expiry(exp_unix)
+
+    def ip_caveat_status(self) -> Optional[str]:
+        # Only macaroons can have IP caveats; OIDC tokens never do
+        if is_jwt(self.token):
+            return None
+        if is_macaroon(self.token):
+            return check_ip_caveat(decode_macaroon(self.token).get("ip", ""))
+        raise _unknown_token_format_error(self.source)
 
 
 class TokenFileAuth(TokenAuth):
@@ -712,9 +732,33 @@ def get_jwt_scope(token: str) -> str:
 # matching the Bash version's approach.
 
 
+# A serialized (V1) macaroon starts with its location packet: a 4-hex-digit
+# packet length followed by "location ", e.g. "001clocation ...".
+_MACAROON_V1_START = re.compile(rb"^[0-9a-fA-F]{4}location ")
+
+
 def is_macaroon(token: str) -> bool:
-    """Check if a token looks like a Macaroon (not a JWT)."""
-    return not is_jwt(token)
+    """Check if a token is a (V1-serialized) Macaroon, as issued by dCache.
+
+    Decodes the token and checks for the location packet it always
+    starts with. Other formats, such as V2 binary macaroons, are not
+    recognized.
+    """
+    stripped = token.strip()
+    padded = stripped + "=" * (-len(stripped) % 4)
+    try:
+        decoded_bytes = base64.urlsafe_b64decode(padded)
+    except ValueError:
+        return False
+    return bool(_MACAROON_V1_START.match(decoded_bytes))
+
+
+def _unknown_token_format_error(source: str = "") -> AdaAuthError:
+    where = f" ({source})" if source else ""
+    return AdaAuthError(
+        f"Unrecognized token format{where}: the token is neither a "
+        "JWT/OIDC token nor a macaroon."
+    )
 
 
 def decode_macaroon_raw(token: str) -> str:
@@ -778,7 +822,7 @@ def decode_macaroon(token: str) -> dict[str, str]:
 
     Parses the decoded text for the ``location``/``identifier`` header
     fields and known caveats like ``before:``, ``activity:``,
-    ``path:``, ``id:``, etc. Real macaroons (v2 binary format) prefix
+    ``path:``, ``id:``, etc. Real macaroons (V1 format) prefix
     each caveat line with a hex length and a ``cid `` tag (e.g.
     ``002ecid before:2026-...Z``), so caveats are searched for
     anywhere in the line rather than requiring them at the start.
@@ -892,7 +936,7 @@ def check_ip_caveat(ip_caveat: str) -> str:
         informational.
     """
     if not ip_caveat.strip():
-        return "IP caveat is empty. Warning: use IP caveats in a macaroon to reduce security risks."
+        return "empty. Warning: use IP caveats in a macaroon to reduce security risks."
 
     try:
         networks = [
@@ -987,14 +1031,17 @@ def validate_token(
     Raises:
         AdaTokenExpiredError: If the token has expired or is about to expire.
         AdaTokenPermissionError: If the token lacks required permissions.
-        AdaAuthError: If the token cannot be decoded.
+        AdaAuthError: If the token format is not recognized or the token
+            cannot be decoded.
     """
     if is_jwt(token):
         logger.debug("Token identified as JWT/OIDC (%s)", source)
         _validate_jwt(token, source, command)
-    else:
+    elif is_macaroon(token):
         logger.debug("Token identified as Macaroon (%s)", source)
         _validate_macaroon(token, source, command)
+    else:
+        raise _unknown_token_format_error(source)
 
 
 def _validate_jwt(token: str, source: str, command: Optional[str]) -> None:

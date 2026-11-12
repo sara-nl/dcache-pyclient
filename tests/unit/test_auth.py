@@ -12,6 +12,7 @@ import pytest
 
 from ada.exceptions import AdaAuthError, AdaTokenExpiredError, AdaTokenPermissionError
 from ada.auth import (
+    AuthProvider,
     TokenAuth,
     check_ip_caveat,
     decode_jwt,
@@ -21,6 +22,7 @@ from ada.auth import (
     format_duration,
     get_public_ip,
     is_jwt,
+    is_macaroon,
     validate_token,
     ProxyAuth,
 )
@@ -37,6 +39,46 @@ class TestIsJwt:
 
     def test_macaroon_like(self):
         assert is_jwt("MDAxY2xvY2F0aW9uIG1hY2Fyb29u") is False
+
+
+class TestIsMacaroon:
+    def test_real_macaroon_start(self):
+        # base64 of "001clocation macaroon", how dCache macaroons start
+        assert is_macaroon("MDAxY2xvY2F0aW9uIG1hY2Fyb29u") is True
+
+    def test_fake_macaroon_fixture(self, make_macaroon_token):
+        assert is_macaroon(make_macaroon_token(before="2030-01-01T00:00:00Z")) is True
+
+    def test_jwt_is_not_a_macaroon(self, make_jwt_token):
+        assert is_macaroon(make_jwt_token()) is False
+
+    def test_garbage_is_not_a_macaroon(self):
+        assert is_macaroon("notatoken") is False
+
+    def test_empty_is_not_a_macaroon(self):
+        assert is_macaroon("") is False
+
+    def test_v2_binary_macaroon_is_not_recognized(self):
+        # V2 macaroons start with a 0x02 version byte; dCache issues V1.
+        token = base64.urlsafe_b64encode(b"\x02\x01\x0fdcache-macaroon").decode()
+        assert is_macaroon(token) is False
+
+
+class TestUnknownTokenFormat:
+    """A token that is neither a JWT nor a macaroon gets a clear error,
+    instead of being decoded as if it were a macaroon."""
+
+    def test_view_token(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            TokenAuth("notatoken").view_token()
+
+    def test_expiry_status(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            TokenAuth("notatoken").expiry_status()
+
+    def test_validate_token(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            validate_token("notatoken", source="$BEARER_TOKEN")
 
 
 class TestDecodeJwtPayload:
@@ -98,7 +140,7 @@ class TestValidateToken:
 
 
 class TestDecodeMacaroonRealWorldFormat:
-    """Real macaroons (v2 binary format) are base64url-encoded, often
+    """Real macaroons (V1 format) are base64url-encoded, often
     unpadded, and each caveat line is prefixed with a hex length and a
     'cid ' tag rather than starting with the caveat name directly —
     e.g. '002ecid before:2026-...Z' instead of 'before:2026-...Z'.
@@ -117,7 +159,7 @@ class TestDecodeMacaroonRealWorldFormat:
             "signature deadbeefdeadbeef",
         ]
         text = "\n".join(lines)
-        encoded = base64.urlsafe_b64encode(b"\x00\x00\x00\x00" + text.encode()).decode()
+        encoded = base64.urlsafe_b64encode(b"001c" + text.encode()).decode()
         return encoded.rstrip("=")  # unpadded, like real macaroons often are
 
     def test_decodes_unpadded_base64url_with_cid_prefixed_lines(self):
@@ -247,9 +289,38 @@ class TestGetPublicIp:
             assert get_public_ip(4) is None
 
 
+class TestIpCaveatStatus:
+    def test_jwt_has_no_ip_caveat_status(self, make_jwt_token):
+        assert TokenAuth(make_jwt_token()).ip_caveat_status() is None
+
+    def test_macaroon_without_ip(self, make_macaroon_token):
+        status = TokenAuth(make_macaroon_token(before="2099-01-01T00:00:00.000Z")).ip_caveat_status()
+        assert "empty. Warning" in status
+
+    def test_macaroon_with_ip(self, make_macaroon_token):
+        token = make_macaroon_token(before="2099-01-01T00:00:00.000Z", ip="203.0.113.0/24")
+        with patch("ada.auth.check_ip_caveat", return_value="ok") as check:
+            assert TokenAuth(token).ip_caveat_status() == "ok"
+        check.assert_called_once_with("203.0.113.0/24")
+
+    def test_unknown_token_format(self):
+        with pytest.raises(AdaAuthError, match="Unrecognized token format"):
+            TokenAuth("notatoken").ip_caveat_status()
+
+    def test_non_token_auth_has_no_ip_caveat_status(self):
+        class _NoTokenAuth(AuthProvider):
+            def headers(self):
+                return {}
+
+            def method_name(self):
+                return "none"
+
+        assert _NoTokenAuth().ip_caveat_status() is None
+
+
 class TestCheckIpCaveat:
     def test_empty_caveat(self):
-        assert "IP caveat is empty" in check_ip_caveat("")
+        assert "empty. Warning" in check_ip_caveat("")
 
     def test_unparseable_caveat(self):
         assert "could not parse" in check_ip_caveat("not-an-ip")
