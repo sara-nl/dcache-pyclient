@@ -178,7 +178,7 @@ def setup_data(target_env, tmp_path, testnames, ada_client):
 
     # tmp_path fixture provides a temporary directory unique to each test function.
     tmpfile = tmp_path / "tmpfile"
-    dcachefile = f"{target_env['homedir']}/{target_env['testdir']}/{testnames['tmpdir']}/{testnames['testfile']}"
+    dcachefile = os.path.join(target_env['homedir'], target_env['testdir'], testnames['tmpdir'], testnames['testfile'])
     generate_file(1000, tmpfile)
 
     # Get remote name for rclone

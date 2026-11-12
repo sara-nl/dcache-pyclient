@@ -18,7 +18,7 @@ class TestClassAuth:
     def test_view_token(self, ada_client, target_env):
         """View token"""
         userinfo = ada_client.view_token()
-        assert target_env['homedir'] == userinfo['home']
+        assert target_env['homedir'].rstrip("/") == userinfo['home']
         # The order of activities depends on how the macaroon was created
         expected = {"DOWNLOAD", "UPLOAD", "DELETE", "MANAGE", "LIST",
                     "READ_METADATA", "UPDATE_METADATA", "STAGE"}
@@ -32,7 +32,7 @@ class TestClassSystem:
         userinfo = ada_client.whoami()
         assert 'AUTHENTICATED' == userinfo.status
         assert target_env['user'] == userinfo.username
-        assert target_env['homedir'] == userinfo.home
+        assert target_env['homedir'].rstrip("/") == userinfo.home
 
 
 class TestClassNamespace:
