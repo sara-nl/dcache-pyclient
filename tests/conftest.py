@@ -151,6 +151,8 @@ def target_env(request):
   config_path = request.config.getoption('--target-env')
   with open(config_path) as config_file:
     config_data = json.load(config_file)
+  config_data['homedir'] = config_data['homedir'].rstrip('/')
+  config_data['testdir'] = config_data['testdir'].rstrip('/')
   return config_data
 
 
