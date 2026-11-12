@@ -9,13 +9,14 @@ from unittest.mock import patch
 import pytest
 
 from ada.utils import (
+    check_file_permissions,
     encode_path,
     get_version,
     normalize_path,
     parse_lifetime,
     to_json,
 )
-from ada.exceptions import AdaValidationError
+from ada.exceptions import AdaSecurityError, AdaValidationError
 
 
 class TestEncodePath:
@@ -105,6 +106,24 @@ class TestNormalizePath:
 
     def test_whitespace(self):
         assert normalize_path("  /pnfs/data  ") == "/pnfs/data"
+
+
+class TestCheckFilePermissions:
+    def test_world_writable_message_contains_path(self, tmp_path):
+        f = tmp_path / "token"
+        f.write_text("x")
+        f.chmod(0o602)
+        with pytest.raises(AdaSecurityError, match=r"Fix with: chmod o-w '.*token'") as exc:
+            check_file_permissions(str(f))
+        assert "{path}" not in str(exc.value)
+
+    def test_world_readable_message_contains_path(self, tmp_path):
+        f = tmp_path / "token"
+        f.write_text("x")
+        f.chmod(0o604)
+        with pytest.raises(AdaSecurityError, match=r"Fix with: chmod o-r '.*token'") as exc:
+            check_file_permissions(str(f))
+        assert "{path}" not in str(exc.value)
 
 
 def _fake_git_run(args, **kwargs):
