@@ -388,6 +388,19 @@ class DcacheAPI:
 
     # ---- Response Handling ----
 
+    def _namespace_path(self, url: httpx.URL) -> Optional[str]:
+        """Return the dCache path of a ``namespace/`` API URL, or None.
+
+        Namespace paths are encoded as a single URL segment (see
+        ``encode_path``), so the decoded URL path after the namespace
+        endpoint is the dCache path, e.g.
+        ``.../api/v1/namespace/%2Fpnfs%2Fdata?optional=true`` → ``/pnfs/data``.
+        """
+        prefix = httpx.URL(self.base_url).path.rstrip("/") + "/namespace/"
+        if url.path.startswith(prefix):
+            return url.path[len(prefix):]
+        return None
+
     def _handle_response(self, response: httpx.Response) -> Any:
         """Map HTTP status codes to exceptions and parse JSON responses."""
         if self.debug:
@@ -401,7 +414,11 @@ class DcacheAPI:
                 "Authentication failed. Check your token, netrc, or proxy credentials."
             )
         if status == 404:
-            raise AdaNotFoundError(f"Not found: {response.url}")
+            path = self._namespace_path(response.url)
+            raise AdaNotFoundError(
+                f"Not found: {path if path is not None else response.url}",
+                url=str(response.url),
+            )
         if status == 403:
             raise AdaForbiddenError(
                 f"Forbidden: {response.url}",
