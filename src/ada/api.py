@@ -1,11 +1,9 @@
 """Low-level HTTP client for the dCache REST API.
 
-Wraps ``httpx`` and provides:
-- URL encoding of dCache paths
-- JSON response parsing
-- HTTP status code to exception mapping
-- Debug logging of all requests
-- SSE streaming support
+Wraps ``httpx`` and takes care of authentication, parsing JSON
+responses, turning HTTP errors into ADA exceptions, debug logging of
+requests, and streaming Server-Sent Events. Library users normally use
+:class:`~ada.client.AdaClient` instead.
 """
 
 from __future__ import annotations
@@ -28,10 +26,20 @@ logger = logging.getLogger("ada.api")
 
 
 def build_ssl_kwargs(auth: AuthProvider, verify: bool) -> dict[str, Any]:
-    """Build the httpx.Client verify/SSL kwargs for a given auth method.
+    """Build the TLS settings for an ``httpx.Client``.
 
-    Shared between DcacheAPI (REST) and the WebDAV client, since both
-    need the same client-certificate handling for proxy authentication.
+    Shared between :class:`DcacheAPI` (REST) and the WebDAV client,
+    since both need the same client certificate handling for proxy
+    authentication.
+
+    Args:
+        auth: The authentication method. For proxy authentication, its
+            SSL context holds the client certificate.
+        verify: Verify the server's TLS certificate.
+
+    Returns:
+        Keyword arguments for ``httpx.Client``, with ``verify=False``,
+        with an SSL context as ``verify``, or empty (the httpx defaults).
     """
     kwargs: dict[str, Any] = {}
     if verify is False:
@@ -46,8 +54,18 @@ def build_ssl_kwargs(auth: AuthProvider, verify: bool) -> dict[str, Any]:
 class DcacheAPI:
     """Low-level HTTP client for the dCache REST API.
 
-    All service modules use this client to make API calls.
-    It handles authentication, error mapping, and optional debug logging.
+    All service modules use this client to make API calls. Redirects are
+    followed. Requests time out after 30 seconds, or 300 seconds while
+    reading the response.
+
+    Args:
+        base_url: URL of the REST API, e.g.
+            ``"https://dcache.example.org:3880/api/v1"``.
+        auth: The authentication method, which provides the headers,
+            credentials or client certificate for each request.
+        verify: Verify the server's TLS certificate. Disabling it logs a
+            warning.
+        debug: Log each request and response at debug level.
     """
 
     def __init__(
@@ -99,7 +117,25 @@ class DcacheAPI:
         params: Optional[dict[str, str]] = None,
         accept: str = "application/json",
     ) -> Any:
-        """Perform a GET request."""
+        """Send a GET request.
+
+        Args:
+            endpoint: API endpoint, relative to the base URL, e.g.
+                ``"namespace/%2Fpnfs%2Fdata"``.
+            params: Query parameters.
+            accept: Value of the Accept header.
+
+        Returns:
+            The parsed JSON response, the response text if it isn't
+            JSON, or None if the response is empty.
+
+        Raises:
+            AdaAuthenticationError: If dCache rejected the credentials
+                (HTTP 401).
+            AdaForbiddenError: If access is forbidden (HTTP 403).
+            AdaNotFoundError: If the resource does not exist (HTTP 404).
+            AdaAPIError: For other HTTP errors (status 400 and higher).
+        """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         if self.debug:
             logger.debug("GET %s params=%s", url, params)
@@ -114,11 +150,27 @@ class DcacheAPI:
         url: str,
         accept: str = "application/json",
     ) -> Any:
-        """Perform a GET against an absolute URL outside the REST API base path.
+        """Send a GET request to a URL outside the REST API base path.
 
         Used for endpoints that live alongside the REST API rather than
         under it (e.g. ``/scripts/config.js``, used for WebDAV door
-        discovery), while reusing the same auth/SSL/timeout setup.
+        discovery), while reusing the same authentication, TLS and
+        timeout settings.
+
+        Args:
+            url: The complete URL.
+            accept: Value of the Accept header.
+
+        Returns:
+            The parsed JSON response, the response text if it isn't
+            JSON, or None if the response is empty.
+
+        Raises:
+            AdaAuthenticationError: If dCache rejected the credentials
+                (HTTP 401).
+            AdaForbiddenError: If access is forbidden (HTTP 403).
+            AdaNotFoundError: If the resource does not exist (HTTP 404).
+            AdaAPIError: For other HTTP errors (status 400 and higher).
         """
         if self.debug:
             logger.debug("GET (absolute) %s", url)
@@ -135,7 +187,26 @@ class DcacheAPI:
         content_type: str = "application/json",
         accept: str = "application/json",
     ) -> Any:
-        """Perform a POST request."""
+        """Send a POST request, with a JSON body or other data.
+
+        Args:
+            endpoint: API endpoint, relative to the base URL.
+            json: Body to send as JSON. Takes precedence over ``data``.
+            data: Body to send as text, if ``json`` is not given.
+            content_type: Value of the Content-Type header.
+            accept: Value of the Accept header.
+
+        Returns:
+            The parsed JSON response, the response text if it isn't
+            JSON, or None if the response is empty.
+
+        Raises:
+            AdaAuthenticationError: If dCache rejected the credentials
+                (HTTP 401).
+            AdaForbiddenError: If access is forbidden (HTTP 403).
+            AdaNotFoundError: If the resource does not exist (HTTP 404).
+            AdaAPIError: For other HTTP errors (status 400 and higher).
+        """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         if self.debug:
             logger.debug("POST %s body=%s", url, json or data)
@@ -155,7 +226,19 @@ class DcacheAPI:
         endpoint: str,
         json: Optional[dict[str, Any]] = None,
     ) -> httpx.Response:
-        """POST that returns the raw httpx.Response (for bulk requests needing headers)."""
+        """Send a POST request with a JSON body, and return the raw response.
+
+        For callers that need the response headers, like bulk requests.
+        HTTP errors are not turned into exceptions: check the status code
+        of the response.
+
+        Args:
+            endpoint: API endpoint, relative to the base URL.
+            json: Body to send as JSON.
+
+        Returns:
+            The response.
+        """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         if self.debug:
             logger.debug("POST (raw) %s body=%s", url, json)
@@ -168,7 +251,22 @@ class DcacheAPI:
         return response
 
     def delete(self, endpoint: str) -> Any:
-        """Perform a DELETE request."""
+        """Send a DELETE request.
+
+        Args:
+            endpoint: API endpoint, relative to the base URL.
+
+        Returns:
+            The parsed JSON response, the response text if it isn't
+            JSON, or None if the response is empty.
+
+        Raises:
+            AdaAuthenticationError: If dCache rejected the credentials
+                (HTTP 401).
+            AdaForbiddenError: If access is forbidden (HTTP 403).
+            AdaNotFoundError: If the resource does not exist (HTTP 404).
+            AdaAPIError: For other HTTP errors (status 400 and higher).
+        """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         if self.debug:
             logger.debug("DELETE %s", url)
@@ -180,7 +278,23 @@ class DcacheAPI:
         endpoint: str,
         json: Optional[dict[str, Any]] = None,
     ) -> Any:
-        """Perform a PATCH request."""
+        """Send a PATCH request with a JSON body.
+
+        Args:
+            endpoint: API endpoint, relative to the base URL.
+            json: Body to send as JSON.
+
+        Returns:
+            The parsed JSON response, the response text if it isn't
+            JSON, or None if the response is empty.
+
+        Raises:
+            AdaAuthenticationError: If dCache rejected the credentials
+                (HTTP 401).
+            AdaForbiddenError: If access is forbidden (HTTP 403).
+            AdaNotFoundError: If the resource does not exist (HTTP 404).
+            AdaAPIError: For other HTTP errors (status 400 and higher).
+        """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         if self.debug:
             logger.debug("PATCH %s body=%s", url, json)
@@ -198,9 +312,27 @@ class DcacheAPI:
         last_event_id: Optional[str] = None,
         timeout: int = 3600,
     ) -> Iterator[dict[str, str]]:
-        """Open an SSE connection and yield parsed events.
+        """Open a Server-Sent Events (SSE) connection and yield the events.
 
-        Each yielded dict has keys: ``event``, ``data``, ``id`` (all optional).
+        Args:
+            endpoint: API endpoint of the event channel, relative to the
+                base URL.
+            last_event_id: Resume after this event, by sending it as the
+                Last-Event-ID header.
+            timeout: Close the connection when no data arrives for this
+                many seconds.
+
+        Yields:
+            Each event as a dict with the keys ``event``, ``data`` and
+            ``id``, each only present if the event has it. Data of
+            multiple ``data:`` lines is joined with newlines.
+
+        Raises:
+            AdaAuthenticationError: If dCache rejected the credentials
+                (HTTP 401).
+            AdaForbiddenError: If access is forbidden (HTTP 403).
+            AdaNotFoundError: If the resource does not exist (HTTP 404).
+            AdaAPIError: For other HTTP errors (status 400 and higher).
         """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         headers = self._headers(accept="text/event-stream")
@@ -304,11 +436,18 @@ class DcacheAPI:
 
     @staticmethod
     def encode_path(path: str) -> str:
-        """URL-encode a dCache namespace path."""
+        """URL-encode a dCache path, see :func:`ada.utils.encode_path`.
+
+        Args:
+            path: dCache path.
+
+        Returns:
+            The encoded path.
+        """
         return encode_path(path)
 
     # ---- Lifecycle ----
 
     def close(self) -> None:
-        """Close the underlying HTTP client."""
+        """Close the network connections."""
         self._client.close()

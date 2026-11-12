@@ -28,22 +28,40 @@ logger = logging.getLogger("ada.config")
 
 @dataclass
 class AdaConfig:
-    """Configuration for ADA, assembled from files + env + CLI args."""
+    """Configuration for ADA, assembled from config files, environment
+    variables and arguments. Created by :func:`load_config`."""
 
+    #: URL of the dCache REST API (``api``, ``$ada_api``).
     api: str = ""
+    #: Log HTTP requests and responses (``debug``, ``$ada_debug``).
     debug: bool = False
+    #: For proxy authentication, also trust the IGTF Grid CA
+    #: certificates (``igtf``, ``$ada_igtf``).
     igtf: bool = True
+    #: Timeout in seconds for event channels (``channel_timeout``,
+    #: ``$ada_channel_timeout``). Not used yet.
     channel_timeout: int = 3600
+    #: File with a bearer token (``tokenfile``, ``$ada_tokenfile``).
     tokenfile: Optional[str] = None
+    #: oidc-agent account to get tokens from (``tokenclient``,
+    #: ``$ada_tokenclient``).
     tokenclient: Optional[str] = None
+    #: Netrc file with a username and password (``netrcfile``,
+    #: ``$ada_netrcfile``).
     netrcfile: Optional[str] = None
+    #: Extra curl options of the Bash version. Not read from config
+    #: files, and not used.
     curl_options: list[str] = field(default_factory=list)
 
     def validate(self) -> None:
-        """Validate configuration values.
+        """Check the configuration, and remove a trailing ``/`` from the API URL.
+
+        Logs a warning if the API URL does not end with ``/api/v1`` or
+        ``/api/v2``.
 
         Raises:
-            AdaConfigError: If the API URL is set but has an invalid format.
+            AdaConfigError: If the API URL is set but does not start with
+                ``https://``.
         """
         if self.api:
             api = self.api.rstrip("/")
@@ -61,14 +79,25 @@ class AdaConfig:
 
 
 def load_config(paths: Optional[list[str]] = None) -> AdaConfig:
-    """Load configuration from files and environment variables.
+    """Load the configuration from config files and environment variables.
+
+    All config files found are read, the lowest precedence first, so a
+    file only needs to set the values it wants to override. Then the
+    environment variables (``ada_api``, ``ada_debug``,
+    ``ada_channel_timeout``, ``ada_igtf``, ``ada_tokenfile``,
+    ``ada_tokenclient``, ``ada_netrcfile``) override the files.
 
     Args:
-        paths: Optional list of config file paths to search.
-            If not provided, uses default search paths.
+        paths: Config files to read, highest precedence first. Files
+            that don't exist are skipped. Defaults to
+            ``~/.ada/ada.conf``, ``/etc/ada.conf`` and the bundled
+            defaults.
 
     Returns:
-        Populated AdaConfig instance.
+        The configuration.
+
+    Raises:
+        AdaSecurityError: If a config file is writable by others.
     """
     config = AdaConfig()
     search_paths = paths or _default_config_paths()

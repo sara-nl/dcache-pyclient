@@ -1,7 +1,8 @@
-"""Namespace service — file and directory operations on dCache.
+"""Namespace service: file and directory operations on dCache.
 
-Handles list, longlist, stat, mkdir, mv, delete, and helper functions
-for recursive traversal and path type detection.
+Handles list, longlist, stat, mkdir, mv and delete, and has helper
+methods, also used by other services, to check the type of a path and
+to walk through directories.
 """
 
 from __future__ import annotations
@@ -20,19 +21,33 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("ada.services.namespace")
 
+#: Maximum number of directory levels that a recursive mkdir creates at once.
 MAX_RECURSIVE_MKDIR = 10
 
 
 class NamespaceService:
-    """File and directory operations on the dCache namespace."""
+    """File and directory operations on the dCache namespace.
+
+    Args:
+        api: Client for the dCache REST API.
+    """
 
     def __init__(self, api: DcacheAPI) -> None:
         self._api = api
 
     def list(self, path: str) -> list[str]:
-        """List directory contents or return the file path itself.
+        """List the contents of a directory.
 
-        For directories, returns sorted child names with '/' appended for subdirs.
+        Args:
+            path: dCache path of a directory or file.
+
+        Returns:
+            The names of the files and subdirectories in the directory,
+            sorted, with ``/`` appended to subdirectory names. For a
+            file, a list with only the file name.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
         """
         file_type = self.get_file_type(path)
         if file_type == FileType.DIR:
@@ -53,9 +68,23 @@ class NamespaceService:
             paths: Optional[str | list[str]] = None,
             from_file: Optional[str] = None
             ) -> list[FileInfo]:
-        """Get detailed file information for one or more paths.
+        """Get details (size, modification time, QoS, locality) of files.
 
-        For directories, lists children with size, mtime, QoS, and locality.
+        For a directory, its files and subdirectories are listed (not
+        recursively). Give either ``paths`` or ``from_file``.
+
+        Args:
+            paths: dCache path, or list of paths, of files or directories.
+            from_file: Local file with one dCache path per line.
+
+        Returns:
+            A :class:`~ada.models.FileInfo` for each file or subdirectory.
+
+        Raises:
+            AdaValidationError: If both or neither of ``paths`` and
+                ``from_file`` are given, or ``from_file`` contains no
+                paths.
+            AdaNotFoundError: If a path does not exist.
         """
 
         # Get list of paths
@@ -80,13 +109,22 @@ class NamespaceService:
         return results
 
     def stat(self, path: str) -> dict:
-        """Get complete, raw metadata for a file or directory.
+        """Get all metadata of a file or directory, as dCache returns it.
 
         Returns the full API response as-is (locality, locations, QoS,
         xattr, labels, checksums, storage class/HSM, access latency,
         retention policy, ownership/timestamps, etc.) rather than a
         curated subset, so fields a future dCache version adds show up
         automatically.
+
+        Args:
+            path: dCache path of a file or directory.
+
+        Returns:
+            The metadata, with dCache's field names.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
         """
         return self._api.get(
             f"namespace/{self._enc(path)}",
@@ -105,15 +143,19 @@ class NamespaceService:
         """Create a directory.
 
         Args:
-            path: The directory path to create.
-            recursive: If True, create parent directories as needed.
+            path: dCache path of the directory to create.
+            recursive: Also create missing parent directories, at most
+                :data:`MAX_RECURSIVE_MKDIR` levels at once.
 
         Returns:
-            Status message.
+            ``"created"``, or ``"already exists"`` if the directory
+            already existed.
 
         Raises:
-            AdaValidationError: If recursive depth exceeds MAX_RECURSIVE_MKDIR.
-            AdaPathError: If parent does not exist and recursive is False.
+            AdaValidationError: If more than :data:`MAX_RECURSIVE_MKDIR`
+                directory levels would have to be created.
+            AdaPathError: If the parent does not exist and ``recursive``
+                is False.
         """
         if _depth > MAX_RECURSIVE_MKDIR:
             raise AdaValidationError(
@@ -154,8 +196,16 @@ class NamespaceService:
     def mv(self, source: str, destination: str) -> str:
         """Move or rename a file or directory.
 
+        Args:
+            source: Current dCache path.
+            destination: New dCache path. Must not exist yet.
+
+        Returns:
+            ``"moved"``.
+
         Raises:
             AdaPathError: If the destination already exists.
+            AdaNotFoundError: If the source does not exist.
         """
         try:
             self.get_file_type(destination)
@@ -177,13 +227,17 @@ class NamespaceService:
         """Delete a file or directory.
 
         Args:
-            path: Path to delete.
-            recursive: If True, delete directory contents recursively.
-            force: If True, skip confirmation prompts.
+            path: dCache path of a file or directory.
+            recursive: Required to delete a directory: deletes the
+                directory with all its contents.
+            force: Don't ask on the terminal for confirmation before
+                each subdirectory is deleted.
 
         Raises:
-            AdaPathError: If path is a directory and recursive is False.
-            SystemExit: If user does not confirm deletion.
+            AdaPathError: If the path is a directory and ``recursive``
+                is False.
+            AdaNotFoundError: If the path does not exist.
+            SystemExit: If the user does not confirm the deletion.
         """
 
         """Recursively delete all children then the directory itself."""
@@ -223,21 +277,50 @@ class NamespaceService:
     # ---- Helper Methods (also used by other services) ----
 
     def get_file_type(self, path: str) -> FileType:
-        """Get the type of a path (DIR, REGULAR, LINK)."""
+        """Get the type of a path: file, directory or link.
+
+        Args:
+            path: dCache path.
+
+        Returns:
+            The type.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
+            AdaPathError: If dCache does not report a type.
+        """
         data = self._api.get(f"namespace/{self._enc(path)}")
         if isinstance(data, dict) and "fileType" in data:
             return FileType(data["fileType"])
         raise AdaPathError(f"Cannot determine file type for '{path}'")
 
     def is_dir(self, path: str) -> bool:
-        """Check if a path is a directory. Returns False if not found."""
+        """Check whether a path is a directory.
+
+        Args:
+            path: dCache path.
+
+        Returns:
+            True for a directory. False for anything else, including a
+            path that doesn't exist or can't be checked.
+        """
         try:
             return self.get_file_type(path) == FileType.DIR
         except Exception:
             return False
 
     def is_online(self, path: str) -> bool:
-        """Check if a file is online (not only on tape)."""
+        """Check whether a file is online, i.e. on disk and not only on tape.
+
+        Args:
+            path: dCache path of a file.
+
+        Returns:
+            True if the file's locality includes ``ONLINE``.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
+        """
         data = self._api.get(
             f"namespace/{self._enc(path)}",
             params={"locality": "true", "qos": "true"},
@@ -246,12 +329,32 @@ class NamespaceService:
         return "ONLINE" in locality
 
     def get_pnfs_id(self, path: str) -> str:
-        """Get the PNFS ID of a file or directory."""
+        """Get dCache's internal ID (PNFS ID) of a file or directory.
+
+        Args:
+            path: dCache path.
+
+        Returns:
+            The PNFS ID, or an empty string if dCache doesn't report one.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
+        """
         data = self._api.get(f"namespace/{self._enc(path)}")
         return data.get("pnfsId", "")
 
     def get_subdirs(self, path: str) -> list[str]:
-        """Get subdirectory names within a directory."""
+        """Get the names of the subdirectories in a directory.
+
+        Args:
+            path: dCache path of a directory.
+
+        Returns:
+            The names, without the directory path.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
+        """
         data = self._api.get(
             f"namespace/{self._enc(path)}", params={"children": "true"}
         )
@@ -262,7 +365,18 @@ class NamespaceService:
         ]
 
     def get_files_in_dir(self, path: str) -> list[str]:
-        """Get regular file names within a directory."""
+        """Get the names of the files in a directory.
+
+        Args:
+            path: dCache path of a directory.
+
+        Returns:
+            The names of the regular files (not subdirectories or
+            links), without the directory path.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
+        """
         data = self._api.get(
             f"namespace/{self._enc(path)}", params={"children": "true"}
         )
@@ -275,9 +389,17 @@ class NamespaceService:
     def with_files_in_dir(
         self, path: str, recursive: bool = False
     ) -> list[str]:
-        """Get full paths of all regular files in a directory.
+        """Get the full paths of the files in a directory.
 
-        If recursive, traverses subdirectories.
+        Args:
+            path: dCache path of a directory.
+            recursive: Also include the files in subdirectories.
+
+        Returns:
+            The paths of the regular files.
+
+        Raises:
+            AdaNotFoundError: If the path does not exist.
         """
         files: list[str] = []
         base = path.rstrip("/")

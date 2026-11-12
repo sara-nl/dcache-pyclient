@@ -1,7 +1,9 @@
-"""Staging service — tape staging and unstaging operations.
+"""Staging service: bringing files from tape to disk, and releasing them.
 
-Handles bringing files from tape to disk (staging), releasing disk copies
-(unstaging), and managing bulk requests.
+Staging creates a bulk request in dCache that copies files from tape to
+disk and pins them there for a while. Unstaging releases the pins, so
+dCache may remove the disk copies. Both run in the background in dCache;
+their bulk requests can be followed and deleted.
 """
 
 from __future__ import annotations
@@ -24,7 +26,13 @@ logger = logging.getLogger("ada.services.staging")
 
 
 class StagingService:
-    """Stage/unstage operations for dCache tape-backed storage."""
+    """Stage and unstage operations for dCache tape-backed storage.
+
+    Args:
+        api: Client for the dCache REST API.
+        namespace: Namespace service to check path types with. Created
+            when needed if not given.
+    """
 
     def __init__(self, api: DcacheAPI, namespace: Optional[NamespaceService] = None) -> None:
         self._api = api
@@ -42,16 +50,34 @@ class StagingService:
         lifetime: str = "7D",
         from_file: Optional[str] = None,
     ) -> BulkRequest:
-        """Stage files from tape to disk.
+        """Stage files from tape, so they are online (on disk) to be read.
+
+        Staging also pins the files: dCache keeps the online copy at
+        least until the pin lifetime has passed. Give either ``paths`` or
+        ``from_file``.
 
         Args:
-            paths: File or directory path(s) to stage.
-            recursive: If True, stage files recursively in directories.
-            lifetime: How long to keep files online (e.g., '7D', '24H').
-            from_file: Path to a file containing one path per line.
+            paths: dCache path, or list of paths, of the files or
+                directories to stage. For a directory, the files in it
+                are staged.
+            recursive: For directories, also stage the files in their
+                subdirectories.
+            lifetime: How long the files stay pinned, as a number with a
+                unit: S, M, H or D, e.g. ``"12H"`` or ``"7D"``.
+            from_file: Local file with one dCache path per line.
 
         Returns:
-            BulkRequest with the request ID and details.
+            The bulk request that dCache created.
+
+        Raises:
+            AdaValidationError: If the lifetime is not valid, both or
+                neither of ``paths`` and ``from_file`` are given, or
+                ``from_file`` contains no paths.
+            FileNotFoundError: If ``from_file`` does not exist.
+            AdaForbiddenError: If the server refuses the request (HTTP
+                403 or 422), e.g. because staging directories
+                (recursively) is not allowed.
+            AdaAPIError: If the request fails otherwise.
         """
         lifetime_value, lifetime_unit = parse_lifetime(lifetime)
 
@@ -117,16 +143,33 @@ class StagingService:
         request_id: Optional[str] = None,
         from_file: Optional[str] = None,
     ) -> BulkRequest:
-        """Unstage files — release pins so dCache can purge disk copies.
+        """Unstage files: release their pins, so dCache may remove the disk copy.
+
+        Give either ``paths`` or ``from_file``.
 
         Args:
-            paths: File or directory path(s) to unstage.
-            recursive: If True, unstage files recursively.
-            request_id: Specific bulk request ID to unpin.
-            from_file: Path to a file containing one path per line.
+            paths: dCache path, or list of paths, of the files or
+                directories to unstage. For a directory, the files in it
+                are unstaged.
+            recursive: For directories, also unstage the files in their
+                subdirectories.
+            request_id: Only release the pin created by this earlier
+                stage request. By default, all pins of the files are
+                released.
+            from_file: Local file with one dCache path per line.
 
         Returns:
-            BulkRequest with details.
+            The bulk request that dCache created.
+
+        Raises:
+            AdaValidationError: If both or neither of ``paths`` and
+                ``from_file`` are given, or ``from_file`` contains no
+                paths.
+            FileNotFoundError: If ``from_file`` does not exist.
+            AdaForbiddenError: If the server refuses the request (HTTP
+                403 or 422), e.g. because unstaging directories
+                (recursively) is not allowed.
+            AdaAPIError: If the request fails otherwise.
         """
         target_paths = resolve_paths(paths, from_file)
 
@@ -179,10 +222,13 @@ class StagingService:
         """Get the status of a bulk request.
 
         Args:
-            request_id: The bulk request ID.
+            request_id: ID of the request.
 
         Returns:
-            BulkRequestStatus with target details.
+            The status of the request and of each file in it.
+
+        Raises:
+            AdaNotFoundError: If the request does not exist.
         """
         data = self._api.get(f"bulk-requests/{request_id}")
         return BulkRequestStatus(
@@ -196,7 +242,10 @@ class StagingService:
         """Delete a bulk request.
 
         Args:
-            request_id: The bulk request ID to delete.
+            request_id: ID of the request.
+
+        Raises:
+            AdaNotFoundError: If the request does not exist.
         """
         self._api.delete(f"bulk-requests/{request_id}")
 

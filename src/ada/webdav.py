@@ -43,13 +43,21 @@ def discover_webdav_door(api: DcacheAPI, auth: AuthProvider) -> str:
     """Find a WebDAV door to use for uploads/downloads.
 
     Tries, in order:
-        1. The ``url =`` entry in an rclone-format tokenfile, if that's
-           the active authentication method.
-        2. The dCache-view configuration endpoint (``/scripts/config.js``).
-        3. The ``/doors`` API, picking the best public HTTPS door.
+
+    1. The ``url =`` entry in an rclone-format tokenfile, if that's the
+       active authentication method.
+    2. The dCache-view configuration endpoint (``/scripts/config.js``).
+    3. The ``/doors`` API, picking the best public HTTPS door.
 
     A user can always bypass discovery entirely by prepending a door to
     the remote path (e.g. ``https://dcache.example.org:2880/pnfs/...``).
+
+    Args:
+        api: Client for the REST API, used for steps 2 and 3.
+        auth: The authentication method, used for step 1.
+
+    Returns:
+        URL of the door, e.g. ``"https://webdav.example.org:2880"``.
 
     Raises:
         AdaTransferError: If no WebDAV door could be found by any method.
@@ -150,10 +158,21 @@ def _door_from_doors_api(api: DcacheAPI) -> Optional[str]:
 class WebdavClient:
     """Streaming upload/download over WebDAV, reusing an AuthProvider.
 
-    By default, redirects are only followed if they stay on https — a
+    By default, redirects are only followed if they stay on https: a
     dCache WebDAV door redirecting to a plain http pool would otherwise
     silently downgrade the connection. Pass ``allow_insecure_redirects``
-    to override this (matching the Bash version's behavior).
+    to override this (matching the Bash version's behavior). At most 5
+    redirects are followed. Connecting times out after 30 seconds;
+    reading has no timeout, since a transfer can take long.
+
+    Args:
+        door: URL of the WebDAV door, e.g.
+            ``"https://webdav.example.org:2880"``.
+        auth: The authentication method, the same one as for the REST
+            API.
+        verify: Verify the server's TLS certificate.
+        allow_insecure_redirects: Also follow redirects to plain
+            ``http://`` addresses.
     """
 
     def __init__(
@@ -175,7 +194,15 @@ class WebdavClient:
         self._client = httpx.Client(**client_kwargs)
 
     def url_for(self, path: str) -> str:
-        """Build the full WebDAV URL for a dCache namespace path."""
+        """Build the WebDAV URL for a dCache path.
+
+        Args:
+            path: dCache path.
+
+        Returns:
+            The door URL followed by the URL-encoded path, with ``/``
+            left as it is.
+        """
         return f"{self.door}{quote(path, safe='/')}"
 
     def upload(
@@ -184,7 +211,14 @@ class WebdavClient:
         remote_path: str,
         extra_headers: Optional[dict[str, str]] = None,
     ) -> None:
-        """Upload a local file to a remote path via PUT.
+        """Upload a local file to a dCache path with an HTTP PUT.
+
+        The file is streamed from disk, so it is never fully in memory.
+
+        Args:
+            local_path: Local file to upload.
+            remote_path: dCache path to write to.
+            extra_headers: Additional HTTP headers, e.g. ``Content-MD5``.
 
         Raises:
             AdaTransferError: On too many redirects or an insecure redirect.
@@ -210,7 +244,14 @@ class WebdavClient:
         raise AdaTransferError(f"Too many redirects while uploading to '{remote_path}'.")
 
     def download(self, remote_path: str, local_path: str) -> None:
-        """Download a remote file to a local path via GET, streaming to disk.
+        """Download a dCache file to a local path with an HTTP GET.
+
+        The data is streamed to disk, so it is never fully in memory. An
+        existing local file is overwritten.
+
+        Args:
+            remote_path: dCache path to read.
+            local_path: Local file to write.
 
         Raises:
             AdaTransferError: On too many redirects or an insecure redirect.
@@ -264,6 +305,7 @@ class WebdavClient:
             )
 
     def close(self) -> None:
+        """Close the network connections."""
         self._client.close()
 
     def __enter__(self) -> "WebdavClient":
