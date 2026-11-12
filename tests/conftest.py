@@ -151,6 +151,8 @@ def target_env(request):
   config_path = request.config.getoption('--target-env')
   with open(config_path) as config_file:
     config_data = json.load(config_file)
+  config_data['homedir'] = config_data['homedir'].rstrip('/')
+  config_data['testdir'] = config_data['testdir'].rstrip('/')
   return config_data
 
 
@@ -178,7 +180,7 @@ def setup_data(target_env, tmp_path, testnames, ada_client):
 
     # tmp_path fixture provides a temporary directory unique to each test function.
     tmpfile = tmp_path / "tmpfile"
-    dcachefile = os.path.join(target_env['homedir'], target_env['testdir'], testnames['tmpdir'], testnames['testfile'])
+    dcachefile = f"{target_env['homedir']}/{target_env['testdir']}/{testnames['tmpdir']}/{testnames['testfile']}"
     generate_file(1000, tmpfile)
 
     # Get remote name for rclone
