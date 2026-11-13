@@ -2,6 +2,9 @@
 
 Labels are simple string tags attached to files, to group and find
 them. Directories cannot have labels (dCache restriction).
+
+Labels are not private: every user of the same dCache instance can see
+a label, together with the names of the files that have it.
 """
 
 from __future__ import annotations
@@ -41,6 +44,13 @@ class LabelService:
 
     def set(self, path: str, label: str) -> str:
         """Attach a label to a file.
+
+        Warning:
+            Labels are not private: every user of the same dCache
+            instance can see a label, together with the names of the
+            files that have it. Don't label files whose names are
+            confidential, and don't put confidential information in a
+            label.
 
         Args:
             path: dCache path of a file.
