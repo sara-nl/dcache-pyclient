@@ -161,6 +161,36 @@ def ada_client(target_env):
     client =  AdaClient(api=target_env['api'], tokenfile=target_env['tokenfile'])
     return client
 
+
+@pytest.fixture
+def raw_api_get(ada_client, target_env):
+    """GET from the dCache API directly, bypassing ADA's services.
+
+    To check ADA's results against what dCache itself returns, e.g. so a
+    bug that makes ADA return nothing isn't mistaken for "nothing there".
+    Only ADA's credentials and TLS settings are reused.
+
+    Returns a function ``get(endpoint, params=None)`` that returns
+    ``(status_code, json_or_None)``.
+    """
+    import httpx
+    from ada.api import build_ssl_kwargs
+
+    auth = ada_client.auth
+    client = httpx.Client(timeout=30.0, **build_ssl_kwargs(auth, True))
+
+    def get(endpoint, params=None):
+        response = client.get(
+            f"{target_env['api']}/{endpoint}",
+            params=params,
+            headers={**auth.headers(), "Accept": "application/json"},
+        )
+        body = response.json() if response.status_code == 200 else None
+        return response.status_code, body
+
+    yield get
+    client.close()
+
 # Create a 1GB file
 def generate_file(size_in_mb, file_name):
   mega_byte = 1_000
@@ -201,3 +231,40 @@ def setup_data(target_env, tmp_path, testnames, ada_client):
     except:
         print(f"Cannot delete {testfolder} on dCache")
 
+
+
+@pytest.fixture
+def expected_quotas(raw_api_get):
+    """The user and group quotas as dCache itself returns them.
+
+    A 404 means that kind of quota is not set. Returns a list of
+    ``(quota_type, entry)`` tuples, where entry is the raw JSON object.
+    """
+    quotas = []
+    for quota_type in ("user", "group"):
+        status, body = raw_api_get(f"quota/{quota_type}", params={"user": "true"})
+        if status == 404:
+            continue
+        assert status == 200, f"quota/{quota_type}: HTTP {status}"
+        quotas.extend((quota_type, entry) for entry in body)
+    return quotas
+
+
+@pytest.fixture
+def testdir_path(target_env):
+    """The (existing) test directory on dCache."""
+    return f"{target_env['homedir']}/{target_env['testdir']}"
+
+
+@pytest.fixture
+def quota_owners(ada_client):
+    """Describe whom the user and group quotas apply to, for skip messages.
+
+    dCache lists the primary group first in the ``gids`` of ``/user``.
+    """
+    me = ada_client.whoami()
+    primary_gid = me.gids[0] if me.gids else "?"
+    return {
+        "user": f"user {me.username} (uid {me.uid})",
+        "group": f"primary group of user {me.username} (gid {primary_gid})",
+    }

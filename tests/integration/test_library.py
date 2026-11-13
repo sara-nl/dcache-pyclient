@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import pytest
 
-from ada.exceptions import AdaValidationError, AdaAPIError, AdaPathError
+from ada.exceptions import AdaValidationError, AdaAPIError, AdaPathError, AdaNotFoundError
 from ada.client import AdaClient
 
 
@@ -33,6 +33,76 @@ class TestClassSystem:
         assert 'AUTHENTICATED' == userinfo.status
         assert target_env['user'] == userinfo.username
         assert target_env['homedir'] == userinfo.home
+
+
+class TestSpace:
+    """Test pool group space (#67), checked against the raw API"""
+
+    def test_list_poolgroups(self, ada_client, raw_api_get):
+        status, body = raw_api_get("poolgroups")
+        assert status == 200
+        expected = [item["name"] for item in body]
+        assert expected, "dCache reports no pool groups"
+        assert ada_client.space() == expected
+
+    def test_poolgroups_for_path(self, ada_client, testdir_path):
+        poolgroups = ada_client.poolgroups_for_path(testdir_path)
+        assert poolgroups
+        assert set(poolgroups) <= set(ada_client.space())
+
+    def test_space_of_poolgroup(self, ada_client, raw_api_get, testdir_path):
+        for poolgroup in ada_client.poolgroups_for_path(testdir_path):
+            info = ada_client.space(poolgroup)
+            status, body = raw_api_get(f"poolgroups/{poolgroup}/space")
+            assert status == 200
+            # free/precious/removable change all the time, total doesn't
+            assert info.total == body["groupSpaceData"]["total"]
+            assert info.total > 0
+            assert 0 <= info.free <= info.total
+            assert info.precious >= 0
+            assert info.removable >= 0
+
+    def test_space_errors(self, ada_client, testdir_path, setup_data):
+        with pytest.raises(AdaAPIError):
+            ada_client.space("no-such-poolgroup-ada-test")
+        with pytest.raises(AdaNotFoundError):
+            ada_client.poolgroups_for_path(f"{testdir_path}/no-such-dir-ada-test")
+        # A file's pool group is not reliable, so only directories are accepted
+        with pytest.raises(AdaValidationError):
+            ada_client.poolgroups_for_path(setup_data)
+
+
+class TestQuota:
+    """Test quotas (#67), checked against the raw API.
+
+    Which tests run depends on the quotas set on the dCache instance;
+    the others are skipped, so the report shows which cases were tested.
+    """
+
+    @pytest.mark.parametrize("quota_type", ["user", "group"])
+    def test_quota_set(self, ada_client, expected_quotas, quota_owners, quota_type):
+        expected = [entry for qtype, entry in expected_quotas if qtype == quota_type]
+        if not expected:
+            pytest.skip(f"No quota set on {quota_owners[quota_type]}")
+
+        quotas = [q for q in ada_client.quota() if q.quota_type == quota_type]
+        assert [(q.id, q.custodial_limit, q.replica_limit) for q in quotas] == [
+            (entry["id"], entry.get("custodialLimit"), entry.get("replicaLimit"))
+            for entry in expected
+        ]
+        me = ada_client.whoami()
+        for q in quotas:
+            assert q.id == me.uid if quota_type == "user" else q.id in me.gids
+            # Usage can change between the two requests, so don't compare it
+            assert q.custodial >= 0
+            assert q.replica >= 0
+
+    def test_no_quota_set(self, ada_client, expected_quotas, quota_owners):
+        if expected_quotas:
+            pytest.skip("Quota is set on " + " and on ".join(
+                quota_owners[qtype] for qtype in dict.fromkeys(qtype for qtype, _ in expected_quotas)
+            ))
+        assert ada_client.quota() == []
 
 
 class TestClassNamespace:
