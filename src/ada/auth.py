@@ -506,6 +506,22 @@ def _extract_hostname(api_url: str) -> str:
     return parsed.hostname or ""
 
 
+# Shown when no authentication method is given anywhere.
+_NO_AUTH_METHOD_MESSAGE = """\
+No authentication method specified. Use one of:
+  Token file (macaroon or OIDC token):
+      --tokenfile FILE, $ada_tokenfile, or tokenfile=FILE in ada.conf
+  Token in an environment variable:
+      $BEARER_TOKEN (--token to require it)
+  OIDC token from oidc-agent:
+      --tokenclient ACCOUNT, $ada_tokenclient, or tokenclient=ACCOUNT in ada.conf
+  Username and password in a netrc file:
+      --netrc (~/.netrc), --netrcfile FILE, $ada_netrcfile, or netrcfile=FILE in ada.conf
+  X.509 proxy certificate:
+      --proxy ($X509_USER_PROXY or /tmp/x509up_u<uid>), or --proxyfile FILE
+See https://sara-nl.github.io/dcache-pyclient/configuration.html"""
+
+
 def resolve_auth(
     token: Optional[str] = None,
     tokenfile: Optional[str] = None,
@@ -577,12 +593,7 @@ def resolve_auth(
         if config.netrcfile:
             return NetrcAuth(config.netrcfile, hostname=hostname)
 
-    raise AdaAuthError(
-        "No authentication method configured. Use --token, --tokenfile, "
-        "--tokenclient, --netrc, --netrcfile, --proxy, or --proxyfile;"
-        "set $BEARER_TOKEN, $ada_tokenfile, $ada_tokenclient or $ada_netrcfile;"
-        "or set tokenfile/tokenclient/netrcfile in ada.conf."
-    )
+    raise AdaAuthError(_NO_AUTH_METHOD_MESSAGE)
 
 
 # JWT/OIDC token handling.

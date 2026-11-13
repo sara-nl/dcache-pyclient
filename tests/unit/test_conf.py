@@ -172,3 +172,20 @@ class TestDefaultConfigPaths:
         assert paths[1] == "/etc/ada.conf"
         assert paths[2].endswith("/etc/ada.conf")
         assert paths[2] not in ("~/.ada/ada.conf", "/etc/ada.conf")
+
+
+class TestBundledConfig:
+    def test_sets_no_api_or_auth(self, monkeypatch):
+        """The bundled ada.conf only has examples, no active values (#78).
+
+        A placeholder like ``tokenfile=/path/to/token`` would be used when
+        nothing else is configured, giving a confusing "file does not
+        exist" error instead of "no authentication method specified".
+        """
+        for var in ("ada_api", "ada_tokenfile", "ada_tokenclient", "ada_netrcfile"):
+            monkeypatch.delenv(var, raising=False)
+        config = load_config(paths=[_default_config_paths()[2]])
+        assert config.api == ""
+        assert config.tokenfile is None
+        assert config.tokenclient is None
+        assert config.netrcfile is None
