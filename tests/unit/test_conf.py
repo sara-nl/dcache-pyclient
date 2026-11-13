@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pytest
 
@@ -175,16 +176,17 @@ class TestDefaultConfigPaths:
 
 
 class TestBundledConfig:
-    def test_sets_no_api_or_auth(self, monkeypatch):
+    def test_sets_no_api_or_auth(self):
         """The bundled ada.conf only has examples, no active values (#78).
 
         A placeholder like ``tokenfile=/path/to/token`` would be used when
         nothing else is configured, giving a confusing "file does not
         exist" error instead of "no authentication method specified".
         """
-        for var in ("ada_api", "ada_tokenfile", "ada_tokenclient", "ada_netrcfile"):
-            monkeypatch.delenv(var, raising=False)
-        config = load_config(paths=[_default_config_paths()[2]])
+        # Parse the file directly: load_config() also checks the file's
+        # permissions, which depend on where the package is installed.
+        config = AdaConfig()
+        _load_config_file(config, Path(_default_config_paths()[2]))
         assert config.api == ""
         assert config.tokenfile is None
         assert config.tokenclient is None
