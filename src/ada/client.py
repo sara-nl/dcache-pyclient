@@ -325,6 +325,13 @@ class AdaClient:
         Labels are tags that can be used to group and find files, see
         :meth:`find_label`. Directories cannot have labels.
 
+        Warning:
+            Labels are not private: every user of the same dCache
+            instance can see a label, together with the names of the
+            files that have it. Don't label files whose names are
+            confidential, and don't put confidential information in a
+            label.
+
         Args:
             path: dCache path of a file.
             label: The label to attach.

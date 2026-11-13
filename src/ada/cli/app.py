@@ -479,7 +479,14 @@ def parse_args() -> argparse.ArgumentParser:
     # setlabel
     parser_setlabel = subparsers.add_parser(
         'setlabel',
-        help="Attach a label to a file."
+        help="Attach a label to a file.",
+        description=(
+            "Attach a label to a file. Warning: labels are not private. "
+            "Every user of the same dCache instance can see a label, "
+            "together with the names of the files that have it. Don't "
+            "label files whose names are confidential, and don't put "
+            "confidential information in a label."
+        ),
     )
     parser_setlabel.set_defaults(func=setlabel)
     parser_setlabel.add_argument(
