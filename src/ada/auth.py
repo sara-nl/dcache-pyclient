@@ -86,6 +86,16 @@ class AuthProvider(ABC):
         """
         return self.method_name()
 
+    def rejection_hint(self) -> str:
+        """Suggest what to check when dCache rejects the credentials.
+
+        Used when dCache doesn't say why it rejected them.
+
+        Returns:
+            A hint for the user.
+        """
+        return "Check your credentials."
+
     def view_token(self) -> dict[str, Any]:
         """Decode the token, to show its properties.
 
@@ -174,6 +184,12 @@ class TokenAuth(AuthProvider):
 
     def describe(self) -> str:
         return f"token ({self.source})"
+
+    def rejection_hint(self) -> str:
+        return (
+            "Check that the token is valid and was issued for this "
+            "dCache instance."
+        )
 
     def validate(self, command: Optional[str] = None) -> None:
         validate_token(self.token, source=self.source, command=command)
@@ -367,6 +383,12 @@ class NetrcAuth(AuthProvider):
     def describe(self) -> str:
         return f"netrc ({self.netrcfile})"
 
+    def rejection_hint(self) -> str:
+        return (
+            f"Check the username and password for {self.hostname} "
+            "in the netrc file."
+        )
+
     def get_httpx_auth(self) -> Any:
         """Parse netrc and return httpx BasicAuth for the API host."""
         if not self.hostname:
@@ -434,6 +456,12 @@ class ProxyAuth(AuthProvider):
 
     def method_name(self) -> str:
         return "proxy"
+
+    def rejection_hint(self) -> str:
+        return (
+            "Check that the proxy certificate is valid and that dCache "
+            "knows your identity (DN or VO)."
+        )
 
     def validate(self, command: Optional[str] = None) -> None:
         """Check that the proxy does not expire within 60 seconds.
