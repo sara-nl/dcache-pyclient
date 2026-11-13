@@ -24,6 +24,40 @@ from ada.utils import encode_path
 
 logger = logging.getLogger("ada.api")
 
+# Reasons dCache gives for a 401 that don't say what is wrong. Other
+# reasons do, e.g. "macaroon login denied: Invalid macaroon [...]:
+# Client fails to match IP caveat ip:192.0.2.0/24".
+_GENERIC_401_REASONS = {"", "login failed", "unauthorized"}
+
+
+def authentication_error(
+    response: httpx.Response, auth: AuthProvider
+) -> AdaAuthenticationError:
+    """Build the error for a 401 response, with dCache's reason if it gave one.
+
+    dCache puts the reason in the HTTP status line (the body is empty),
+    so it is only available over HTTP/1.1. When the reason is generic,
+    a hint for the authentication method is given instead.
+
+    Shared between DcacheAPI (REST) and the WebDAV client.
+
+    Args:
+        response: The 401 response.
+        auth: The authentication method that was used.
+
+    Returns:
+        The error, to be raised by the caller.
+    """
+    reason = response.reason_phrase.strip()
+    if reason.lower() in _GENERIC_401_REASONS:
+        message = (
+            f"dCache rejected the credentials ({auth.describe()}). "
+            f"{auth.rejection_hint()}"
+        )
+    else:
+        message = f"dCache rejected the credentials ({auth.describe()}): {reason}"
+    return AdaAuthenticationError(message, reason=reason)
+
 
 def build_ssl_kwargs(auth: AuthProvider, verify: bool) -> dict[str, Any]:
     """Build the TLS settings for an ``httpx.Client``.
@@ -397,9 +431,7 @@ class DcacheAPI:
         status = response.status_code
 
         if status == 401:
-            raise AdaAuthenticationError(
-                "Authentication failed. Check your token, netrc, or proxy credentials."
-            )
+            raise authentication_error(response, self.auth)
         if status == 404:
             raise AdaNotFoundError(f"Not found: {response.url}")
         if status == 403:

@@ -101,7 +101,8 @@ class TransferService:
                 verify_checksum) or a symlink, or its parent doesn't exist.
             AdaTransferError: On a checksum mismatch, if no WebDAV door
                 is found, or if a redirect is refused.
-            AdaAPIError: If the WebDAV door returns an HTTP error.
+            AdaAuthenticationError: If dCache rejected the credentials.
+            AdaAPIError: If the WebDAV door returns another HTTP error.
         """
         source = Path(local_path)
         if not source.is_file():
@@ -187,7 +188,8 @@ class TransferService:
                 (with a suggestion to stage it first), on a checksum
                 mismatch, if no WebDAV door is found, or if a redirect
                 is refused.
-            AdaAPIError: If the WebDAV door returns an HTTP error.
+            AdaAuthenticationError: If dCache rejected the credentials.
+            AdaAPIError: If the WebDAV door returns another HTTP error.
         """
         door, path = self._split_door_and_path(remote_path)
         ns = self._get_namespace()
