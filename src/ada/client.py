@@ -19,6 +19,7 @@ import logging
 from typing import Optional
 
 from ada.config import load_config
+from ada.exceptions import AdaConfigError
 from ada.api import DcacheAPI
 from ada.auth import AuthProvider, resolve_auth
 from ada.models import (
@@ -99,7 +100,8 @@ class AdaClient:
             the ``ada`` logger).
 
     Raises:
-        AdaConfigError: If the API URL does not start with ``https://``.
+        AdaConfigError: If no API URL is given, or it does not start
+            with ``https://``.
         AdaAuthError: If no authentication method is found, or the
             credentials can't be read (e.g. a missing proxy file).
         AdaTokenExpiredError: If the token or proxy has expired, or
@@ -142,6 +144,13 @@ class AdaClient:
         if igtf is not None:
             self.config.igtf = igtf
         self.config.validate()
+        if not self.config.api:
+            raise AdaConfigError(
+                "No dCache API address specified. Use --api URL, $ada_api, "
+                "or api=URL in ada.conf, e.g. "
+                "api=https://dcache.example.org:3880/api/v1\n"
+                "See https://sara-nl.github.io/dcache-pyclient/configuration.html"
+            )
 
         # Resolve authentication
         self.auth: AuthProvider = resolve_auth(
