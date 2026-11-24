@@ -312,7 +312,7 @@ class TestConfigPrecedence:
 
 
 class TestTransfer:
-    def test_donwload_upload(self, ada_client, setup_data, target_env, tmp_path):
+    def test_download_upload(self, ada_client, setup_data, target_env, tmp_path):
         """Stage and unstage file on dCache"""
         # create testfile on dCache
         dcache_file = setup_data

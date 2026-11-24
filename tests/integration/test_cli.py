@@ -306,7 +306,7 @@ class TestStaging:
 
 
 class TestTransfer:
-    def test_donwload_upload(self, target_env, setup_data, tmp_path):
+    def test_download_upload(self, target_env, setup_data, tmp_path):
         """Stage and unstage file on dCache"""
         # create testfile on dCache
         dcache_file = setup_data
