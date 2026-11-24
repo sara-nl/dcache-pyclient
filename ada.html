@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ada package &mdash; dcache-pyclient  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
@@ -193,7 +193,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.exceptions.AdaAPIError.response_body"><code class="docutils literal notranslate"><span class="pre">AdaAPIError.response_body</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaNotFoundError"><code class="docutils literal notranslate"><span class="pre">AdaNotFoundError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaNotFoundError"><code class="docutils literal notranslate"><span class="pre">AdaNotFoundError</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ada.exceptions.AdaNotFoundError.url"><code class="docutils literal notranslate"><span class="pre">AdaNotFoundError.url</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaForbiddenError"><code class="docutils literal notranslate"><span class="pre">AdaForbiddenError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaPathError"><code class="docutils literal notranslate"><span class="pre">AdaPathError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.exceptions.AdaTransferError"><code class="docutils literal notranslate"><span class="pre">AdaTransferError</span></code></a></li>
@@ -1686,7 +1689,7 @@ command-specific permissions.</p></li>
 for uploads and downloads, a WebDAV door). It is fully independent of
 the <code class="docutils literal notranslate"><span class="pre">ada-cli</span></code> command line tool.</p>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ada</span> <span class="kn">import</span> <span class="n">AdaClient</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ada</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaClient</span>
 
 <span class="k">with</span> <span class="n">AdaClient</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="s2">&quot;https://dcache.example.org:3880/api/v1&quot;</span><span class="p">,</span>
                <span class="n">tokenfile</span><span class="o">=</span><span class="s2">&quot;~/macaroon.conf&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
@@ -1768,7 +1771,7 @@ the <code class="docutils literal notranslate"><span class="pre">ada</span></cod
 </dd>
 </dl>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ada</span> <span class="kn">import</span> <span class="n">AdaClient</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ada</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaClient</span>
 
 <span class="k">with</span> <span class="n">AdaClient</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="s2">&quot;https://dcache.example.org:3880/api/v1&quot;</span><span class="p">,</span>
                <span class="n">tokenfile</span><span class="o">=</span><span class="s2">&quot;~/macaroon.conf&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
@@ -2761,8 +2764,8 @@ ADA errors at once, or only specific ones:</p>
 are sent (e.g. an expired token), while <a class="reference internal" href="#ada.exceptions.AdaAuthenticationError" title="ada.exceptions.AdaAuthenticationError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaAuthenticationError</span></code></a>
 means dCache rejected them.</p>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ada</span> <span class="kn">import</span> <span class="n">AdaClient</span>
-<span class="kn">from</span> <span class="nn">ada.exceptions</span> <span class="kn">import</span> <span class="n">AdaError</span><span class="p">,</span> <span class="n">AdaNotFoundError</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ada</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaClient</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ada.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaError</span><span class="p">,</span> <span class="n">AdaNotFoundError</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="k">with</span> <span class="n">AdaClient</span><span class="p">(</span><span class="n">tokenfile</span><span class="o">=</span><span class="s2">&quot;~/macaroon.conf&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
@@ -2860,11 +2863,17 @@ explains the error.</p>
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="ada.exceptions.AdaNotFoundError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.exceptions.</span></span><span class="sig-name descname"><span class="pre">AdaNotFoundError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.exceptions.AdaNotFoundError" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.exceptions.</span></span><span class="sig-name descname"><span class="pre">AdaNotFoundError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.exceptions.AdaNotFoundError" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ada.exceptions.AdaAPIError" title="ada.exceptions.AdaAPIError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdaAPIError</span></code></a></p>
 <p>The file, directory or request does not exist (HTTP 404).</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ada.exceptions.AdaNotFoundError.url">
+<span class="sig-name descname"><span class="pre">url</span></span><a class="headerlink" href="#ada.exceptions.AdaNotFoundError.url" title="Link to this definition"></a></dt>
+<dd><p>The full API URL that returned the 404; empty if unknown.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py exception">
@@ -4046,7 +4055,7 @@ the <code class="docutils literal notranslate"><span class="pre">ada</span></cod
 </dd>
 </dl>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ada</span> <span class="kn">import</span> <span class="n">AdaClient</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ada</span><span class="w"> </span><span class="kn">import</span> <span class="n">AdaClient</span>
 
 <span class="k">with</span> <span class="n">AdaClient</span><span class="p">(</span><span class="n">api</span><span class="o">=</span><span class="s2">&quot;https://dcache.example.org:3880/api/v1&quot;</span><span class="p">,</span>
                <span class="n">tokenfile</span><span class="o">=</span><span class="s2">&quot;~/macaroon.conf&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
