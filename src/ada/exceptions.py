@@ -100,10 +100,15 @@ class AdaAPIError(AdaError):
 
 
 class AdaNotFoundError(AdaAPIError):
-    """The file, directory or request does not exist (HTTP 404)."""
+    """The file, directory or request does not exist (HTTP 404).
 
-    def __init__(self, message: str) -> None:
+    Attributes:
+        url: The full API URL that returned the 404; empty if unknown.
+    """
+
+    def __init__(self, message: str, url: str = "") -> None:
         super().__init__(message, status_code=404)
+        self.url = url
 
 
 class AdaForbiddenError(AdaAPIError):
