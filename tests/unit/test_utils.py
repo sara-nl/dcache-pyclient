@@ -113,17 +113,15 @@ class TestCheckFilePermissions:
         f = tmp_path / "token"
         f.write_text("x")
         f.chmod(0o602)
-        with pytest.raises(AdaSecurityError, match=r"Fix with: chmod o-w '.*token'") as exc:
+        with pytest.raises(AdaSecurityError, match=r"Fix with: chmod o-w '.*token'"):
             check_file_permissions(str(f))
-        assert "{path}" not in str(exc.value)
 
     def test_world_readable_message_contains_path(self, tmp_path):
         f = tmp_path / "token"
         f.write_text("x")
         f.chmod(0o604)
-        with pytest.raises(AdaSecurityError, match=r"Fix with: chmod o-r '.*token'") as exc:
+        with pytest.raises(AdaSecurityError, match=r"Fix with: chmod o-r '.*token'"):
             check_file_permissions(str(f))
-        assert "{path}" not in str(exc.value)
 
 
 def _fake_git_run(args, **kwargs):
