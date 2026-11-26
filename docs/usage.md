@@ -141,6 +141,23 @@ ada-cli delete --recursive </path/to/dCache/homedir/testdir/
 These are some of the basic commands of `ada-cli`. More advanced examples will follow later.
 
 
+## Labels are visible to all users
+
+With `setlabel` you can attach labels to files, to group them and find
+them again with `findlabel`. Be aware that **labels are not private**:
+every user of the same dCache instance can see a label, together with
+the names of the files that have it. This can leak information when file
+names are confidential, e.g. when they contain a person's name or a
+project name.
+
+So don't label files whose names are confidential, and don't put
+confidential information in a label.
+
+If you want to tag files without others seeing it, consider extended
+attributes instead (`setxattr`, `lsxattr`, `findxattr`). Unlike labels,
+they are not shown to every user of the dCache instance.
+
+
 ## Using authentication methods
 
 `--token`, `--tokenfile`, `--tokenclient`, `--netrc`, `--netrcfile`,  `--proxy`, and `--proxyfile`
