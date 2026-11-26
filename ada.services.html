@@ -423,6 +423,8 @@ exist.</p>
 <p>Label service: tagging files on dCache.</p>
 <p>Labels are simple string tags attached to files, to group and find
 them. Directories cannot have labels (dCache restriction).</p>
+<p>Labels are not private: every user of the same dCache instance can see
+a label, together with the names of the files that have it.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ada.services.labels.LabelService">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ada.services.labels.</span></span><span class="sig-name descname"><span class="pre">LabelService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.labels.LabelService" title="Link to this definition"></a></dt>
@@ -441,6 +443,14 @@ when needed if not given.</p></li>
 <dt class="sig sig-object py" id="ada.services.labels.LabelService.set">
 <span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.services.labels.LabelService.set" title="Link to this definition"></a></dt>
 <dd><p>Attach a label to a file.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Labels are not private: every user of the same dCache
+instance can see a label, together with the names of the
+files that have it. Don’t label files whose names are
+confidential, and don’t put confidential information in a
+label.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">

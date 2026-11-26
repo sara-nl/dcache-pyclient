@@ -52,6 +52,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#labels-are-visible-to-all-users">Labels are visible to all users</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-authentication-methods">Using authentication methods</a></li>
 </ul>
 </li>
@@ -212,6 +213,20 @@
 </div>
 <p>These are some of the basic commands of <code class="docutils literal notranslate"><span class="pre">ada-cli</span></code>. More advanced examples will follow later.</p>
 </section>
+</section>
+<section id="labels-are-visible-to-all-users">
+<h2>Labels are visible to all users<a class="headerlink" href="#labels-are-visible-to-all-users" title="Link to this heading"></a></h2>
+<p>With <code class="docutils literal notranslate"><span class="pre">setlabel</span></code> you can attach labels to files, to group them and find
+them again with <code class="docutils literal notranslate"><span class="pre">findlabel</span></code>. Be aware that <strong>labels are not private</strong>:
+every user of the same dCache instance can see a label, together with
+the names of the files that have it. This can leak information when file
+names are confidential, e.g. when they contain a person’s name or a
+project name.</p>
+<p>So don’t label files whose names are confidential, and don’t put
+confidential information in a label.</p>
+<p>If you want to tag files without others seeing it, consider extended
+attributes instead (<code class="docutils literal notranslate"><span class="pre">setxattr</span></code>, <code class="docutils literal notranslate"><span class="pre">lsxattr</span></code>, <code class="docutils literal notranslate"><span class="pre">findxattr</span></code>). Unlike labels,
+they are not shown to every user of the dCache instance.</p>
 </section>
 <section id="using-authentication-methods">
 <h2>Using authentication methods<a class="headerlink" href="#using-authentication-methods" title="Link to this heading"></a></h2>

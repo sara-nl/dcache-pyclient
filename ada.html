@@ -2093,6 +2093,14 @@ Use <code class="docutils literal notranslate"><span class="pre">force=True</spa
 <dd><p>Attach a label to a file.</p>
 <p>Labels are tags that can be used to group and find files, see
 <a class="reference internal" href="#ada.client.AdaClient.find_label" title="ada.client.AdaClient.find_label"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_label()</span></code></a>. Directories cannot have labels.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Labels are not private: every user of the same dCache
+instance can see a label, together with the names of the
+files that have it. Don’t label files whose names are
+confidential, and don’t put confidential information in a
+label.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -4390,6 +4398,14 @@ Use <code class="docutils literal notranslate"><span class="pre">force=True</spa
 <dd><p>Attach a label to a file.</p>
 <p>Labels are tags that can be used to group and find files, see
 <a class="reference internal" href="#ada.AdaClient.find_label" title="ada.AdaClient.find_label"><code class="xref py py-meth docutils literal notranslate"><span class="pre">find_label()</span></code></a>. Directories cannot have labels.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Labels are not private: every user of the same dCache
+instance can see a label, together with the names of the
+files that have it. Don’t label files whose names are
+confidential, and don’t put confidential information in a
+label.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
