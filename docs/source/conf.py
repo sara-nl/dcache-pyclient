@@ -16,12 +16,33 @@ author = 'Onno Zweers, Haili Hu'
 
 extensions = [
     'sphinx.ext.autodoc',
-    "sphinx.ext.napoleon",    
+    "sphinx.ext.napoleon",
+    'sphinx.ext.intersphinx',
     'myst_parser',
     'sphinx_rtd_theme',
 ]
 
 source_suffix = ['.rst', '.md']
+
+# Show type hints in the parameter descriptions instead of in the
+# signature, and document members in source order instead of alphabetically.
+# Only for documented parameters, so a dataclass doesn't get a list of its
+# fields as undocumented parameters on top of the documented fields.
+autodoc_typehints = 'description'
+autodoc_typehints_description_target = 'documented_params'
+autodoc_member_order = 'bysource'
+
+# Link types from the standard library (datetime, Path, ...) to the Python docs
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+
+# References that can't be resolved, so 'sphinx-build -n' doesn't warn about
+# them: httpx has no Sphinx documentation, a bare 'Path' in type hints isn't
+# qualified, and re.error is called re.PatternError in the Python docs.
+nitpick_ignore = [
+    ('py:class', 'httpx.Response'),
+    ('py:class', 'Path'),
+    ('py:exc', 're.error'),
+]
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 language = 'en'
@@ -30,4 +51,4 @@ language = 'en'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-html_static_path = ['_static']
+html_static_path = []

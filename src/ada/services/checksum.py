@@ -1,7 +1,8 @@
-"""Checksum service — retrieve file checksums from dCache.
+"""Checksum service: get the checksums that dCache stored for files.
 
-Supports MD5 and Adler32 checksums, with recursive directory traversal
-and file-list input.
+dCache stores Adler32 and/or MD5 checksums. Checksums can be retrieved
+for files, for the files in a directory (recursively if wanted), or for
+the paths listed in a local file.
 """
 
 from __future__ import annotations
@@ -20,7 +21,13 @@ logger = logging.getLogger("ada.services.checksum")
 
 
 class ChecksumService:
-    """Checksum retrieval for dCache files."""
+    """Checksum retrieval for dCache files.
+
+    Args:
+        api: Client for the dCache REST API.
+        namespace: Namespace service to check path types with. Created
+            when needed if not given.
+    """
 
     def __init__(self, api: DcacheAPI, namespace: Optional[NamespaceService] = None) -> None:
         self._api = api
@@ -38,15 +45,26 @@ class ChecksumService:
         recursive: bool = False,
         from_file: Optional[str] = None,
     ) -> list[Checksum]:
-        """Get checksums for one or more files.
+        """Get the checksums that dCache stored for files.
+
+        For a directory, the checksums of its files are returned (and,
+        with ``recursive``, those in its subdirectories). Give either
+        ``paths`` or ``from_file``.
 
         Args:
-            paths: File or directory path(s).
-            recursive: If True, recurse into directories.
-            from_file: Path to a file containing one path per line.
+            paths: dCache path, or list of paths, of files or directories.
+            recursive: Also include files in subdirectories.
+            from_file: Local file with one dCache path per line.
 
         Returns:
-            List of Checksum objects.
+            A :class:`~ada.models.Checksum` for each checksum found. A
+            file can have more than one, e.g. both Adler32 and MD5.
+
+        Raises:
+            AdaValidationError: If both or neither of ``paths`` and
+                ``from_file`` are given, or ``from_file`` contains no
+                paths.
+            FileNotFoundError: If ``from_file`` does not exist.
         """
 
         # Get list of paths

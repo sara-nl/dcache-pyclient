@@ -1,7 +1,7 @@
-"""Extended attributes service — key-value metadata on dCache files.
+"""Extended attributes service: key-value metadata on dCache files.
 
 Extended attributes (xattr) are key-value pairs that can be attached
-to files for custom metadata storage.
+to files for custom metadata. Directories cannot have them.
 """
 
 from __future__ import annotations
@@ -23,7 +23,13 @@ logger = logging.getLogger("ada.services.xattr")
 
 
 class XattrService:
-    """Extended attribute management for dCache files."""
+    """Extended attribute management for dCache files.
+
+    Args:
+        api: Client for the dCache REST API.
+        namespace: Namespace service to check path types with. Created
+            when needed if not given.
+    """
 
     def __init__(self, api: DcacheAPI, namespace: Optional[NamespaceService] = None) -> None:
         self._api = api
@@ -37,16 +43,19 @@ class XattrService:
     def set(self, path: str, attributes: dict[str, str] | str) -> str:
         """Set extended attributes on a file.
 
+        Existing attributes with the same keys are overwritten.
+
         Args:
-            path: File path.
-            attributes: Either a dict of key-value pairs, or a string
-                in JSON/key=value format that will be parsed.
+            path: dCache path of a file.
+            attributes: The attributes, as a dict, or as a string in one
+                of the formats accepted by :func:`ada.utils.to_json`.
 
         Returns:
-            Status message.
+            A message saying that the attributes were set.
 
         Raises:
             AdaPathError: If the path is a directory.
+            AdaValidationError: If the string can't be parsed.
         """
         if isinstance(attributes, str):
             attributes = to_json(attributes)
@@ -60,22 +69,38 @@ class XattrService:
         return f"Extended attributes set on '{path}'"
 
     def set_from_file(self, path: str, attr_file: str) -> str:
-        """Set extended attributes from a file.
+        """Set extended attributes on a file, read from a local file.
 
-        The file can contain JSON or key=value pairs.
+        Args:
+            path: dCache path of a file.
+            attr_file: Local file with the attributes, in one of the
+                formats accepted by :func:`ada.utils.to_json`.
+
+        Returns:
+            A message saying that the attributes were set.
+
+        Raises:
+            AdaPathError: If the path is a directory.
+            AdaValidationError: If the content can't be parsed.
+            FileNotFoundError: If ``attr_file`` does not exist.
         """
         content = PathLib(attr_file).read_text(encoding="utf-8").strip()
         return self.set(path, content)
 
     def list(self, path: str, key: Optional[str] = None) -> dict[str, str]:
-        """List extended attributes of a file.
+        """List the extended attributes of a file, or get one of them.
 
         Args:
-            path: File path.
-            key: If specified, return only this attribute.
+            path: dCache path of a file.
+            key: If given, only get this attribute.
 
         Returns:
-            Dict of attribute key-value pairs.
+            The attributes as a dict. If ``key`` is given, a dict with
+            only that attribute, or an empty dict if the file doesn't
+            have it.
+
+        Raises:
+            AdaPathError: If the path is a directory.
         """
         self._ensure_file(path)
         encoded = encode_path(path)
@@ -91,15 +116,21 @@ class XattrService:
         return xattrs
 
     def remove(self, path: str, key: str = "", all_keys: bool = False) -> str:
-        """Remove extended attribute(s) from a file.
+        """Remove one extended attribute, or all of them, from a file.
 
         Args:
-            path: File path.
-            key: Specific attribute key to remove.
-            all_keys: If True, remove all extended attributes.
+            path: dCache path of a file.
+            key: Key of the attribute to remove.
+            all_keys: Remove all extended attributes instead.
 
         Returns:
-            Status message.
+            A message saying which attributes were removed, or that
+            there were none.
+
+        Raises:
+            AdaPathError: If the path is a directory.
+            AdaValidationError: If neither ``key`` nor ``all_keys`` is
+                given.
         """
         self._ensure_file(path)
         encoded = encode_path(path)
@@ -131,17 +162,25 @@ class XattrService:
         recursive: bool = False,
         all_keys: bool = False,
     ) -> list[tuple[str, dict[str, str]]]:
-        """Find files with extended attributes matching a regex.
+        """Find files in a directory with attribute values that match a pattern.
 
         Args:
-            path: Directory to search.
-            key: Attribute key to match against (or search all keys if all_keys=True).
-            regex: Regular expression to match against attribute values.
-            recursive: If True, search subdirectories.
-            all_keys: If True, search all attribute keys.
+            path: dCache path of the directory to search.
+            key: Key of the attribute whose value is matched. Ignored if
+                ``all_keys`` is True.
+            regex: Regular expression (Python syntax). A value matches
+                when the pattern is found anywhere in it.
+            recursive: Also search subdirectories.
+            all_keys: Match the values of all attributes, not only
+                ``key``.
 
         Returns:
-            List of (file_path, matching_attributes) tuples.
+            A tuple for each file with matching attributes, with the
+            file path and a dict of the matching attributes.
+
+        Raises:
+            AdaPathError: If the path is a file.
+            re.error: If the regular expression is invalid.
         """
         ns = self._get_namespace()
 

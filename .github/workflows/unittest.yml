@@ -15,16 +15,24 @@ permissions:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    name: build (${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        os: ["ubuntu-latest"]
+        include:
+          # Python 3.9 is not available for the newest Ubuntu runners anymore,
+          # but it is still the system Python of RHEL 9 and its rebuilds, which
+          # many cluster users have. Test it on an older Ubuntu.
+          - python-version: "3.9"
+            os: "ubuntu-24.04"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies

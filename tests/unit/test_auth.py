@@ -23,6 +23,7 @@ from ada.auth import (
     get_public_ip,
     is_jwt,
     is_macaroon,
+    resolve_auth,
     validate_token,
     ProxyAuth,
 )
@@ -434,3 +435,15 @@ class TestProxyAuthValidate:
         proxyfile.write_text("not a certificate")
         with pytest.raises(AdaAuthError, match="No certificates found"):
             ProxyAuth(proxyfile=str(proxyfile), igtf=False).validate()
+
+
+class TestResolveAuthNothingSpecified:
+    def test_lists_the_authentication_methods(self, monkeypatch):
+        for var in ("BEARER_TOKEN", "ada_tokenfile", "ada_tokenclient", "ada_netrcfile"):
+            monkeypatch.delenv(var, raising=False)
+        with pytest.raises(AdaAuthError) as exc_info:
+            resolve_auth()
+        message = str(exc_info.value)
+        assert message.startswith("No authentication method specified")
+        for option in ("--tokenfile", "$BEARER_TOKEN", "--tokenclient", "--netrc", "--proxy"):
+            assert option in message

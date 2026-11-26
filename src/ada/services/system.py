@@ -1,7 +1,4 @@
-"""System service — whoami, space, and quota operations.
-
-Provides user identity, storage space, and quota information.
-"""
+"""System service: your identity, the dCache version, space and quotas."""
 
 from __future__ import annotations
 
@@ -19,16 +16,22 @@ logger = logging.getLogger("ada.services.system")
 
 
 class SystemService:
-    """System information from the dCache API."""
+    """System information from the dCache API.
+
+    Args:
+        api: Client for the dCache REST API.
+    """
 
     def __init__(self, api: DcacheAPI) -> None:
         self._api = api
 
     def whoami(self) -> UserInfo:
-        """Get the authenticated user's identity.
+        """Get how dCache identifies you with the current credentials.
 
-        Returns user info including UID, GIDs, username, home directory,
-        and the dCache version.
+        Returns:
+            Your identity, with the status (``"AUTHENTICATED"`` when the
+            credentials were accepted), user and group IDs, user name,
+            and home and root directory.
         """
         data = self._api.get("user")
         return UserInfo(
@@ -46,6 +49,9 @@ class SystemService:
 
         Each dCache cell (service) can report its own version, so this
         returns the sorted set of unique versions found across all cells.
+
+        Returns:
+            The versions, sorted, without duplicates.
         """
         data = self._api.get("cells")
         versions = {
@@ -54,9 +60,13 @@ class SystemService:
         return sorted(versions)
 
     def check_authenticated(self) -> bool:
-        """Check if the user is authenticated by calling the user endpoint.
+        """Check whether dCache accepts the credentials.
 
-        Returns True if authenticated, raises on failure.
+        Returns:
+            False if dCache treats you as anonymous, True otherwise.
+
+        Raises:
+            AdaAuthenticationError: If dCache rejected the credentials.
         """
         data = self._api.get("user")
         status = data.get("status", "")
@@ -65,14 +75,18 @@ class SystemService:
         return True
 
     def space(self, poolgroup: Optional[str] = None) -> SpaceInfo | list[str]:
-        """Get storage space information.
+        """List the pool groups, or get the space of one pool group.
 
         Args:
-            poolgroup: If specified, return space info for this pool group.
-                If None, return a list of available pool group names.
+            poolgroup: Name of a pool group. If not given, the names of
+                all pool groups are returned.
 
         Returns:
-            SpaceInfo for a specific pool group, or list of pool group names.
+            The names of all pool groups, or, with ``poolgroup``, its
+            space in bytes.
+
+        Raises:
+            AdaAPIError: If the pool group does not exist.
         """
         if poolgroup:
             data = self._api.get(f"poolgroups/{poolgroup}/space")
@@ -101,6 +115,12 @@ class SystemService:
         moved file's storage class/HSM may point to a different pool
         group than the one its data actually lives in, making pool
         group resolution for a file unreliable.
+
+        Args:
+            path: dCache path of a directory.
+
+        Returns:
+            Names of the pool groups, to use with :meth:`space`.
 
         Raises:
             AdaValidationError: If path is a file, not a directory.
@@ -156,8 +176,9 @@ class SystemService:
         matching the Bash version.
 
         Returns:
-            A list of quota entries (user and/or group, for both
-            custodial/tape and replica/disk storage). Empty if neither
+            One :class:`~ada.models.QuotaInfo` per quota that is set
+            (user and/or group), with usage and limits in bytes for both
+            custodial/tape and replica/disk storage. Empty if neither
             the user nor the group has any quota set.
         """
         quotas: list[QuotaInfo] = []

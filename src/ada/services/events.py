@@ -1,7 +1,12 @@
-"""Event service — SSE event streaming and channel management.
+"""Event service: receiving dCache events and managing event channels.
 
-Handles subscribing to inotify events, monitoring staging progress,
-and managing event channels in the dCache API.
+dCache can report changes in the namespace (inotify events) as
+Server-Sent Events (SSE) on an event channel. This service creates and
+reuses channels, subscribes them to paths, and streams the events. ADA
+keeps the names of channels and the last received event in
+``~/.ada/channels`` (see :class:`AdaState`), so a stream can be resumed.
+
+Not yet available through :class:`~ada.client.AdaClient`.
 """
 
 from __future__ import annotations
@@ -23,7 +28,13 @@ logger = logging.getLogger("ada.services.events")
 
 
 class EventService:
-    """SSE event streaming and channel management for dCache."""
+    """Event streaming and channel management for dCache.
+
+    Args:
+        api: Client for the dCache REST API.
+        state: Where channel names and event IDs are kept. Defaults to
+            ``~/.ada``.
+    """
 
     def __init__(self, api: DcacheAPI, state: Optional[AdaState] = None) -> None:
         self._api = api
@@ -44,15 +55,23 @@ class EventService:
         inotify events, then streams events via SSE.
 
         Args:
-            channel_name: Human-readable channel name.
+            channel_name: Name for the channel, to reuse it later.
             path: dCache path to watch.
-            recursive: If True, watch subdirectories too.
-            resume: If True, resume from last processed event.
-            force: If True, create a new channel even if one exists.
-            timeout: SSE connection timeout in seconds.
+            recursive: Also watch subdirectories.
+            resume: Continue after the last event received earlier on
+                this channel.
+            force: Create a new channel even if one with this name exists.
+            timeout: Close the connection when no data arrives for this
+                many seconds.
 
         Yields:
-            Parsed event dicts from the SSE stream.
+            Each event as a dict, with the keys ``event`` (the event
+            type) and ``id``, and the fields of the event data. Heartbeat
+            (``SYSTEM``) events are skipped.
+
+        Raises:
+            AdaAPIError: If the channel or subscription can't be created,
+                or the stream fails.
         """
         channel = self._get_or_create_channel(channel_name, force=force)
         channel_id = channel.channel_id
@@ -77,12 +96,25 @@ class EventService:
         recursive: bool = False,
         timeout: int = 3600,
     ) -> Iterator[dict[str, Any]]:
-        """Monitor file locality/QoS changes (staging progress).
+        """Watch a path for changes, to follow staging progress.
 
-        Similar to subscribe but watches for QoS transition events.
+        Reuses the channel with this name if it exists. Currently
+        subscribes to the same inotify events as :meth:`subscribe`,
+        without resuming.
+
+        Args:
+            channel_name: Name for the channel, to reuse it later.
+            path: dCache path to watch.
+            recursive: Also watch subdirectories.
+            timeout: Close the connection when no data arrives for this
+                many seconds.
 
         Yields:
-            Events related to file staging status changes.
+            Each event as a dict, like :meth:`subscribe`.
+
+        Raises:
+            AdaAPIError: If the channel or subscription can't be created,
+                or the stream fails.
         """
         channel = self._get_or_create_channel(channel_name)
         channel_id = channel.channel_id
@@ -93,14 +125,16 @@ class EventService:
         yield from self._stream_events(channel_id, None, timeout)
 
     def list_channels(self, name: Optional[str] = None) -> Any:
-        """List event channels.
+        """List your event channels, or get one by name.
+
+        Channels that ADA knows a name for get a ``local_name`` field.
 
         Args:
-            name: If specified, return details for this channel.
-                Otherwise, return all channels.
+            name: If given, return only the channel with this name.
 
         Returns:
-            Channel details dict or list of channels.
+            The channels as dCache reports them. With ``name``, the
+            matching channel, or all channels if it isn't found.
         """
         data = self._api.get("events/channels")
 
@@ -128,9 +162,13 @@ class EventService:
         return data
 
     def delete_channel(self, name: str) -> None:
-        """Delete an event channel by name.
+        """Delete an event channel, in dCache and in ADA's local state.
 
-        Removes both the API-side channel and local state files.
+        Args:
+            name: Name of the channel, or its ID.
+
+        Raises:
+            AdaAPIError: If no channel with this name or ID exists.
         """
         channel_id = self._state.find_channel_id_by_name(name)
         if channel_id:
@@ -256,7 +294,15 @@ class EventService:
 
 
 class AdaState:
-    """Manages ~/.ada/ state directory."""
+    """ADA's local state: names of event channels, the last event received
+    on each channel, and a log of requests.
+
+    Creates the state directory (readable only by you) if it doesn't
+    exist.
+
+    Args:
+        base_dir: The state directory. Defaults to ``~/.ada``.
+    """
 
     def __init__(self, base_dir: str | Path | None = None) -> None:
         self.base_dir = Path(base_dir or Path.home() / ".ada")
@@ -274,19 +320,38 @@ class AdaState:
     # ---- Channel State ----
 
     def get_channel_name(self, channel_id: str) -> Optional[str]:
-        """Get the human-readable name for a channel ID."""
+        """Get the name ADA gave a channel.
+
+        Args:
+            channel_id: ID of the channel.
+
+        Returns:
+            The name, or None if ADA doesn't know the channel.
+        """
         path = self.channels_dir / f"channel-name-{channel_id}"
         if path.exists():
             return path.read_text().strip()
         return None
 
     def save_channel_name(self, channel_id: str, name: str) -> None:
-        """Save the mapping of channel ID to human-readable name."""
+        """Remember the name of a channel.
+
+        Args:
+            channel_id: ID of the channel.
+            name: Name for the channel.
+        """
         path = self.channels_dir / f"channel-name-{channel_id}"
         path.write_text(name)
 
     def get_last_event_id(self, channel_id: str) -> Optional[str]:
-        """Get the last processed event ID for a channel."""
+        """Get the ID of the last event received on a channel.
+
+        Args:
+            channel_id: ID of the channel.
+
+        Returns:
+            The event ID, or None if no event was saved.
+        """
         path = self.channels_dir / f"channel-status-{channel_id}"
         if path.exists():
             match = re.search(r"\d+", path.read_text())
@@ -294,25 +359,46 @@ class AdaState:
         return None
 
     def save_last_event_id(self, channel_id: str, event_id: str) -> None:
-        """Save the last processed event ID for resume support."""
+        """Remember the last event received on a channel, to resume later.
+
+        Args:
+            channel_id: ID of the channel.
+            event_id: ID of the event.
+        """
         path = self.channels_dir / f"channel-status-{channel_id}"
         path.write_text(event_id)
 
     def find_channel_id_by_name(self, name: str) -> Optional[str]:
-        """Find a channel ID by its human-readable name."""
+        """Find the ID of a channel by its name.
+
+        Args:
+            name: Name of the channel.
+
+        Returns:
+            The channel ID, or None if no channel has this name.
+        """
         for path in self.channels_dir.glob("channel-name-*"):
             if path.read_text().strip() == name:
                 return path.name.replace("channel-name-", "")
         return None
 
     def delete_channel_files(self, channel_id: str) -> None:
-        """Remove all state files for a channel."""
+        """Forget a channel: remove its name and last event ID.
+
+        Args:
+            channel_id: ID of the channel.
+        """
         for prefix in ("channel-name-", "channel-status-"):
             path = self.channels_dir / f"{prefix}{channel_id}"
             path.unlink(missing_ok=True)
 
     def list_channels(self) -> list[dict[str, str]]:
-        """List all known channels with their IDs and names."""
+        """List the channels that ADA knows a name for.
+
+        Returns:
+            For each channel, a dict with ``id``, ``name`` and
+            ``last_event_id`` (``"none"`` if no event was saved).
+        """
         channels: list[dict[str, str]] = []
         for path in sorted(self.channels_dir.glob("channel-name-*")):
             channel_id = path.name.replace("channel-name-", "")
@@ -328,7 +414,11 @@ class AdaState:
     # ---- Request Logging ----
 
     def log_request(self, lines: list[str]) -> None:
-        """Append lines to the requests log."""
+        """Add lines to the request log (``requests.log``).
+
+        Args:
+            lines: The lines to add.
+        """
         with self.requests_log.open("a") as f:
             for line in lines:
                 f.write(line + "\n")

@@ -1,7 +1,7 @@
-"""Label service — file metadata tagging on dCache.
+"""Label service: tagging files on dCache.
 
-Labels are simple string tags attached to files. Directories cannot
-have labels (dCache restriction).
+Labels are simple string tags attached to files, to group and find
+them. Directories cannot have labels (dCache restriction).
 """
 
 from __future__ import annotations
@@ -22,7 +22,13 @@ logger = logging.getLogger("ada.services.labels")
 
 
 class LabelService:
-    """Label management for dCache files."""
+    """Label management for dCache files.
+
+    Args:
+        api: Client for the dCache REST API.
+        namespace: Namespace service to check path types with. Created
+            when needed if not given.
+    """
 
     def __init__(self, api: DcacheAPI, namespace: Optional[NamespaceService] = None) -> None:
         self._api = api
@@ -37,11 +43,11 @@ class LabelService:
         """Attach a label to a file.
 
         Args:
-            path: File path (must be a regular file, not a directory).
-            label: Label string to attach.
+            path: dCache path of a file.
+            label: The label to attach.
 
         Returns:
-            Status message.
+            A message saying that the label was set.
 
         Raises:
             AdaPathError: If the path is a directory.
@@ -54,15 +60,18 @@ class LabelService:
         return f"Label '{label}' set on '{path}'"
 
     def list(self, path: str, label: Optional[str] = None) -> list[str]:
-        """List labels attached to a file.
+        """List the labels of a file, or check for one label.
 
         Args:
-            path: File path.
-            label: If specified, check if this specific label exists.
+            path: dCache path of a file.
+            label: If given, only check whether the file has this label.
 
         Returns:
-            List of label strings. If `label` is given, either `[label]`
-            (it's present) or `[]` (it's not).
+            The file's labels. If ``label`` is given, ``[label]`` if the
+            file has it, otherwise an empty list.
+
+        Raises:
+            AdaPathError: If the path is a directory.
         """
         self._ensure_file(path)
         encoded = encode_path(path)
@@ -73,15 +82,21 @@ class LabelService:
         return labels
 
     def remove(self, path: str, label: str = "", all_labels: bool = False) -> str:
-        """Remove a label from a file.
+        """Remove one label, or all labels, from a file.
 
         Args:
-            path: File path.
-            label: Specific label to remove.
-            all_labels: If True, remove all labels.
+            path: dCache path of a file.
+            label: The label to remove.
+            all_labels: Remove all labels instead.
 
         Returns:
-            Status message.
+            A message saying which labels were removed, or that there
+            were none.
+
+        Raises:
+            AdaPathError: If the path is a directory.
+            AdaValidationError: If neither ``label`` nor ``all_labels``
+                is given.
         """
         self._ensure_file(path)
         encoded = encode_path(path)
@@ -110,15 +125,21 @@ class LabelService:
         regex: str,
         recursive: bool = False,
     ) -> list[tuple[str, list[str]]]:
-        """Find files with labels matching a regex pattern.
+        """Find files in a directory with labels that match a pattern.
 
         Args:
-            path: Directory to search.
-            regex: Regular expression to match against labels.
-            recursive: If True, search subdirectories.
+            path: dCache path of the directory to search.
+            regex: Regular expression (Python syntax). A label matches
+                when the pattern is found anywhere in it.
+            recursive: Also search subdirectories.
 
         Returns:
-            List of (file_path, matching_labels) tuples.
+            A tuple for each file with matching labels, with the file
+            path and the list of matching labels.
+
+        Raises:
+            AdaPathError: If the path is a file.
+            re.error: If the regular expression is invalid.
         """
         ns = self._get_namespace()
 

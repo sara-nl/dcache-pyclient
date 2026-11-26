@@ -28,6 +28,8 @@ from typing import Optional
 
 from ada.exceptions import AdaAuthError
 
+#: Object identifier of the X.509 extension that holds a VOMS attribute
+#: certificate.
 VOMS_EXTENSION_OID = "1.3.6.1.4.1.8005.100.100.5"
 
 _TAG_UTCTIME = 0x17
@@ -39,11 +41,15 @@ _TAG_SEQUENCE = 0x30
 
 @dataclass
 class DerNode:
-    """A single decoded DER TLV element."""
+    """A single decoded DER TLV (tag, length, value) element."""
 
+    #: The tag byte, e.g. 0x30 for a SEQUENCE.
     tag: int
+    #: True if the element contains other elements.
     is_constructed: bool
+    #: The raw value bytes.
     value: bytes
+    #: The elements inside a constructed element.
     children: list["DerNode"] = field(default_factory=list)
 
 
@@ -53,6 +59,15 @@ def parse_der(data: bytes) -> list[DerNode]:
     Constructed elements (SEQUENCE, SET, and context-specific constructed
     tags) are recursed into automatically; primitive elements keep their
     raw value bytes.
+
+    Args:
+        data: DER-encoded data.
+
+    Returns:
+        The top-level elements.
+
+    Raises:
+        AdaAuthError: If the data is truncated or invalid.
     """
     nodes: list[DerNode] = []
     offset = 0
@@ -144,6 +159,12 @@ def pem_certs(pem_text: str) -> list[bytes]:
     A proxy file typically contains one or more certificates followed by
     a private key (and possibly CA chain certificates); only the
     ``CERTIFICATE`` blocks are relevant here.
+
+    Args:
+        pem_text: Content of a PEM file.
+
+    Returns:
+        The certificates, DER-encoded, in the order of the file.
     """
     import base64
 
@@ -156,7 +177,18 @@ def pem_certs(pem_text: str) -> list[bytes]:
 
 
 def x509_validity(der_cert: bytes) -> tuple[datetime, datetime]:
-    """Return (notBefore, notAfter) for an X.509 certificate's own validity."""
+    """Get the validity period of an X.509 certificate.
+
+    Args:
+        der_cert: The DER-encoded certificate.
+
+    Returns:
+        A tuple of the ``notBefore`` and ``notAfter`` times, in UTC.
+
+    Raises:
+        AdaAuthError: If the certificate can't be parsed or has no
+            validity period.
+    """
     top = parse_der(der_cert)
     if not top or not top[0].children:
         raise AdaAuthError("Invalid X.509 certificate: cannot parse structure")
@@ -175,7 +207,17 @@ def x509_validity(der_cert: bytes) -> tuple[datetime, datetime]:
 
 
 def find_extension(der_cert: bytes, oid: str) -> Optional[bytes]:
-    """Return the raw OCTET STRING content of the extension with the given OID."""
+    """Find an extension of an X.509 certificate.
+
+    Args:
+        der_cert: The DER-encoded certificate.
+        oid: Object identifier of the extension, e.g.
+            :data:`VOMS_EXTENSION_OID`.
+
+    Returns:
+        The raw content (OCTET STRING value) of the extension, or None
+        if the certificate doesn't have it.
+    """
     top = parse_der(der_cert)
     if not top or not top[0].children:
         return None
@@ -225,11 +267,16 @@ def _find_validity_period(node: DerNode) -> Optional[tuple[datetime, datetime]]:
 
 
 def voms_ac_validity(ac_der: bytes) -> Optional[tuple[datetime, datetime]]:
-    """Return (notBeforeTime, notAfterTime) for a VOMS attribute certificate.
+    """Get the validity period of a VOMS attribute certificate.
 
-    Returns None if the structure doesn't contain a recognizable
-    validity period (e.g. an unexpected/future VOMS encoding) rather
-    than raising, so callers can fall back to X.509-only validation.
+    Args:
+        ac_der: Content of the VOMS extension, from :func:`find_extension`.
+
+    Returns:
+        A tuple of the ``notBeforeTime`` and ``notAfterTime``, in UTC,
+        or None if the structure doesn't contain a recognizable validity
+        period (e.g. an unexpected/future VOMS encoding), so callers can
+        fall back to X.509-only validation.
     """
     try:
         top = parse_der(ac_der)

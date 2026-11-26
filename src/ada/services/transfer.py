@@ -1,9 +1,9 @@
-"""Transfer service — upload and download file content via WebDAV.
+"""Transfer service: upload and download file content via WebDAV.
 
 The dCache REST API can only manage metadata; actual file content is
-transferred through a WebDAV door (see ``ada.webdav``). This service
+transferred through a WebDAV door (see :mod:`ada.webdav`). This service
 applies the same safety rules as the Bash version: no silent
-overwrites, no downloading directories/symlinks, and — importantly —
+overwrites, no downloading directories/symlinks, and, importantly, it
 refuses to download a file that's only on tape (nearline), since
 dCache would otherwise silently stage it while the connection sits
 there waiting, which can take anywhere from minutes to days.
@@ -33,7 +33,16 @@ _CHUNK_SIZE = 1024 * 1024
 
 
 class TransferService:
-    """Upload and download file content via WebDAV."""
+    """Upload and download file content via WebDAV.
+
+    Args:
+        api: Client for the dCache REST API, also used to find a WebDAV
+            door and for its authentication and TLS settings.
+        namespace: Namespace service to check paths with. Created when
+            needed if not given.
+        checksums: Checksum service to verify transfers with. Created
+            when needed if not given.
+    """
 
     def __init__(
         self,
@@ -81,11 +90,18 @@ class TransferService:
             allow_insecure_redirects: If True, follow WebDAV redirects
                 even if they downgrade to plain HTTP.
 
+        Returns:
+            The result, with ``status`` ``"uploaded"``, or
+            ``"already-verified"`` when an existing file had the same
+            checksum.
+
         Raises:
             AdaPathError: If the local file doesn't exist, the
                 destination is an existing file (without
                 verify_checksum) or a symlink, or its parent doesn't exist.
-            AdaTransferError: On a checksum mismatch or WebDAV-level failure.
+            AdaTransferError: On a checksum mismatch, if no WebDAV door
+                is found, or if a redirect is refused.
+            AdaAPIError: If the WebDAV door returns an HTTP error.
         """
         source = Path(local_path)
         if not source.is_file():
@@ -157,14 +173,21 @@ class TransferService:
             allow_insecure_redirects: If True, follow WebDAV redirects
                 even if they downgrade to plain HTTP.
 
+        Returns:
+            The result, with ``status`` ``"downloaded"``, or
+            ``"already-verified"`` when an existing local file had the
+            same checksum.
+
         Raises:
             AdaPathError: If the local target already exists (without
                 verify_checksum), or the source is a directory/symlink,
                 or the parent directory doesn't exist.
             AdaNotFoundError: If the source doesn't exist.
             AdaTransferError: If the source is on tape and not online
-                (with a suggestion to stage it first), or on checksum
-                mismatch / WebDAV-level failure.
+                (with a suggestion to stage it first), on a checksum
+                mismatch, if no WebDAV door is found, or if a redirect
+                is refused.
+            AdaAPIError: If the WebDAV door returns an HTTP error.
         """
         door, path = self._split_door_and_path(remote_path)
         ns = self._get_namespace()
