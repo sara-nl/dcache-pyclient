@@ -76,6 +76,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.AuthProvider.describe"><code class="docutils literal notranslate"><span class="pre">AuthProvider.describe()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.AuthProvider.view_token"><code class="docutils literal notranslate"><span class="pre">AuthProvider.view_token()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.AuthProvider.expiry_status"><code class="docutils literal notranslate"><span class="pre">AuthProvider.expiry_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.auth.AuthProvider.ip_caveat_status"><code class="docutils literal notranslate"><span class="pre">AuthProvider.ip_caveat_status()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.AuthProvider.validate"><code class="docutils literal notranslate"><span class="pre">AuthProvider.validate()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.AuthProvider.get_httpx_auth"><code class="docutils literal notranslate"><span class="pre">AuthProvider.get_httpx_auth()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.AuthProvider.get_ssl_context"><code class="docutils literal notranslate"><span class="pre">AuthProvider.get_ssl_context()</span></code></a></li>
@@ -88,6 +89,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.TokenAuth.validate"><code class="docutils literal notranslate"><span class="pre">TokenAuth.validate()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.TokenAuth.view_token"><code class="docutils literal notranslate"><span class="pre">TokenAuth.view_token()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ada.auth.TokenAuth.expiry_status"><code class="docutils literal notranslate"><span class="pre">TokenAuth.expiry_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ada.auth.TokenAuth.ip_caveat_status"><code class="docutils literal notranslate"><span class="pre">TokenAuth.ip_caveat_status()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#ada.auth.TokenFileAuth"><code class="docutils literal notranslate"><span class="pre">TokenFileAuth</span></code></a></li>
@@ -931,6 +933,19 @@ the status, even of an expired token.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="ada.auth.AuthProvider.ip_caveat_status">
+<span class="sig-name descname"><span class="pre">ip_caveat_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ada.auth.AuthProvider.ip_caveat_status" title="Link to this definition"></a></dt>
+<dd><p>Describe the token’s IP caveat, informationally.</p>
+<p>Returns None when IP caveats don’t apply, e.g. for OIDC tokens,
+which never have them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="ada.auth.AuthProvider.validate">
 <span class="sig-name descname"><span class="pre">validate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.auth.AuthProvider.validate" title="Link to this definition"></a></dt>
 <dd><p>Check the credentials before they are used.</p>
@@ -1104,6 +1119,19 @@ the status, even of an expired token.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ada.auth.TokenAuth.ip_caveat_status">
+<span class="sig-name descname"><span class="pre">ip_caveat_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ada.auth.TokenAuth.ip_caveat_status" title="Link to this definition"></a></dt>
+<dd><p>Describe the token’s IP caveat, informationally.</p>
+<p>Returns None when IP caveats don’t apply, e.g. for OIDC tokens,
+which never have them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)">str</a> | None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1506,7 +1534,10 @@ Empty if the token has no <code class="docutils literal notranslate"><span class
 <dl class="py function">
 <dt class="sig sig-object py" id="ada.auth.is_macaroon">
 <span class="sig-prename descclassname"><span class="pre">ada.auth.</span></span><span class="sig-name descname"><span class="pre">is_macaroon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">token</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ada.auth.is_macaroon" title="Link to this definition"></a></dt>
-<dd><p>Check if a token looks like a Macaroon (not a JWT).</p>
+<dd><p>Check if a token is a (V1-serialized) Macaroon, as issued by dCache.</p>
+<p>Decodes the token and checks for the location packet it always
+starts with. Other formats, such as V2 binary macaroons, are not
+recognized.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)">bool</a></p>
@@ -1545,7 +1576,7 @@ without the signature.</p>
 <dd><p>Decode a Macaroon and return its properties as a dict.</p>
 <p>Parses the decoded text for the <code class="docutils literal notranslate"><span class="pre">location</span></code>/<code class="docutils literal notranslate"><span class="pre">identifier</span></code> header
 fields and known caveats like <code class="docutils literal notranslate"><span class="pre">before:</span></code>, <code class="docutils literal notranslate"><span class="pre">activity:</span></code>,
-<code class="docutils literal notranslate"><span class="pre">path:</span></code>, <code class="docutils literal notranslate"><span class="pre">id:</span></code>, etc. Real macaroons (v2 binary format) prefix
+<code class="docutils literal notranslate"><span class="pre">path:</span></code>, <code class="docutils literal notranslate"><span class="pre">id:</span></code>, etc. Real macaroons (V1 format) prefix
 each caveat line with a hex length and a <code class="docutils literal notranslate"><span class="pre">cid</span> <span class="pre">``</span> <span class="pre">tag</span> <span class="pre">(e.g.</span>
 <span class="pre">``002ecid</span> <span class="pre">before:2026-...Z</span></code>), so caveats are searched for
 anywhere in the line rather than requiring them at the start.</p>
@@ -1675,7 +1706,8 @@ command-specific permissions.</p></li>
 <dd class="field-even"><ul class="simple">
 <li><p><a class="reference internal" href="#ada.exceptions.AdaTokenExpiredError" title="ada.exceptions.AdaTokenExpiredError"><strong>AdaTokenExpiredError</strong></a> – If the token has expired or is about to expire.</p></li>
 <li><p><a class="reference internal" href="#ada.exceptions.AdaTokenPermissionError" title="ada.exceptions.AdaTokenPermissionError"><strong>AdaTokenPermissionError</strong></a> – If the token lacks required permissions.</p></li>
-<li><p><a class="reference internal" href="#ada.exceptions.AdaAuthError" title="ada.exceptions.AdaAuthError"><strong>AdaAuthError</strong></a> – If the token cannot be decoded.</p></li>
+<li><p><a class="reference internal" href="#ada.exceptions.AdaAuthError" title="ada.exceptions.AdaAuthError"><strong>AdaAuthError</strong></a> – If the token format is not recognized or the token
+    cannot be decoded.</p></li>
 </ul>
 </dd>
 </dl>
