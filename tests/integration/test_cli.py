@@ -47,6 +47,82 @@ class TestClassSystem:
         assert target_env["homedir"] in out
 
 
+def _ada_cli(target_env, *args):
+    return subprocess.check_output(
+        ["ada-cli", "--tokenfile", target_env['tokenfile'], "--api", target_env['api'], *args],
+        text=True,
+    )
+
+
+def _number(value):
+    """A number as ada-cli shows it: with spaces between thousands."""
+    return f"{value:,}".replace(",", " ")
+
+
+class TestSpace:
+    """Test the space command (#67), checked against the raw API"""
+
+    def test_list_poolgroups(self, target_env, raw_api_get):
+        status, body = raw_api_get("poolgroups")
+        assert status == 200
+        out = _ada_cli(target_env, "space")
+        assert out.splitlines() == [item["name"] for item in body]
+
+    def test_space_of_path(self, target_env, ada_client, raw_api_get, testdir_path):
+        out = _ada_cli(target_env, "space", testdir_path)
+        for poolgroup in ada_client.poolgroups_for_path(testdir_path):
+            assert f"[{poolgroup}]" in out
+            status, body = raw_api_get(f"poolgroups/{poolgroup}/space")
+            assert status == 200
+            assert _number(body["groupSpaceData"]["total"]) in out
+        for label in ("Total:", "Free:", "Precious:", "Removable:", "Available:"):
+            assert label in out
+
+    def test_space_of_poolgroup(self, target_env, ada_client, testdir_path):
+        poolgroup = ada_client.poolgroups_for_path(testdir_path)[0]
+        out = _ada_cli(target_env, "space", poolgroup)
+        assert out.splitlines()[0].startswith("Total:")
+        assert _number(ada_client.space(poolgroup).total) in out
+
+    def test_space_errors(self, target_env, testdir_path):
+        with pytest.raises(subprocess.CalledProcessError):
+            _ada_cli(target_env, "space", "no-such-poolgroup-ada-test")
+        with pytest.raises(subprocess.CalledProcessError):
+            _ada_cli(target_env, "space", f"{testdir_path}/no-such-dir-ada-test")
+
+
+class TestQuota:
+    """Test the quota command (#67), checked against the raw API.
+
+    Which tests run depends on the quotas set on the dCache instance;
+    the others are skipped, so the report shows which cases were tested.
+    """
+
+    @pytest.mark.parametrize("quota_type", ["user", "group"])
+    def test_quota_set(self, target_env, expected_quotas, quota_owners, quota_type):
+        expected = [entry for qtype, entry in expected_quotas if qtype == quota_type]
+        if not expected:
+            pytest.skip(f"No quota set on {quota_owners[quota_type]}")
+
+        lines = _ada_cli(target_env, "quota").splitlines()
+        assert lines[0].split() == ["Quota", "custodial", "(tape)", "custodialLimit", "%",
+                                    "replica", "(disk)", "replicaLimit", "%"]
+        assert len(lines) == 1 + len(expected_quotas)
+        for entry in expected:
+            matching = [line for line in lines[1:] if line.startswith(f"{quota_type}:{entry['id']}")]
+            assert len(matching) == 1
+            for limit in (entry.get("custodialLimit"), entry.get("replicaLimit")):
+                assert (_number(limit) if limit is not None else "-") in matching[0]
+
+    def test_no_quota_set(self, target_env, expected_quotas, quota_owners):
+        if expected_quotas:
+            pytest.skip("Quota is set on " + " and on ".join(
+                quota_owners[qtype] for qtype in dict.fromkeys(qtype for qtype, _ in expected_quotas)
+            ))
+        out = _ada_cli(target_env, "quota")
+        assert "You do not have any quota set" in out
+
+
 class TestClassNamespace:
     """Test namespace commands"""
 
