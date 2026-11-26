@@ -106,8 +106,9 @@ def make_jwt_token():
 def make_macaroon_token():
     """Factory fixture to create fake Macaroon tokens for testing.
 
-    Close enough to the real binary format for decode_macaroon_raw():
-    4 junk header bytes, followed by newline-separated caveat lines.
+    Close enough to the real V1 format for is_macaroon() and
+    decode_macaroon_raw(): a location packet, followed by
+    newline-separated caveat lines.
     """
 
     def _make(before: str = "", activity: str = "", ip: str = "") -> str:
@@ -120,7 +121,7 @@ def make_macaroon_token():
             lines.append(f"ip:{ip}")
         lines.append("signature abcdef1234567890")
         text = "\n".join(lines)
-        return base64.b64encode(b"\x00\x00\x00\x00" + text.encode()).decode()
+        return base64.b64encode(b"001clocation test-macaroon\n" + text.encode()).decode()
 
     return _make
 
