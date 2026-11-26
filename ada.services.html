@@ -1213,7 +1213,8 @@ checksum.</p>
     verify_checksum) or a symlink, or its parent doesn’t exist.</p></li>
 <li><p><a class="reference internal" href="ada.html#ada.exceptions.AdaTransferError" title="ada.exceptions.AdaTransferError"><strong>AdaTransferError</strong></a> – On a checksum mismatch, if no WebDAV door
     is found, or if a redirect is refused.</p></li>
-<li><p><a class="reference internal" href="ada.html#ada.exceptions.AdaAPIError" title="ada.exceptions.AdaAPIError"><strong>AdaAPIError</strong></a> – If the WebDAV door returns an HTTP error.</p></li>
+<li><p><a class="reference internal" href="ada.html#ada.exceptions.AdaAuthenticationError" title="ada.exceptions.AdaAuthenticationError"><strong>AdaAuthenticationError</strong></a> – If dCache rejected the credentials.</p></li>
+<li><p><a class="reference internal" href="ada.html#ada.exceptions.AdaAPIError" title="ada.exceptions.AdaAPIError"><strong>AdaAPIError</strong></a> – If the WebDAV door returns another HTTP error.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -1257,7 +1258,8 @@ same checksum.</p>
     (with a suggestion to stage it first), on a checksum
     mismatch, if no WebDAV door is found, or if a redirect
     is refused.</p></li>
-<li><p><a class="reference internal" href="ada.html#ada.exceptions.AdaAPIError" title="ada.exceptions.AdaAPIError"><strong>AdaAPIError</strong></a> – If the WebDAV door returns an HTTP error.</p></li>
+<li><p><a class="reference internal" href="ada.html#ada.exceptions.AdaAuthenticationError" title="ada.exceptions.AdaAuthenticationError"><strong>AdaAuthenticationError</strong></a> – If dCache rejected the credentials.</p></li>
+<li><p><a class="reference internal" href="ada.html#ada.exceptions.AdaAPIError" title="ada.exceptions.AdaAPIError"><strong>AdaAPIError</strong></a> – If the WebDAV door returns another HTTP error.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
