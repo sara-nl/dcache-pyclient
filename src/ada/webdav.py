@@ -23,7 +23,7 @@ from urllib.parse import quote, urljoin, urlparse
 
 import httpx
 
-from ada.api import build_ssl_kwargs
+from ada.api import authentication_error, build_ssl_kwargs
 from ada.auth import AuthProvider, TokenFileAuth
 from ada.exceptions import AdaAPIError, AdaTransferError
 
@@ -222,7 +222,8 @@ class WebdavClient:
 
         Raises:
             AdaTransferError: On too many redirects or an insecure redirect.
-            AdaAPIError: If the server returns an HTTP error status.
+            AdaAuthenticationError: If dCache rejected the credentials.
+            AdaAPIError: If the server returns another HTTP error status.
         """
         url = self.url_for(remote_path)
         headers = dict(self.auth.headers())
@@ -255,7 +256,8 @@ class WebdavClient:
 
         Raises:
             AdaTransferError: On too many redirects or an insecure redirect.
-            AdaAPIError: If the server returns an HTTP error status.
+            AdaAuthenticationError: If dCache rejected the credentials.
+            AdaAPIError: If the server returns another HTTP error status.
         """
         url = self.url_for(remote_path)
         headers = dict(self.auth.headers())
@@ -295,8 +297,9 @@ class WebdavClient:
             )
         return target
 
-    @staticmethod
-    def _raise_for_status(response: httpx.Response) -> None:
+    def _raise_for_status(self, response: httpx.Response) -> None:
+        if response.status_code == 401:
+            raise authentication_error(response, self.auth)
         if response.status_code >= 400:
             raise AdaAPIError(
                 f"WebDAV error {response.status_code}: {response.text[:200]}",

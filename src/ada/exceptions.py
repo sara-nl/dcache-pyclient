@@ -78,7 +78,17 @@ class AdaTokenPermissionError(AdaAuthError):
 
 
 class AdaAuthenticationError(AdaError):
-    """dCache rejected the credentials (HTTP 401)."""
+    """dCache rejected the credentials (HTTP 401).
+
+    Attributes:
+        reason: The reason dCache gave, e.g. ``"macaroon login denied:
+            ... Client fails to match IP caveat ip:192.0.2.0/24"``, or
+            just ``"login failed"``; empty if it gave none.
+    """
+
+    def __init__(self, message: str, reason: str = "") -> None:
+        super().__init__(message)
+        self.reason = reason
 
 
 class AdaAPIError(AdaError):
